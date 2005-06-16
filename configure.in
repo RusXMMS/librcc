@@ -1,0 +1,39 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_INIT(src/librcc.c)
+
+PACKAGE=librcc
+LIBRCC_VERSION_MAJOR=0
+LIBRCC_VERSION_MINOR=1
+LIBRCC_VERSION_SUBMINOR=0
+LIBRCC_VERSION=$LIBRCC_VERSION_MAJOR.$LIBRCC_VERSION_MINOR.$LIBRCC_VERSION_SUBMINOR
+VERSION=$LIBRCC_VERSION
+LIBRCC_VERSION_INFO=`echo $LIBRCC_VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
+
+AC_SUBST(LIBRCC_VERSION)
+AC_SUBST(LIBRCC_VERSION_MAJOR)
+AC_SUBST(LIBRCC_VERSION_MINOR)
+AC_SUBST(LIBRCC_VERSION_SUBMINOR)
+AC_SUBST(LIBRCC_VERSION_INFO)
+
+AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
+
+AC_PROG_CC
+AC_PROG_INSTALL
+AM_PROG_LIBTOOL
+
+AC_PATH_PROG(RM, rm, /bin/rm)
+AC_PATH_PROG(MV, mv, /bin/mv)
+AC_PATH_PROG(TAR, tar, /bin/tar)
+
+dnl Checks for programs.
+
+dnl Checks for libraries.
+
+dnl Checks for header files.
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+
+dnl Checks for library functions.
+
+AC_OUTPUT(src/Makefile Makefile librcc.spec)

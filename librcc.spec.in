@@ -1,0 +1,61 @@
+Summary: Russian Encoding Conversion Library
+Name: librcc
+Version: @VERSION@
+Release: csa
+License: GPL
+Group: Development/Libraries
+Vendor: DarkSoft <ds7fff@myrealbox.com>
+Distribution: DarkLin <ds7fff@myrealbox.com>
+Packager: Suren A. Chilingaryan <ds7fff@myrealbox.com>
+Source: librcc-%{version}.tar.bz2
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+URL: http://rusxmms.sourceforge.net
+Prefix: %{_prefix}
+Docdir: %{_docdir}
+BuildRequires: librcd-devel
+Requires: librcd
+
+%description
+Provides posibility to automaticaly convert considered encodings (a lot of 
+languages is supported, not only russian one) to/from UTF-8. The library
+is part of rusxmms patch.
+
+%package devel 
+Summary: Russian Encoding Conversion Library
+Group: Development/Libraries 
+Requires: librcd = %{version}
+
+%description devel
+Provides posibility to automaticaly convert considered encodings (a lot of 
+languages is supported, not only russian one) to/from UTF-8. The library
+is part of rusxmms patch.
+
+%prep
+%setup -q
+
+%build
+%configure
+
+%install
+%makeinstall prefix=$RPM_BUILD_ROOT%{prefix} 
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
+
+%files 
+%defattr(-, root, root)
+#%doc AUTHORS ChangeLog NEWS README Copyright
+%{prefix}/lib/lib*.so.*
+
+%files devel
+%defattr(-, root, root)  
+%doc example
+%{prefix}/include/
+%{prefix}/lib/lib*.so
+%{prefix}/lib/*.a
+
+%changelog
