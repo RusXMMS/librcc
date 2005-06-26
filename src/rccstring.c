@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-rcc_string rccStringInit(rcc_language_id language_id, const char *buf, int len, int *rlen) {
+#include "internal.h"
+#include "rccstring.h"
+
+rcc_string rccCreateString(rcc_language_id language_id, const char *buf, int len, int *rlen) {
+    char *res;
     rcc_string_header header = {RCC_STRING_MAGIC, language_id};
 
     len = STRNLEN(buf, len);
@@ -56,19 +60,19 @@ char *rccStringExtract(const rcc_string buf, int len, int *rlen) {
     return res;    
 }
 
-char *rccStringCmp(const rcc_string str1, const rcc_string str2) {
+int rccStringCmp(const rcc_string str1, const rcc_string str2) {
     return strcmp(rccStringGet(str1), rccStringGet(str2));
 }
 
-char *rccStringNCmp(const rcc_string str1, const rcc_string str2, size_t n) {
+int rccStringNCmp(const rcc_string str1, const rcc_string str2, size_t n) {
     return strncmp(rccStringGet(str1), rccStringGet(str2), n);
 }
 
-char *rccStringCaseCmp(const rcc_string str1, const rcc_string str2) {
+int rccStringCaseCmp(const rcc_string str1, const rcc_string str2) {
     return strcasecmp(rccStringGet(str1), rccStringGet(str2));
 }
 
-char *rccStringNCaseCmp(const rcc_string str1, const rcc_string str2, size_t n) {
+int rccStringNCaseCmp(const rcc_string str1, const rcc_string str2, size_t n) {
     return strncasecmp(rccStringGet(str1), rccStringGet(str2), n);
 }
 

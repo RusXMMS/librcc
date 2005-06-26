@@ -29,6 +29,17 @@ dnl Checks for programs.
 
 dnl Checks for libraries.
 
+XML_LIBS=error
+AC_CHECK_LIB(xml2, xmlDocDumpMemory, [
+	XML_LIBS=`xml2-config --libs`
+	XML_INCLUDES=`xml-config --cflags`
+    ])
+if test "x$XML_LIBS" = xerror; then
+	AC_MSG_ERROR(*** Unable to locate LibXML2 ***)
+fi
+AC_SUBST(XML_LIBS)
+AC_SUBST(XML_INCLUDES)
+
 dnl Checks for header files.
 
 dnl Checks for typedefs, structures, and compiler characteristics.
@@ -36,4 +47,4 @@ AC_C_CONST
 
 dnl Checks for library functions.
 
-AC_OUTPUT(src/Makefile Makefile librcc.spec)
+AC_OUTPUT(src/Makefile example/Makefile librcc.spec)

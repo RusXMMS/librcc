@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "librcc.h"
+#include "internal.h"
 
-int rccEngineInit(rcc_engine_context *engine_ctx, rcc_context *ctx) {
+int rccEngineInit(rcc_engine_context engine_ctx, rcc_context ctx) {
     if ((!ctx)||(!engine_ctx)) return -1;
     
     engine_ctx->ctx = ctx;
@@ -12,7 +12,7 @@ int rccEngineInit(rcc_engine_context *engine_ctx, rcc_context *ctx) {
     return 0;
 }
 
-void rccFreeEngine(rcc_engine_context *engine_ctx) {
+void rccEngineFree(rcc_engine_context engine_ctx) {
     if (!engine_ctx) return;
     
     if (engine_ctx->free_func) {
@@ -24,14 +24,14 @@ void rccFreeEngine(rcc_engine_context *engine_ctx) {
     engine_ctx->internal = NULL;
 }
 
-int rccEngineConfigure(rcc_engine_context *ctx) {
+int rccEngineConfigure(rcc_engine_context ctx) {
     rcc_language_id language_id;
     rcc_engine_id engine_id;
     rcc_engine *engine;
 
     if ((!ctx)||(!ctx->ctx)) return -1;
 
-    rccEngineFree(&ctx);
+    rccEngineFree(ctx);
     
     language_id = rccGetCurrentLanguage(ctx->ctx);
     if (language_id<0) return -1;
@@ -43,13 +43,13 @@ int rccEngineConfigure(rcc_engine_context *ctx) {
     
     ctx->free_func = engine->free_func;
     ctx->func = engine->func;
-    ctx->language = ctx->languages[language_id];
+    ctx->language = ctx->ctx->languages[language_id];
 
     ctx->internal = engine->init_func(ctx);
     return 0;
 }
 
-rcc_engine_internal rccEngineGetInternal(rcc_engine_context *ctx) {
+rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx) {
     if (!ctx) return NULL;
 
     return ctx->internal;

@@ -1,11 +1,26 @@
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <mntent.h>
 
-#include "librcc.h"
+#include "internal.h"
+
+#ifndef strndup
+static char *rccStrndup(const char *str, size_t n) {
+    char *res;
+    
+    n = STRNLEN(str, n);
+    res = (char*)malloc((n+1)*sizeof(char));
+    if (!res) return res;
+    strncpy(res, str, n);
+    res[n] = 0;
+    return res;
+}
+#define strndup rccStrndup
+#endif /* !strndup */
 
 static char *rccCreateFullName(const char *path, const char *filename) {
     unsigned int i;
@@ -18,7 +33,7 @@ static char *rccCreateFullName(const char *path, const char *filename) {
     
     
     i = strlen(path);
-    name = (char*)malloc(i+strlen(filename)+2)*sizeof(char));
+    name = (char*)malloc((i+strlen(filename)+2)*sizeof(char));
     if (!name) return NULL;
     
     if ((path[i-1]=='/')||(filename[0]=='/'))
@@ -47,10 +62,11 @@ static char *rccCheckFile(const char *prefix, const char *name) {
     return NULL;
 }
 
+/* Converts: 'filename' to 'prefix/name' using 'fspath' */
 int rccFS0(const char *fspath, const char *filename, char **prefix, char **name) {
     FILE *mtab;
     struct mntent *fsentry;
-    char *tmp;
+    const char *tmp;
 
     if (fspath) {
 	tmp = strstr(filename, fspath);
@@ -83,7 +99,9 @@ int rccFS0(const char *fspath, const char *filename, char **prefix, char **name)
     return 0;
 }
 
-int rccFS1(rcc_context *ctx, const char *fspath, char **prefix, char **name) {
+/* Normalizes 'prefix/name' using 'fspath' */
+int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
+    int err;
     int prefix_size;
     char *result, *tmp;
     char *path, *filename;
@@ -102,7 +120,7 @@ int rccFS1(rcc_context *ctx, const char *fspath, char **prefix, char **name) {
     
 	// Checking without recoding in case of autodetection
     if (rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES)) {
-	if (rccIsFile(name)) {
+	if (rccIsFile(result)) {
 	    if ((path)&&(filename)) *name = result;
 	    else if (filename) *name = strdup(filename);
 	    else *name = strdup(path);
@@ -110,17 +128,20 @@ int rccFS1(rcc_context *ctx, const char *fspath, char **prefix, char **name) {
 	}
     }
 
-    err = rccFS0(fspath, result, &prefix, &name);
+    err = rccFS0(fspath, result, prefix, name);
     if ((path)&&(filename)) free(name);
     
     return err;    
 }
 
-char *rccFS2(rcc_context *ctx, iconv_t icnv, const char *prefix, const char *name) {
+/* Checks if 'prefix/name' is accessible using 'icnv' recoding. In case of 
+sucess returns pointer on statically allocated memory, and NULL overwise */
+const char *rccFS2(rcc_context ctx, iconv_t icnv, const char *prefix, const char *name) {
+    int err;
+    
     if (icnv == (iconv_t)-1) return NULL;
     if (icnv == (iconv_t)-2) {
 	strcpy(ctx->tmpbuffer, name);
-	ctx->tmpbuffer[len] = 0;
     } else {
 	err = rccIConv(ctx, icnv, name, 0);
 	if (err<=0) return NULL;
@@ -129,7 +150,11 @@ char *rccFS2(rcc_context *ctx, iconv_t icnv, const char *prefix, const char *nam
     return rccCheckFile(prefix, ctx->tmpbuffer);
 }
 
-char *rccFS3(rcc_context *ctx, rcc_language_id language_id, rcc_class_id class_id, const char *prefix, const char *name) {
+/* Tries to find 'name' encoding in 'prefix/name' file. Returns pointer on
+statically allocated string with correct filename or NULL. */
+const char *rccFS3(rcc_context ctx, rcc_language_id language_id, rcc_class_id class_id, const char *prefix, const char *name) {
+    unsigned int i;
+    const char *result;
     rcc_charset charset; 
     rcc_language *language;
     iconv_t icnv = ctx->fsiconv;
@@ -147,8 +172,8 @@ char *rccFS3(rcc_context *ctx, rcc_language_id language_id, rcc_class_id class_i
     }
 
     if (rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES)) {
-	language = ctx->language[language_id];
-	if (language->charset[0]) {
+	language = ctx->languages[language_id];
+	if (language->charsets[0]) {
 	    for (i=1;(!result);i++) {
 		charset = language->charsets[i];
 		if (!charset) break;

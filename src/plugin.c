@@ -1,9 +1,14 @@
+#include <stdio.h>
+
+#include "plugin.h"
+
 #ifdef RCC_PLUGINS
 # include <dlfcn.h>
 # ifndef RTLD_NOW
 #  define RTLD_NOW 0
 # endif
 #endif /* RCC_PLUGINS */
+
 
 rcc_library_handle rccLibraryOpen(char *filename)
 {
