@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "internal.h"
-#include "config.h"
+#include "rccconfig.h"
 #include "rcclocale.h"
 
 rcc_engine_ptr rccConfigGetEnginePointer(rcc_language_config config, rcc_engine_id engine_id) {

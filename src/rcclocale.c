@@ -2,7 +2,7 @@
 #include <string.h>
 #include <locale.h>
 
-#include "config.h"
+#include "rccconfig.h"
 
 static int rccLocaleGetClassByName(const char *locale) {
     if (!strcmp(locale, "LC_CTYPE")) return LC_CTYPE;

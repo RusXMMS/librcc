@@ -1,0 +1,51 @@
+#! /bin/bash
+
+rm -f core.*
+
+RDIR=~/releases
+NAME=librcc
+
+
+if [ ! -d $RDIR ]; then
+    if [ -a $RDIR ]; then
+	echo "Release directory isn't a directory!"
+	exit
+    fi
+    mkdir -p $RDIR
+fi
+
+version=`cat VERSION | perl -e "while (<STDIN>) {  if (m/(\d\.\d(.\d)?)/) { print \\$1; } }"`
+cvs=`cat VERSION | perl -e "while (<STDIN>) {  if (m/\d\.\d(.\d)?.*(cvs|CVS|Cvs)/) { print 'cvs'; } }"`
+if [ "$cvs" == "cvs" ]; then
+    rname="$NAME-`date +%y%m%d.%H`"
+else
+    rname="$NAME-$version";
+fi
+if [ -d $RDIR/$rname ]; then
+    rm -rf $RDIR/$rname
+fi
+mkdir -p $RDIR/$rname
+if [ ! -d $RDIR/$rname ]; then
+    echo "Can't create directory!!!"
+    exit
+fi
+cp -a * $RDIR/$rname
+#cp -al * $RDIR/$rname
+
+(
+    cd $RDIR/$rname
+    ./autogen.sh
+    ./configure
+    make clean
+    make clean -C examples
+    rm -rf autom4te*.cache
+    rm -rf "{arch}"
+    rm -rf `find . -name .arch-ids`
+    rm -rf `find . -name .deps`
+    cd ..
+    if [ -a $rname.tar.bz2 ]; then
+	rm -f $rname.tar.bz2
+    fi
+    tar cjf $rname.tar.bz2 $rname
+    rm -rf $rname
+)

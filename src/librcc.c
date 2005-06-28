@@ -4,8 +4,8 @@
 #include <librcd.h>
 
 #include "internal.h"
-#include "config.h"
-#include "enca.h"
+#include "rccconfig.h"
+#include "rccenca.h"
 
 
 int rccInit() {

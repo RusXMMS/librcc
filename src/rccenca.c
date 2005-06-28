@@ -3,12 +3,16 @@
 #include "internal.h"
 #include "plugin.h"
 #include "engine.h"
-#include "config.h"
+#include "rccconfig.h"
 
-#include "enca.h"
-#ifdef RCC_ENCA_DYNAMIC
-# include "fake_enca.h"
-#endif /* RCC_ENCA_DYNAMIC */
+#include "rccenca.h"
+#ifdef RCC_ENCA_SUPPORT
+# ifdef RCC_ENCA_DYNAMIC
+#  include "fake_enca.h"
+# else
+#  include <enca.h>
+# endif /* RCC_ENCA_DYNAMIC */
+#endif /* RCC_ENCA_SUPPORT */
 
 static rcc_library_handle enca_handle = NULL;
 static rcc_engine *enca_engines = NULL;

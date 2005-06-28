@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "internal.h"
-#include "config.h"
+#include "rccconfig.h"
 #include "rcclocale.h"
 
 rcc_language_ptr rccGetLanguagePointer(rcc_context ctx, rcc_language_id language_id) {

@@ -1,10 +1,11 @@
 #ifndef _RCC_PLUGIN_H
 #define _RCC_PLUGIN_H
-#include "enca.h"
+#include "../config.h"
 
-#ifdef RCC_ENCA_DYNAMIC
+
+#ifdef HAVE_DLOPEN
 # define RCC_PLUGINS
-#endif /* RCC_ENCA_DYNAMIC */
+#endif /* HAVE_DLOPEN */
 
 typedef void *rcc_library_handle;
 

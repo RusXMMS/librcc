@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <librcd.h>
 
-#include "config.h"
+#include "internal.h"
+#include "rccconfig.h"
 
-static rcc_charset_id rcc_autoengine_russian(rcc_engine_context ctx, char *buf, int len) {
-    return (int)get_russian_charset(buf,len);
+static rcc_charset_id rcc_autoengine_russian(rcc_engine_context ctx, const char *buf, int len) {
+    return (rcc_charset_id)rcdGetRussianCharset(buf,len);
 }
 
 rcc_language_alias rcc_default_aliases[] = {
@@ -93,14 +94,3 @@ rcc_language rcc_default_languages[] = {
 {NULL}
 };
 
-/*
-const charset_list_t charset_list_default = { "Default",  NULL };
-charset_t *charset_list=(charset_t*)charset_list_default;
-#define autocharset_list_ni_default 1
-autocharset_list_t autocharset_list_default = {
-    {"Off", NULL, {NULL}}
-};
-
-int autocharset_list_ni=autocharset_list_ni_default;
-autocharset_t *autocharset_list=(autocharset_t*)autocharset_list_default;
-*/

@@ -9,7 +9,7 @@
 #include "fs.h"
 #include "lng.h"
 #include "rccstring.h"
-#include "config.h"
+#include "rccconfig.h"
 
 
 static void rccIConvCopySymbol(char **in_buf, int *in_left, char **out_buf, int *out_left) {

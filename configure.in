@@ -1,10 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/librcc.c)
+AC_CONFIG_HEADERS(config.h)
 
 PACKAGE=librcc
-LIBRCC_VERSION_MAJOR=0
-LIBRCC_VERSION_MINOR=1
-LIBRCC_VERSION_SUBMINOR=0
+LIBRCC_VERSION_MAJOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 1 | sed -e s/^$/0/`
+LIBRCC_VERSION_MINOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 2 | sed -e s/^$/0/`
+LIBRCC_VERSION_SUBMINOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 3 | sed -e s/^$/0/`
 LIBRCC_VERSION=$LIBRCC_VERSION_MAJOR.$LIBRCC_VERSION_MINOR.$LIBRCC_VERSION_SUBMINOR
 VERSION=$LIBRCC_VERSION
 LIBRCC_VERSION_INFO=`echo $LIBRCC_VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
@@ -27,24 +28,51 @@ AC_PATH_PROG(TAR, tar, /bin/tar)
 
 dnl Checks for programs.
 
+dnl Checks for header files.
+AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
+AC_CHECK_HEADERS(mntent.h)
+
 dnl Checks for libraries.
 
-XML_LIBS=error
-AC_CHECK_LIB(xml2, xmlDocDumpMemory, [
-	XML_LIBS=`xml2-config --libs`
-	XML_INCLUDES=`xml-config --cflags`
-    ])
-if test "x$XML_LIBS" = xerror; then
-	AC_MSG_ERROR(*** Unable to locate LibXML2 ***)
+AC_PATH_PROG(XML2_CONFIG, xml2-config, no)
+if test $XML2_CONFIG = no; then
+    AC_MSG_ERROR(LibXML2 is required)
 fi
+XML_LIBS="\`xml2-config --libs\`"
+XML_INCLUDES="\`xml-config --cflags\`"
 AC_SUBST(XML_LIBS)
 AC_SUBST(XML_INCLUDES)
 
-dnl Checks for header files.
+AC_CHECK_HEADER(librcd.h, [AC_CHECK_LIB(rcd, rcdGetRussianCharset, [
+	RCD_LIBS="-lrcd"
+	RCD_INCLUDES=""
+], AC_MSG_ERROR(LibRCD is required))], [AC_MSG_ERROR(LibRCD is required)])
+AC_SUBST(RCD_LIBS)
+AC_SUBST(RCD_INCLUDES)
+
+AC_CHECK_HEADER(enca.h, [AC_CHECK_LIB(enca, enca_analyse, [ 
+    AC_DEFINE(HAVE_ENCA,1,[Defines if enca is available])
+    ENCA_LIBS="-lenca"
+    ENCA_INCLUDES=""
+])])
+
+if test "x$ENCA_LIBS" = "x"; then
+    AC_CHECK_HEADER(dlfcn.h, [AC_CHECK_LIB(dl, dlopen, [
+	AC_DEFINE(HAVE_DLOPEN,1,[Defines if dlopen is available])
+	ENCA_LIBS="-ldl"
+	ENCA_INCLUDES=""
+    ],[
+	ENCA_LIBS=""
+	ENCA_INCLUDES=""
+    ])])
+fi
+AC_SUBST(ENCA_LIBS)
+AC_SUBST(ENCA_INCLUDES)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
 dnl Checks for library functions.
+AC_CHECK_FUNCS(strcasecmp strncasecmp strdup)
 
-AC_OUTPUT(src/Makefile example/Makefile librcc.spec)
+AC_OUTPUT(src/Makefile examples/Makefile librcc.spec)
