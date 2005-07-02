@@ -1,3 +1,3 @@
-SUBDIRS = src
+SUBDIRS = src ui
 
-EXTRA_DIST = example librcd.spec
+EXTRA_DIST = librcd.spec

@@ -49,7 +49,7 @@ void rccEncaFreeContext(rcc_engine_context ctx) {
 #endif /* RCC_ENCA_SUPPORT */
 }
 
-rcc_charset_id rccEnca(rcc_engine_context ctx, char *buf, int len) {
+rcc_charset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
 #ifdef RCC_ENCA_SUPPORT
     rcc_engine_internal internal;
     const char *charset;

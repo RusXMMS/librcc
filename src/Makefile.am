@@ -2,8 +2,11 @@ lib_LTLIBRARIES = librcc.la
 librcc_la_SOURCES = librcc.c \
     rcclocale.c rcclocale.h \
     lng.c lng.h \
+    opt.c opt.h \
     lngconfig.c lngconfig.h \
+    curconfig.c curconfig.h \
     rccconfig.c rccconfig.h \
+    rcclist.c rcclist.h \
     plugin.c plugin.h \
     rccenca.c rccenca.h \
     engine.c engine.h \

@@ -14,4 +14,7 @@ extern rcc_engine rcc_russian_engine;
 
 extern rcc_language rcc_default_languages[];
 
+extern rcc_language_name rcc_default_language_names[];
+extern rcc_option_name rcc_default_option_names[];
+
 #endif /* _RCC_CONFIG_H */

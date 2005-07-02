@@ -116,8 +116,6 @@ int rccConfigInit(rcc_language_config config, rcc_context ctx) {
     config->language = NULL;
     config->charset = charsets;
     config->engine = -1;
-    for (i=0;i<RCC_MAX_OPTIONS;i++)
-	config->options[i] = 0;    
 
     return 0;
 }
@@ -160,7 +158,6 @@ rcc_language_config rccGetCurrentConfig(rcc_context ctx) {
     
     return rccGetConfig(ctx, language_id);
 }
-
 
 rcc_engine_id rccConfigGetSelectedEngine(rcc_language_config config) {
     if (!config) return -1;
@@ -270,11 +267,6 @@ const char *rccConfigGetCurrentCharsetName(rcc_language_config config, rcc_class
     return rccConfigGetCharsetName(config, charset_id);
 }
 
-rcc_option_value rccConfigGetOption(rcc_language_config config, rcc_option option) {
-    if ((!config)||(option<0)||(option>=RCC_MAX_OPTIONS)) return -1;
-    
-    return config->options[option];
-}
 
 int rccConfigSetEngine(rcc_language_config config, rcc_engine_id engine_id) {
     unsigned int i;
@@ -325,16 +317,6 @@ int rccConfigSetCharsetByName(rcc_language_config config, rcc_class_id class_id,
     return rccConfigSetCharset(config, class_id, charset_id);
 }
 
-int rccConfigSetOption(rcc_language_config config, rcc_option option, rcc_option_value value) {
-    if ((!config)||(option>=RCC_MAX_OPTIONS)) return -1;
-    if (config->options[option] != value) {
-	if (config->ctx->current_config == config) config->ctx->configure = 1;
-	config->options[option]=value;
-    }
-    
-    return 0;
-}
-
 rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char *locale_variable) {
     int err;    
     rcc_charset *charsets;
@@ -359,3 +341,31 @@ rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char 
 
     return rccConfigGetCharsetByName(config, stmp);
 }
+
+/*
+int rccConfigInit(rcc_language_config config, rcc_context ctx) {
+    for (i=0;i<RCC_MAX_OPTIONS;i++)
+	config->options[i] = 0;    
+}
+
+rcc_option_value rccConfigGetOption(rcc_language_config config, rcc_option option) {
+    if ((!config)||(option<0)||(option>=RCC_MAX_OPTIONS)) return -1;
+    
+    return config->options[option];
+}
+
+int rccConfigSetOption(rcc_language_config config, rcc_option option, rcc_option_value value) {
+    if ((!config)||(option>=RCC_MAX_OPTIONS)) return -1;
+    if (config->options[option] != value) {
+	if (config->ctx->current_config == config) config->ctx->configure = 1;
+	config->options[option]=value;
+    }
+    
+    return 0;
+}
+
+rcc_option_value rccConfigGetOption(rcc_language_config config, rcc_option option);
+int rccConfigSetOption(rcc_language_config config, rcc_option option, rcc_option_value value);
+#define rccGetOption(ctx, option) rccConfigGetOption(ctx->current_config, option)
+#define rccSetOption(ctx,option,value) rccConfigSetOption(ctx->current_config, option, value)
+*/

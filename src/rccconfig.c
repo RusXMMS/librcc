@@ -25,72 +25,98 @@ rcc_engine rcc_russian_engine = {
 };
 
 rcc_language rcc_default_languages[] = {
-{"default", "Autodetect", {"Default", NULL}, {
+{"default", {"Default", NULL}, {
     &rcc_default_engine,
     NULL
 }},
-{"off", "Dissable", {"Default", NULL}, {
+{"off", {"Default", NULL}, {
     &rcc_default_engine,
     NULL
 }},
-{"ru","Russian", {"Default","KOI8-R","CP1251","UTF-8","IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
+{"ru", {"Default","KOI8-R","CP1251","UTF-8","IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
     &rcc_russian_engine,
     &rcc_default_engine,
     NULL
 }},
-{"uk","Ukrainian", {"Default","KOI8-U","CP1251","UTF-8","IBM855","MACCYRILLIC","ISO8859-5","CP1125", NULL}, {
+{"uk", {"Default","KOI8-U","CP1251","UTF-8","IBM855","MACCYRILLIC","ISO8859-5","CP1125", NULL}, {
     &rcc_russian_engine,
     &rcc_default_engine,
     NULL
 }},
-{"be","Belarussian",{"Default", "UTF-8", "CP1251", "IBM866", "ISO-8859-5", "KOI8-UNI", "maccyr" "IBM855", NULL},{
+{"be", {"Default", "UTF-8", "CP1251", "IBM866", "ISO-8859-5", "KOI8-UNI", "maccyr" "IBM855", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"bg","Bulgarian",{"Default", "UTF-8", "CP1251", "ISO-8859-5", "IBM855", "maccyr", "ECMA-113", NULL},{
+{"bg", {"Default", "UTF-8", "CP1251", "ISO-8859-5", "IBM855", "maccyr", "ECMA-113", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"cz","Czech",{"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "KEYBCS2", "macce", "KOI-8_CS_2", "CORK", NULL},{
+{"cz", {"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "KEYBCS2", "macce", "KOI-8_CS_2", "CORK", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"es","Estonian",{"Default", "UTF-8", "ISO-8859-4", "CP1257", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
+{"es", {"Default", "UTF-8", "ISO-8859-4", "CP1257", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"hr","Croatian",{"Default", "UTF-8", "CP1250", "ISO-8859-2", "IBM852", "macce", "CORK", NULL},{
+{"hr", {"Default", "UTF-8", "CP1250", "ISO-8859-2", "IBM852", "macce", "CORK", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"hu","Hungarian",{"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "macce", "CORK", NULL},{
+{"hu", {"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "macce", "CORK", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"lt","Lithuanian",{"Default", "UTF-8", "CP1257", "ISO-8859-4", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
+{"lt", {"Default", "UTF-8", "CP1257", "ISO-8859-4", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"lv","Latvian",{"Default", "UTF-8", "CP1257", "ISO-8859-4", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
+{"lv", {"Default", "UTF-8", "CP1257", "ISO-8859-4", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"pl","Polish",{"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "macce", "ISO-8859-13", "ISO-8859-16", "baltic", "CORK", NULL},{
+{"pl", {"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "macce", "ISO-8859-13", "ISO-8859-16", "baltic", "CORK", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"sk","Slovak",{"Default", "UTF-8", "CP1250", "ISO-8859-2", "IBM852", "KEYBCS2", "macce", "KOI-8_CS_2", "CORK", NULL},{
+{"sk", {"Default", "UTF-8", "CP1250", "ISO-8859-2", "IBM852", "KEYBCS2", "macce", "KOI-8_CS_2", "CORK", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"sl","Slovenian",{"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "macce", "CORK", NULL},{
+{"sl", {"Default", "UTF-8", "ISO-8859-2", "CP1250", "IBM852", "macce", "CORK", NULL},{
     &rcc_default_engine,
     NULL
 }},
-{"zh","Chinese",{"Default", "UTF-8", "GB2312", "GBK", "GB18030", "BIG5", NULL},{
+{"zh", {"Default", "UTF-8", "GB2312", "GBK", "GB18030", "BIG5", NULL},{
     &rcc_default_engine,
     NULL
 }},
 {NULL}
 };
 
+rcc_language_name rcc_default_language_names[RCC_MAX_LANGUAGES+1] = {
+{"default", "Autodetect"},
+{"off", "Dissable"},
+{"ru","Russian"},
+{"uk","Ukrainian"}, 
+{"be","Belarussian"},
+{"bg","Bulgarian"},
+{"cz","Czech"},
+{"es","Estonian"},
+{"hr","Croatian"},
+{"hu","Hungarian"},
+{"lt","Lithuanian"},
+{"lv","Latvian"},
+{"pl","Polish"},
+{"sk","Slovak"},
+{"sl","Slovenian"},
+{"zh","Chinese"},
+{NULL, NULL}
+};
+
+rcc_option_name rcc_default_option_names[] = {
+    { RCC_LEARNING_MODE, "Learning Mode" },
+    { RCC_AUTODETECT_FS_TITLES, "Autodetect FS Encoding" },
+    { RCC_AUTODETECT_FS_NAMES, "Autodetect File Names" },
+    { RCC_MAX_OPTIONS, NULL}
+};

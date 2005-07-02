@@ -43,6 +43,13 @@ XML_INCLUDES="\`xml-config --cflags\`"
 AC_SUBST(XML_LIBS)
 AC_SUBST(XML_INCLUDES)
 
+AC_PATH_PROG(GTK_CONFIG, gtk-config, no)
+AM_CONDITIONAL(HAVE_GTK, [ test $GTK_CONFIG != no ])
+GTK_LIBS="\`gtk-config --libs\`"
+GTK_INCLUDES="\`gtk-config --cflags\`"
+AC_SUBST(GTK_LIBS)
+AC_SUBST(GTK_INCLUDES)
+
 AC_CHECK_HEADER(librcd.h, [AC_CHECK_LIB(rcd, rcdGetRussianCharset, [
 	RCD_LIBS="-lrcd"
 	RCD_INCLUDES=""
@@ -75,4 +82,4 @@ AC_C_CONST
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strcasecmp strncasecmp strdup)
 
-AC_OUTPUT(src/Makefile examples/Makefile librcc.spec)
+AC_OUTPUT(src/Makefile ui/Makefile examples/Makefile librcc.spec)

@@ -11,6 +11,8 @@ struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];
     
     rcc_language_alias_list aliases;
+
+    rcc_option_value options[RCC_MAX_OPTIONS];
      
     unsigned int max_languages;
     unsigned int n_languages;
@@ -33,6 +35,8 @@ struct rcc_context_t {
     unsigned char configure;
     rcc_language_config current_config;
     rcc_language_id current_language;
+
+    unsigned int configuration_lock;
 };
 typedef struct rcc_context_t rcc_context_s;
 

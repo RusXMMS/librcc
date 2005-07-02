@@ -6,9 +6,11 @@
 #include "internal.h"
 #include "rccconfig.h"
 #include "rccenca.h"
+#include "rcclist.h"
 
 
 int rccInit() {
+    /*DS: Load addition languages from config! */
     return rccEncaInit();
 }
 
@@ -16,7 +18,7 @@ void rccFree() {
     rccEncaFree();
 }
 
-rcc_context rccInitContext(rcc_init_flags flags, unsigned int max_languages, unsigned int max_classes, const char *locale) {
+rcc_context rccCreateContext(rcc_init_flags flags, unsigned int max_languages, unsigned int max_classes, const char *locale) {
     int err;
     unsigned int i;
     
@@ -109,7 +111,11 @@ rcc_context rccInitContext(rcc_init_flags flags, unsigned int max_languages, uns
 	rccRegisterLanguage(ctx, rcc_default_languages);
 	ctx->current_config = NULL;
     } 
-    
+
+    for (i=0;i<RCC_MAX_OPTIONS;i++)
+	ctx->options[i] = 0;    
+
+    ctx->configuration_lock = 0;
     ctx->configure = 1;
     
     return ctx;
@@ -163,8 +169,24 @@ void rccFreeContext(rcc_context ctx) {
     }
 }
 
+int rccLockConfiguration(rcc_context ctx, unsigned int lock_code) {
+    if (!ctx) return -1;
+    if (ctx->configuration_lock) return -3;
+    ctx->configuration_lock = lock_code;
+    return 0;
+}
+
+int rccUnlockConfiguration(rcc_context ctx, unsigned int lock_code) {
+    if (!ctx) return -1;
+    if (ctx->configuration_lock != lock_code) return -3;
+    ctx->configuration_lock = 0;
+    return 0;    
+}
+
 rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
     if ((!ctx)||(!language)) return -1;
+    if (ctx->configuration_lock) return -3;
+    
     if (ctx->n_languages == ctx->max_languages) return -2;
     ctx->languages[ctx->n_languages++] = language;
     ctx->languages[ctx->n_languages] = NULL;
@@ -213,7 +235,9 @@ rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias
 
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
     if ((!ctx)||(!cl)) return -1;
+    if (ctx->configuration_lock) return -3;
     if (ctx->n_classes == ctx->max_classes) return -2;
+
     ctx->configure = 1;
     ctx->classes[ctx->n_languages++] = cl;
     ctx->classes[ctx->n_languages] = NULL;
@@ -225,57 +249,6 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
     if ((!ctx)||(class_id<0)||(class_id>=ctx->n_classes)) return RCC_CLASS_INVALID;
     
     return ctx->classes[class_id]->class_type;
-}
-
-static rcc_language_ptr *rccGetLanguageList(rcc_context ctx) {
-    if (!ctx) return NULL;
-    return ctx->languages;
-}
-
-static rcc_charset *rccGetCharsetList(rcc_context ctx, rcc_language_id language_id) {
-    if ((!ctx)||(language_id<0)||(language_id>=ctx->n_languages)) return NULL;
-    return ctx->languages[language_id]->charsets;
-}
-
-static rcc_engine_ptr *rccGetEngineList(rcc_context ctx, rcc_language_id language_id) {
-    if ((!ctx)||(language_id<0)||(language_id>=ctx->n_languages)) return NULL;
-    return ctx->languages[language_id]->engines;
-}
-
-static rcc_charset *rccGetCurrentCharsetList(rcc_context ctx) {
-    rcc_language_id language_id;
-
-    if (!ctx) return NULL;
-
-    language_id = rccGetCurrentLanguage(ctx);
-    if (language_id<0) return NULL;
-
-    return rccGetCharsetList(ctx, language_id);
-}
-
-static rcc_engine_ptr *rccGetCurrentEngineList(rcc_context ctx) {
-    rcc_language_id language_id;
-
-    if (!ctx) return NULL;
-
-    language_id = rccGetCurrentLanguage(ctx);
-    if (language_id<0) return NULL;
-
-    return rccGetEngineList(ctx, language_id); 
-}
-
-static rcc_charset *rccGetCurrentAutoCharsetList(rcc_context ctx) {
-    rcc_language_id language_id;
-    rcc_engine_id engine_id;
-
-    if (!ctx) return NULL;
-
-    language_id = rccGetCurrentLanguage(ctx);
-    engine_id = rccGetCurrentEngine(ctx);
-    if ((language_id<0)||(engine_id<0)) return NULL;
-    
-    
-    return ctx->languages[language_id]->engines[engine_id]->charsets;
 }
 
 
