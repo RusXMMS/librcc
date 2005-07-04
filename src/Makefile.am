@@ -12,6 +12,7 @@ librcc_la_SOURCES = librcc.c \
     engine.c engine.h \
     rccstring.c rccstring.h \
     xml.c xml.h \
+    rcciconv.c rcciconv.h \
     fs.c fs.h \
     recode.c recode.h \
     internal.h

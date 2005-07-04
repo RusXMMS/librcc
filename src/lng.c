@@ -48,6 +48,7 @@ static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
 }
 
 rcc_language_id rccGetRealLanguage(rcc_context ctx, rcc_language_id language_id) {
+    printf("CRL: %i\n", language_id);
     if ((!ctx)||(language_id<0)||(language_id>=ctx->n_languages)) return -1;
     if (language_id) return language_id;
     return rccGetDefaultLanguage(ctx);    
@@ -76,6 +77,7 @@ const char *rccGetSelectedLanguageName(rcc_context ctx) {
 
 rcc_language_id rccGetCurrentLanguage(rcc_context ctx) {
     if (!ctx) return -1;
+    printf("CL: %i\n", ctx->current_language);
     return rccGetRealLanguage(ctx, ctx->current_language);    
 }
 

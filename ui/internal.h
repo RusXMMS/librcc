@@ -56,7 +56,7 @@ rcc_ui_internal rccUiCreateInternal(rcc_ui_context ctx);
 void rccUiFreeInternal(rcc_ui_context ctx);
 
 rcc_ui_widget rccUiMenuCreateWidget(rcc_ui_menu_context ctx);
-void rccUiMenuDestroyWidget(rcc_ui_menu_context ctx);
+void rccUiMenuFreeWidget(rcc_ui_menu_context ctx);
 int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx);
 
 rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx);

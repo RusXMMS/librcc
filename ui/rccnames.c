@@ -24,7 +24,7 @@ const char *rccUiGetOptionName(rcc_ui_context ctx, rcc_option option) {
 
     names = ctx->option_names;
 
-    for (i=0;i<RCC_MAX_OPTIONS;i++)
+    for (i=0;((i<RCC_MAX_OPTIONS)&&(names[i].option!=RCC_MAX_OPTIONS));i++)
 	if (names[i].option == option) return names[i].name;
     
     return NULL;

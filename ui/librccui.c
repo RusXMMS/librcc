@@ -60,6 +60,7 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
     ctx->engine_frame = NULL;
     ctx->page = NULL;
     
+    ctx->options = options;
     ctx->charsets = charsets;
     ctx->rccctx = rccctx;
     
@@ -136,31 +137,44 @@ int rccUiSetOptionNames(rcc_ui_context ctx, rcc_option_name *names) {
 int rccUiRestoreLanguage(rcc_ui_context ctx) {
     unsigned int i;
     rcc_class_ptr *classes;
-    rcc_context rccctx;
+    rcc_language_id language_id;
+    
+    rcc_language_config config;
     
     if (!ctx) return -1;
+
+    language_id = (rcc_language_id)rccUiMenuGet(ctx->language);
+    config = rccGetConfig(ctx->rccctx, language_id);
     
-    rccctx = ctx->rccctx;
-    
-    rccUiMenuSet(ctx->engine, (rcc_ui_id)rccGetSelectedEngine(rccctx));
-    
-    for (i=0;i<RCC_MAX_OPTIONS;i++)
-	rccUiMenuSet(ctx->options[i], rccGetOption(rccctx, (rcc_option)i));
-    
-    classes = rccGetClassList(rccctx);
+    rccUiMenuConfigureWidget(ctx->engine);
+    //rccUiMenuSet(ctx->engine, (rcc_ui_id)rccConfigGetSelectedEngine(config));
+
+    classes = rccGetClassList(ctx->rccctx);
     for (i=0;classes[i];i++) 
-	rccUiMenuSet(ctx->charsets[i], rccGetSelectedCharset(rccctx, (rcc_class_id)i));
+	if (classes[i]->fullname) {
+	    rccUiMenuConfigureWidget(ctx->charsets[i]);
+//	    rccUiMenuSet(ctx->charsets[i], rccConfigGetSelectedCharset(config, (rcc_class_id)i));
+	}
+
 
     return 0;
 }
 
 int rccUiRestore(rcc_ui_context ctx) {
+    unsigned int i;
+    rcc_context rccctx;
     rcc_language_id language_id;
     
     if (!ctx) return -1;
+
+    rccctx = ctx->rccctx;
     
-    language_id = rccGetSelectedLanguage(ctx->rccctx);
+    language_id = rccGetSelectedLanguage(rccctx);
     rccUiMenuSet(ctx->language, (rcc_ui_id)language_id);
+    
+    for (i=0;i<RCC_MAX_OPTIONS;i++)
+	rccUiMenuSet(ctx->options[i], rccGetOption(rccctx, (rcc_option)i));
+
     return 0;
 }
 
@@ -182,7 +196,8 @@ int rccUiUpdate(rcc_ui_context ctx) {
 
     classes = rccGetClassList(rccctx);
     for (i=0;classes[i];i++)
-	rccSetCharset(rccctx, (rcc_class_id)i, rccUiMenuGet(ctx->charsets[i])); 
+	if (classes[i]->fullname)
+	    rccSetCharset(rccctx, (rcc_class_id)i, rccUiMenuGet(ctx->charsets[i])); 
     
     return 0;
 }
@@ -197,17 +212,18 @@ rcc_ui_widget rccUiGetLanguageMenu(rcc_ui_context ctx) {
 }
 
 rcc_ui_widget rccUiGetCharsetMenu(rcc_ui_context ctx, rcc_class_id id) {
-    rcc_charset *charsets;
+    rcc_class_ptr *classes;
     unsigned int i;
     
     if ((!ctx)||(id<0)) return NULL;
 
-    charsets = rccGetCurrentCharsetList(ctx->rccctx);
-    for (i=0;charsets[i];i++);
+    classes = rccGetClassList(ctx->rccctx);
+    for (i=0;classes[i];i++);
+    printf("Recalc: %i %i\n", id, i);
     if (id>=i) return NULL;
     
-    if (rccUiMenuConfigureWidget(ctx->charsets[i])) return NULL;
-    return ctx->charsets[i]->widget;
+    if (rccUiMenuConfigureWidget(ctx->charsets[id])) return NULL;
+    return ctx->charsets[id]->widget;
 }
 
 
@@ -249,6 +265,7 @@ rcc_ui_box rccUiGetCharsetBox(rcc_ui_context ctx, rcc_class_id id, const char *t
 
     classes = rccGetClassList(ctx->rccctx);
     for (i=0; classes[i]; i++);
+    printf("Charset Box: %i %i\n", id, i);    
     if (id>=i) return NULL;
 
     if (ctx->charsets[id]->box) return ctx->charsets[id]->box;
@@ -256,8 +273,11 @@ rcc_ui_box rccUiGetCharsetBox(rcc_ui_context ctx, rcc_class_id id, const char *t
 
     charset = rccUiGetCharsetMenu(ctx, id);
     if (!charset) return NULL;
-    
+
+    puts("Charset Box Pre");    
+    printf("%p %p\n", ctx->charsets[id], ctx->charsets[id]->widget);
     ctx->charsets[id]->box = rccUiBoxCreate(ctx->charsets[id], title);
+    puts("Charset Box Post");    
     return ctx->charsets[id]->box;
 }
 
@@ -277,13 +297,17 @@ rcc_ui_box rccUiGetEngineBox(rcc_ui_context ctx, const char *title) {
 rcc_ui_box rccUiGetOptionBox(rcc_ui_context ctx, rcc_option option, const char *title) {
     rcc_ui_widget opt;
 
+    printf("Option Strt: %i %p\n", option, title);
     if ((!ctx)||(option<0)||(option>=RCC_MAX_OPTIONS)) return NULL;
     if (ctx->options[option]->box) return ctx->options[option]->box;
 
+    puts("=== Option Box ===");
     opt = rccUiGetOptionMenu(ctx, option);
     if (!opt) return NULL;
+    puts("Option Menu");
     
     ctx->options[option]->box = rccUiBoxCreate(ctx->options[option], title);
+    puts("Option Finish");
     return ctx->options[option]->box;
 
 }
@@ -324,8 +348,10 @@ rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, const char *title) {
 
     classes = rccGetClassList(ctx->rccctx);
     for (i=0; classes[i]; i++) {
-	charset = rccUiGetCharsetBox(ctx, (rcc_class_id)i,  classes[i]->fullname);
-	rccUiFrameAdd(frame, charset);
+	if (classes[i]->fullname) {
+	    charset = rccUiGetCharsetBox(ctx, (rcc_class_id)i,  classes[i]->fullname);
+	    rccUiFrameAdd(frame, charset);
+	}
     }
     
     ctx->charset_frame = frame;
@@ -348,9 +374,12 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
     if (!frame) return NULL;
     
     engine = rccUiGetEngineBox(ctx, title);
+    puts("Engine");
     rccUiFrameAdd(frame, engine);
+    puts("Added");
 
     for (i=0; i<RCC_MAX_OPTIONS; i++) {
+	printf("OptionBox: %u\n", i);
 	opt = rccUiGetOptionBox(ctx, (rcc_option)i,  rccUiGetOptionName(ctx, i));
 	rccUiFrameAdd(frame, opt);
     }
@@ -368,18 +397,22 @@ rcc_ui_page rccUiGetPage(rcc_ui_context ctx, const char *title, const char *lang
     if (!ctx) return NULL;
 
     if (ctx->page) return ctx->page;
-        
+
     page = rccUiPageCreate(ctx, title);
     if (!page) return NULL;
-    
+
+    puts("P C");    
     frame = rccUiGetLanguageFrame(ctx, language_title);
     rccUiPageAdd(page, frame);
+    puts("L C");    
 
     frame = rccUiGetCharsetsFrame(ctx, charset_title);
     rccUiPageAdd(page, frame);
+    puts("C C");    
 
     frame = rccUiGetEngineFrame(ctx, engine_title);
     rccUiPageAdd(page, frame);
+    puts("E C");    
     
     ctx->page = page;
     

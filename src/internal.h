@@ -7,6 +7,8 @@
 #include "engine.h"
 #include "lngconfig.h"
 
+#define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
+
 struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];
     

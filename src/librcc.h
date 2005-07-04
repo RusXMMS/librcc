@@ -31,6 +31,7 @@ typedef int rcc_class_id;
 typedef struct rcc_context_t *rcc_context;
 typedef struct rcc_engine_context_t *rcc_engine_context;
 typedef struct rcc_language_config_t *rcc_language_config;
+typedef const struct rcc_class_t *rcc_class_ptr;
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,8 +44,8 @@ void rccFree();
 **************************** Initialization ************************************
 *******************************************************************************/
 typedef unsigned int rcc_init_flags;
-#define RCC_DEFAULT_CONFIGURATION 1
-rcc_context rccCreateContext(rcc_init_flags flags, unsigned int max_languages, unsigned int max_classes, const char *locale);
+#define RCC_NO_DEFAULT_CONFIGURATION 1
+rcc_context rccCreateContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr classes, rcc_init_flags flags);
 void rccFreeContext(rcc_context ctx);
 
 int rccLockConfiguration(rcc_context ctx, unsigned int lock_code);
@@ -112,7 +113,6 @@ typedef enum rcc_class_type_t {
     RCC_CLASS_KNOWN,
     RCC_CLASS_FS
 } rcc_class_type;
-typedef const struct rcc_class_t rcc_class;
 
 struct rcc_class_t {
     const char *name;
@@ -120,7 +120,7 @@ struct rcc_class_t {
     const rcc_class_type class_type;
     const char *fullname;
 };
-typedef rcc_class *rcc_class_ptr;
+typedef const struct rcc_class_t rcc_class;
 typedef rcc_class_ptr rcc_class_list[RCC_MAX_CLASSES+1];
 
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl);
@@ -161,8 +161,6 @@ rcc_option_value rccGetOption(rcc_context ctx, rcc_option option);
 int rccSetOption(rcc_context ctx, rcc_option option, rcc_option_value value);
 
 /* lngconfig.c */
-int rccConfigInit(rcc_language_config config, rcc_context ctx);
-int rccConfigFree(rcc_language_config config);
 
 const char *rccConfigGetEngineName(rcc_language_config config, rcc_engine_id engine_id);
 const char *rccConfigGetCharsetName(rcc_language_config config, rcc_charset_id charset_id);
@@ -260,8 +258,8 @@ char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fsp
 *******************************************************************************/
 
 /* xml.c */
-int rccSave(rcc_context ctx);
-int rccLoad(rcc_context ctx);
+int rccSave(rcc_context ctx, const char *name);
+int rccLoad(rcc_context ctx, const char *name);
 
 #ifdef __cplusplus
 }

@@ -34,13 +34,13 @@ rcc_language rcc_default_languages[] = {
     NULL
 }},
 {"ru", {"Default","KOI8-R","CP1251","UTF-8","IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
-    &rcc_russian_engine,
     &rcc_default_engine,
+    &rcc_russian_engine,
     NULL
 }},
 {"uk", {"Default","KOI8-U","CP1251","UTF-8","IBM855","MACCYRILLIC","ISO8859-5","CP1125", NULL}, {
-    &rcc_russian_engine,
     &rcc_default_engine,
+    &rcc_russian_engine,
     NULL
 }},
 {"be", {"Default", "UTF-8", "CP1251", "IBM866", "ISO-8859-5", "KOI8-UNI", "maccyr" "IBM855", NULL},{

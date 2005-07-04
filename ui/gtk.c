@@ -3,6 +3,14 @@
 #include "internal.h"
 #include "rccnames.h"
 
+#define TITLE_WIDTH 160
+#define TITLE_HEIGHT 10
+#define BOX_SPACING 1
+#define BOX_BORDER 0
+#define FRAME_SPACING 1
+#define FRAME_BORDER 0
+#define PAGE_SPACING 0
+
 rcc_ui_internal rccUiCreateInternal(rcc_ui_context ctx) {
     return NULL;
 }
@@ -14,7 +22,7 @@ rcc_ui_widget rccUiMenuCreateWidget(rcc_ui_menu_context ctx) {
     return NULL;
 }
 
-void rccUiMenuDestroyWidget(rcc_ui_menu_context ctx) {
+void rccUiMenuFreeWidget(rcc_ui_menu_context ctx) {
 }
 
 rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx) {
@@ -24,7 +32,7 @@ rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx) {
 
     if (ctx->type == RCC_UI_MENU_OPTION)
 	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ctx->widget));
-        
+    
     menu = gtk_option_menu_get_menu(ctx->widget);
     return g_list_index(GTK_MENU_SHELL(menu)->children, gtk_menu_get_active(GTK_MENU(menu)));
 }
@@ -45,6 +53,7 @@ int rccUiMenuSet(rcc_ui_menu_context ctx, rcc_ui_id id) {
 
 
 static int rccGtkMenuLanguageCB(GtkWidget * w, gpointer item) {
+    puts("LanguageCB!!!!!!!!!!!!!!!!!!!!!!");
     rccUiRestoreLanguage(((rcc_ui_menu_context)item)->uictx);
 }
 
@@ -94,20 +103,18 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    gtk_option_menu_remove_menu(GTK_OPTION_MENU(menu));
 	    gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), language_id);
-	    
-	    return 0;
 	break;
 	case RCC_UI_MENU_CHARSET:
-	    
 	    list = gtk_menu_new();
 
 	    language_id = (rcc_language_id)rccUiMenuGet(uictx->language);
 	    charsets = rccGetCharsetList(rccctx, language_id);
 	    
 	    for (i=0;charsets[i];i++) {
-		list = gtk_menu_item_new_with_label(charsets[i]);
+		item = gtk_menu_item_new_with_label(charsets[i]);
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
+		puts(charsets[i]);
 	    }
 
 	    if (ctx->widget) menu = ctx->widget;
@@ -130,9 +137,10 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    language_id = (rcc_language_id)rccUiMenuGet(uictx->language);
 	    engines = rccGetEngineList(rccctx, language_id);
 	    for (i=0;engines[i];i++) {
-		list = gtk_menu_item_new_with_label(engines[i]->title);
+		item = gtk_menu_item_new_with_label(engines[i]->title);
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
+		puts(engines[i]->title);
 	    }	
 
 	    if (ctx->widget) menu = ctx->widget;
@@ -151,8 +159,11 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 		    
 	break;
 	case RCC_UI_MENU_OPTION:
-	    item = gtk_check_button_new_with_label(rccUiGetOptionName(uictx, (rcc_option)ctx->id));
-    	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(item), rccGetOption(rccctx, (rcc_option)ctx->id));
+	    if (!ctx->widget) {
+	        item = gtk_check_button_new_with_label(rccUiGetOptionName(uictx, (rcc_option)ctx->id));
+    		gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(item), rccGetOption(rccctx, (rcc_option)ctx->id));
+		ctx->widget = item;
+	    }
 	break;
     }
 
@@ -162,11 +173,11 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 
 rcc_ui_box rccUiBoxCreate(rcc_ui_menu_context ctx, const char *title) {
     GtkWidget *hbox, *label;
-    hbox = gtk_hbox_new(FALSE, 10);
-    gtk_container_border_width(GTK_CONTAINER(hbox), 5);
+    hbox = gtk_hbox_new(FALSE, BOX_SPACING);
+    gtk_container_border_width(GTK_CONTAINER(hbox), BOX_BORDER);
     if (ctx->type != RCC_UI_MENU_OPTION) {
 	label = gtk_label_new(title);
-	gtk_widget_set_usize(label, 120, 17);
+	gtk_widget_set_usize(label, TITLE_WIDTH, TITLE_HEIGHT);
 	gtk_box_pack_start(GTK_BOX(hbox), label, FALSE, FALSE, 0);
     }
     gtk_box_pack_start(GTK_BOX(hbox), (GtkWidget*)ctx->widget, TRUE, TRUE, 0);
@@ -176,9 +187,9 @@ rcc_ui_box rccUiBoxCreate(rcc_ui_menu_context ctx, const char *title) {
 rcc_ui_frame rccUiFrameCreate(rcc_ui_context ctx, const char *title) {
     GtkWidget *frame, *box;
     frame = gtk_frame_new(title?title:"");
-    gtk_container_border_width(GTK_CONTAINER(frame), 5);
+    gtk_container_border_width(GTK_CONTAINER(frame), FRAME_BORDER);
 
-    box = gtk_vbox_new(FALSE, 3);
+    box = gtk_vbox_new(FALSE, FRAME_SPACING);
     gtk_container_add(GTK_CONTAINER(frame), box);
     
     return (rcc_ui_frame)frame;
@@ -187,13 +198,13 @@ rcc_ui_frame rccUiFrameCreate(rcc_ui_context ctx, const char *title) {
 int rccUiFrameAdd(rcc_ui_frame frame, rcc_ui_box box) {
     GtkWidget *vbox;
     
-    vbox = gtk_container_get_toplevels()->data;
+    vbox = gtk_container_children(GTK_CONTAINER(frame))->data;
     gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(box), FALSE, FALSE, 0);
     return 0;
 }
 
 rcc_ui_page rccUiPageCreate(rcc_ui_context ctx, const char *title) {
-    return (rcc_ui_page)gtk_vbox_new(FALSE, 0);
+    return (rcc_ui_page)gtk_vbox_new(FALSE, PAGE_SPACING);
 }
 
 int rccUiPageAdd(rcc_ui_page page, rcc_ui_frame frame) {

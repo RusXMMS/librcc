@@ -134,7 +134,7 @@ rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id) {
     language_id = rccGetRealLanguage(ctx, language_id);
     if (language_id < 0) return NULL;
     if (!ctx->configs[language_id].charset) {
-	if (rccInitConfig(ctx->configs+language_id, ctx)) return NULL;
+	if (rccConfigInit(ctx->configs+language_id, ctx)) return NULL;
     }    
 
     ctx->configs[language_id].language = ctx->languages[language_id];
@@ -343,6 +343,8 @@ rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char 
 }
 
 /*
+    rcc_option_value options[RCC_MAX_OPTIONS];
+
 int rccConfigInit(rcc_language_config config, rcc_context ctx) {
     for (i=0;i<RCC_MAX_OPTIONS;i++)
 	config->options[i] = 0;    

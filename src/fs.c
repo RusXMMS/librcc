@@ -7,6 +7,7 @@
 #include <mntent.h>
 
 #include "internal.h"
+#include "rcciconv.h"
 
 #ifndef strndup
 static char *rccStrndup(const char *str, size_t n) {

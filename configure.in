@@ -16,6 +16,17 @@ AC_SUBST(LIBRCC_VERSION_MINOR)
 AC_SUBST(LIBRCC_VERSION_SUBMINOR)
 AC_SUBST(LIBRCC_VERSION_INFO)
 
+LIBRCC_CVS=`cat VERSION | sed -e s/.*CVS.*/CVS/`
+if test "x$LIBRCC_CVS" = "x"; then
+LIBRCC_CVS=0
+LIBRCC_CVS_DATE=0
+else 
+LIBRCC_CVS=1
+LIBRCC_CVS_DATE=`date +%y%m%d.%H`
+fi
+AC_SUBST(LIBRCC_CVS)
+AC_SUBST(LIBRCC_CVS_DATE)
+
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
 
 AC_PROG_CC
@@ -32,6 +43,11 @@ dnl Checks for header files.
 AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
 AC_CHECK_HEADERS(mntent.h)
 
+AC_TRY_COMPILE([#include <langinfo.h>],
+    [char *codeset = nl_langinfo (CODESET);],
+    [AC_DEFINE(HAVE_CODESET,,[Define if nl_langinfo(CODESET) is available.])]
+)
+    
 dnl Checks for libraries.
 
 AC_PATH_PROG(XML2_CONFIG, xml2-config, no)
@@ -82,4 +98,4 @@ AC_C_CONST
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strcasecmp strncasecmp strdup)
 
-AC_OUTPUT(src/Makefile ui/Makefile examples/Makefile librcc.spec)
+AC_OUTPUT(src/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)

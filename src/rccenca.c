@@ -59,7 +59,7 @@ rcc_charset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
     if ((!internal)||(!buf)) return -1;
     
     
-    len = STRLEN(buf, len);
+    len = STRNLEN(buf, len);
 
     ee = enca_analyse_const((EncaAnalyser)ctx->internal,buf,len);
     if (ee.charset<0) return -1;
@@ -145,7 +145,10 @@ int rccEncaInit() {
 	for (j=0;engines[j];j++)
 	if (j >= RCC_MAX_ENGINES) continue;
 	
-	charsets = enca_get_language_charsets(rcc_default_languages[i].sn, &n_charsets);
+	if (strlen(rcc_default_languages[i].sn)==2)
+	    charsets = enca_get_language_charsets(rcc_default_languages[i].sn, &n_charsets);
+	else
+	    charsets = NULL;
 	if (charsets) {
 	    memcpy(enca_engines+i, &rcc_enca_engine, sizeof(rcc_engine));
 	    for (k=0;enca_engines[i].charsets[k];k++);

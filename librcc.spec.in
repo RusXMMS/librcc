@@ -1,13 +1,25 @@
+%define realrelease 1
+%define cvs @LIBRCC_CVS@
+
+%if %cvs
+%define buildname @LIBRCC_CVS_DATE@
+%define release 0.%{buildname}.%{realrelease}csa
+%else
+%define buildname @VERSION@
+%define release %{realrelease}
+%endif
+
+
 Summary: Russian Charset Conversion Library
 Name: librcc
 Version: @VERSION@
-Release: csa
+Release: %{release}
 License: GPL
 Group: Development/Libraries
 Vendor: DarkSoft <ds7fff@myrealbox.com>
 Distribution: DarkLin <ds7fff@myrealbox.com>
 Packager: Suren A. Chilingaryan <ds7fff@myrealbox.com>
-Source: librcc-%{version}.tar.bz2
+Source: librcc-%{buildname}.tar.bz2
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 URL: http://rusxmms.sourceforge.net
 Prefix: %{_prefix}
@@ -23,7 +35,8 @@ is part of rusxmms patch.
 %package devel 
 Summary: Russian Encoding Conversion Library
 Group: Development/Libraries 
-Requires: librcd = %{version}
+Requires: librcc = %{version}
+Requires: librcd
 
 %description devel
 Provides posibility to automaticaly convert considered encodings (a lot of 
@@ -31,13 +44,14 @@ languages is supported, not only russian one) to/from UTF-8. The library
 is part of rusxmms patch.
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{buildname}
 
 %build
 %configure
 
 %install
 %makeinstall prefix=$RPM_BUILD_ROOT%{prefix} 
+rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -48,12 +62,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files 
 %defattr(-, root, root)
-#%doc AUTHORS ChangeLog NEWS README Copyright
+%doc AUTHORS ChangeLog NEWS README COPYING
 %{prefix}/lib/lib*.so.*
 
 %files devel
 %defattr(-, root, root)  
-%doc example
 %{prefix}/include/
 %{prefix}/lib/lib*.so
 %{prefix}/lib/*.a

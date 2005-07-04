@@ -1,6 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+
+#ifdef HAVE_CODESET
+# include <langinfo.h>
+#endif
 
 #include "rccconfig.h"
 
@@ -22,25 +27,27 @@ static int rccLocaleGetClassByName(const char *locale) {
     return -1;
 }
 
-static int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
-    unsigned int i;
+int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
+    unsigned int i, j;
     int locale_class;
     const char *l;
     
+    printf("Locale: %p\n", lv);
     if (!lv) return -1;
 
     locale_class = rccLocaleGetClassByName(lv);
     if (locale_class >= 0) {
 	l = setlocale(locale_class, NULL);
+	puts(l);
 	if (!l) return -1;
 	else if ((strcmp(l,"C")==0)||(strcmp(l,"POSIX")==0)) return -1;
-    } return -1;
+    } else return -1;
 
     for (i=0;((l[i])&&(l[i]!='.'));i++);
 
-    for (i=0;rcc_default_aliases[i].alias;i++) 
-	if (strncmp(l,rcc_default_aliases[i].alias,i)==0) {
-	    l = rcc_default_aliases[i].alias;
+    for (j=0;rcc_default_aliases[j].alias;j++) 
+	if (strncmp(l,rcc_default_aliases[j].alias,i)==0) {
+	    l = rcc_default_aliases[j].alias;
 	    break;
 	}
 
@@ -49,6 +56,8 @@ static int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
 
     strncpy(result,l,i);
     result[i]=0;
+    puts("------------------->");
+    puts(result);
 
     return 0;
 }
@@ -61,6 +70,19 @@ int rccLocaleGetCharset(char *result, const char *lv, unsigned int n) {
     if (!lv) return -1;
 
     locale_class = rccLocaleGetClassByName(lv);
+    
+    if (locale_class == LC_CTYPE) {
+	l = getenv("CHARSET");
+#ifdef HAVE_CODESET
+	if (!l) l = nl_langinfo(CODESET);
+#endif
+	if (l) {
+	    if (strlen(l)>=n) return -1;
+	    strcpy(result, l);
+	    return 0;
+	}
+    }
+
     if (locale_class >= 0) {
 	l = setlocale(locale_class, NULL);
 	if (!l) return -1;

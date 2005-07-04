@@ -5,10 +5,10 @@
 
 /* Load and Then Save */
 /* flock */
-int rccSave(rcc_context ctx) {
+int rccSave(rcc_context ctx, const char *name) {
     return 0;
 }
 
-int rccLoad(rcc_context ctx) {
+int rccLoad(rcc_context ctx, const char *name) {
     return 0;
 }

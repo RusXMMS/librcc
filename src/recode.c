@@ -1,80 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <locale.h>
-#include <errno.h>
-#include <iconv.h>
 
 #include "internal.h"
+#include "rcciconv.h"
 #include "fs.h"
 #include "lng.h"
 #include "rccstring.h"
 #include "rccconfig.h"
 
 
-static void rccIConvCopySymbol(char **in_buf, int *in_left, char **out_buf, int *out_left) {
-    if ((out_left>0)&&(in_left>0)) {
-	(**out_buf)=(**in_buf);
-	(*out_buf)++;
-	(*in_buf)++;
-	(*in_left)--;
-	(*out_left)--;
-    }
-}
-
-static int rccIConvUTFBytes(unsigned char c) {
-    int j;
-    if (c<128) return 1;
-
-    for (j=6;j>=0;j--)
-	if ((c&bit(j))==0) break;
-	    
-    if ((j==0)||(j==6)) return 1;
-    return 6-j;
-}
-
-static int rccIConv(rcc_context ctx, iconv_t icnv, const char *buf, int len) {
-    char *in_buf, *out_buf, *res, err;
-    int in_left, out_left, olen;
-    int ub, utf_mode=0;
-    int errors=0;
-    
-    if ((!buf)||(!ctx)||(icnv == (iconv_t)-1)) return -1;
-    
-    len = STRNLEN(buf,len);
-    
-    if (iconv(icnv, NULL, NULL, NULL, NULL) == -1) return -1;
-    
-loop_restart:
-    errors = 0;
-    in_buf = (char*)buf; /*DS*/
-    in_left = len;
-    out_buf = ctx->tmpbuffer;
-    out_left = RCC_MAX_STRING_CHARS;
-
-loop:
-    err=iconv(icnv, &in_buf, &in_left, &out_buf, &out_left);
-    if (err<0) {
-        if (errno==E2BIG) {
-    	    *(int*)(ctx->tmpbuffer+(RCC_MAX_STRING_CHARS-sizeof(int)))=0;
-	} else if (errno==EILSEQ) {
-	    if (errors++<RCC_MAX_ERRORS) {
-		for (ub=utf_mode?rccIConvUTFBytes(*in_buf):1;ub>0;ub--)
-		    rccIConvCopySymbol(&in_buf, &in_left, &out_buf, &out_left);
-		if (in_left>0) goto loop;
-	    } else if (!utf_mode) {
-		utf_mode = 1;
-		goto loop_restart;
-	    } else {
-	        return -1;
-	    }
-	} else {
-	    return -1;
-	}
-    }
-        
-    return RCC_MAX_STRING_CHARS - out_left;
-}
 
 
 static rcc_charset_id rccIConvAuto(rcc_context ctx, rcc_class_id class_id, const char *buf, int len) {
@@ -86,7 +21,7 @@ static rcc_charset_id rccIConvAuto(rcc_context ctx, rcc_class_id class_id, const
     class_type = rccGetClassType(ctx, class_id);
     if ((class_type == RCC_CLASS_STANDARD)||((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_AUTODETECT_FS_TITLES)))) {
 	engine = rccGetEnginePointer(ctx, rccGetCurrentEngine(ctx));
-	if ((!engine)||(!engine->func)||(!stricmp(engine->title, "off"))||(!strcmp(engine->title, "dissable"))) return -1;
+	if ((!engine)||(!engine->func)||(!strcasecmp(engine->title, "off"))||(!strcasecmp(engine->title, "dissable"))) return -1;
 	return engine->func(&ctx->engine_ctx, buf, len);
     }
     
@@ -104,6 +39,10 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, int 
     
     err = rccConfigure(ctx);
     if (err) return NULL;
+
+	// Checking if rcc_string passed
+    language_id = rccStringCheck((const rcc_string)buf);
+    if (language_id) return NULL;
 
     language_id = rccGetCurrentLanguage(ctx);
     // DS: Learning. check database (language_id)
@@ -139,7 +78,7 @@ char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, int le
     
     if ((!ctx)||(class_id<0)||(class_id>=ctx->n_classes)||(!buf)) return NULL;
 
-    language_id = rccCheckString(ctx, buf);
+    language_id = rccStringCheck(buf);
     if (!language_id) return NULL;
 
     err = rccConfigure(ctx);
@@ -189,7 +128,7 @@ char *rccRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char 
     if (from_charset_id>0) {
 	from_charset = rccGetAutoCharsetName(ctx, from_charset_id);
 	to_charset = rccGetCurrentCharsetName(ctx, to);
-	if ((from_charset)&&(to_charset)&&(!stricmp(from_charset, to_charset))) return NULL;
+	if ((from_charset)&&(to_charset)&&(!strcasecmp(from_charset, to_charset))) return NULL;
     } else {
 	from_charset_id = rccGetCurrentCharset(ctx, from);
 	to_charset_id = rccGetCurrentCharset(ctx, to);

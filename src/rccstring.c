@@ -39,7 +39,7 @@ rcc_language_id rccStringCheck(const rcc_string str) {
 }
 
 const char *rccStringGet(const rcc_string str) {
-    if (rccStringCheck(str)) return str + sizeof(rcc_string_header);
+    if (rccStringCheck(str)) return (const char *)str + sizeof(rcc_string_header);
     return (const char *)str;
 }
 
