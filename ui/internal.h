@@ -5,7 +5,7 @@
 #include "librccui.h"
 
 typedef unsigned int rcc_ui_id;
-typedef void *rcc_ui_internal;
+
 typedef void *rcc_ui_menu_internal;
 
 enum rcc_ui_menu_type_t {
@@ -30,6 +30,30 @@ struct rcc_ui_menu_context_t {
 typedef struct rcc_ui_menu_context_t rcc_ui_menu_context_s;
 typedef struct rcc_ui_menu_context_t *rcc_ui_menu_context;
 
+typedef void *rcc_ui_frame_internal;
+
+enum rcc_ui_frame_type_t {
+    RCC_UI_FRAME_LANGUAGE = 0,
+    RCC_UI_FRAME_CHARSETS,
+    RCC_UI_FRAME_ENGINE,
+    RCC_UI_FRAME_MAX
+};
+typedef enum rcc_ui_frame_type_t rcc_ui_frame_type;
+
+struct rcc_ui_frame_context_t {
+    rcc_ui_frame frame;
+    
+    rcc_ui_context uictx;
+    rcc_ui_frame_type type;
+    
+    rcc_ui_frame_internal internal;
+};
+typedef struct rcc_ui_frame_context_t rcc_ui_frame_context_s;
+typedef struct rcc_ui_frame_context_t *rcc_ui_frame_context;
+
+
+typedef void *rcc_ui_internal;
+
 struct rcc_ui_context_t {
     rcc_context rccctx;
     
@@ -43,9 +67,9 @@ struct rcc_ui_context_t {
     rcc_language_name *language_names;
     rcc_option_name *option_names;
     
-    rcc_ui_frame language_frame;
-    rcc_ui_frame charset_frame;
-    rcc_ui_frame engine_frame;
+    rcc_ui_frame_context language_frame;
+    rcc_ui_frame_context charset_frame;
+    rcc_ui_frame_context engine_frame;
     
     rcc_ui_page page;
 };
@@ -63,8 +87,11 @@ rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx);
 int rccUiMenuSet(rcc_ui_menu_context ctx, rcc_ui_id id);
 
 rcc_ui_box rccUiBoxCreate(rcc_ui_menu_context ctx, const char *title);
-rcc_ui_frame rccUiFrameCreate(rcc_ui_context ctx, const char *title);
-int rccUiFrameAdd(rcc_ui_frame frame, rcc_ui_box box);
+
+rcc_ui_frame rccUiFrameCreate(rcc_ui_frame_context ctx, const char *title);
+void rccUiFrameFree(rcc_ui_frame_context ctx);
+int rccUiFrameAdd(rcc_ui_frame_context ctx, rcc_ui_box box);
+
 rcc_ui_page rccUiPageCreate(rcc_ui_context ctx, const char *title);
 int rccUiPageAdd(rcc_ui_page page, rcc_ui_frame frame);
 

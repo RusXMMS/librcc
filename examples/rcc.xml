@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<Languages>
+    <Language name="ja">
+	<FullName>Japanese</FullName>
+	<Charsets>
+	    <Charset>UTF-8</Charset>
+	    <Charset>ISO-2022-JP</Charset>
+	    <Charset>EUC-JP</Charset>
+	    <Charset>SHIFT-JIS</Charset>
+	</Charsets>
+    </Language>
+</Languages>

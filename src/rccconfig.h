@@ -8,6 +8,7 @@
 extern rcc_language_alias rcc_default_aliases[];
 
 extern const char rcc_engine_nonconfigured[];
+extern const char rcc_option_nonconfigured[];
 
 extern rcc_engine rcc_default_engine;
 extern rcc_engine rcc_russian_engine;

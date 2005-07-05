@@ -41,7 +41,7 @@ dnl Checks for programs.
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
-AC_CHECK_HEADERS(mntent.h)
+AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h unistd.h)
 
 AC_TRY_COMPILE([#include <langinfo.h>],
     [char *codeset = nl_langinfo (CODESET);],
@@ -55,7 +55,7 @@ if test $XML2_CONFIG = no; then
     AC_MSG_ERROR(LibXML2 is required)
 fi
 XML_LIBS="\`xml2-config --libs\`"
-XML_INCLUDES="\`xml-config --cflags\`"
+XML_INCLUDES="\`xml2-config --cflags\`"
 AC_SUBST(XML_LIBS)
 AC_SUBST(XML_INCLUDES)
 

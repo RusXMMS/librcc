@@ -52,6 +52,8 @@ is part of rusxmms patch.
 %install
 %makeinstall prefix=$RPM_BUILD_ROOT%{prefix} 
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
+mkdir -p $RPM_BUILD_ROOT/etc
+install -m 644 example/rcc.xml $RPM_BUILD_ROOT/etc
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -63,6 +65,7 @@ rm -rf $RPM_BUILD_ROOT
 %files 
 %defattr(-, root, root)
 %doc AUTHORS ChangeLog NEWS README COPYING
+/etc/rcc.xml
 %{prefix}/lib/lib*.so.*
 
 %files devel

@@ -28,6 +28,27 @@ static void rccUiMenuFreeContext(rcc_ui_menu_context ctx) {
     free(ctx);
 }
 
+static rcc_ui_frame_context rccUiFrameCreateContext(rcc_ui_frame_type type, rcc_ui_context uictx) {
+    rcc_ui_frame_context ctx;
+    if ((!uictx)||(type>RCC_UI_FRAME_MAX)) return NULL;
+    
+    ctx = (rcc_ui_frame_context)malloc(sizeof(rcc_ui_frame_context_s));
+    if (!ctx) return ctx;
+    
+    ctx->uictx = uictx;
+    ctx->type = type;
+    
+    ctx->frame = NULL;
+    
+    return ctx;
+}
+
+static void rccUiFrameFreeContext(rcc_ui_frame_context ctx) {
+    if (!ctx) return;
+    rccUiFrameFree(ctx);
+    free(ctx);
+}
+
 rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
     int err = 0;
     unsigned int i;
@@ -55,17 +76,12 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
 	return NULL;
     }
 
-    ctx->language_frame = NULL;
-    ctx->charset_frame = NULL;
-    ctx->engine_frame = NULL;
-    ctx->page = NULL;
-    
     ctx->options = options;
     ctx->charsets = charsets;
     ctx->rccctx = rccctx;
     
-    ctx->language_names = rcc_default_language_names;
-    ctx->option_names = rcc_default_option_names;
+    ctx->language_names = NULL;
+    ctx->option_names = NULL;
 
     ctx->internal = rccUiCreateInternal(ctx);
 
@@ -81,7 +97,13 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
 	if (!options[i]) err = 1;
     }
 
-    if ((err)||(!ctx->language)||(!ctx->engine)) {
+    ctx->language_frame = rccUiFrameCreateContext(RCC_UI_FRAME_LANGUAGE, ctx);
+    ctx->charset_frame = rccUiFrameCreateContext(RCC_UI_FRAME_CHARSETS, ctx);
+    ctx->engine_frame = rccUiFrameCreateContext(RCC_UI_FRAME_ENGINE, ctx);
+    ctx->page = NULL;
+
+
+    if ((err)||(!ctx->language)||(!ctx->engine)||(!ctx->language_frame)||(!ctx->charset_frame)||(!ctx->engine_frame)) {
 	rccUiFreeContext(ctx);
 	return NULL;
     }
@@ -96,7 +118,11 @@ void rccUiFreeContext(rcc_ui_context ctx) {
     if (!ctx) return;
     
     rccUiFreeInternal(ctx);
-    
+
+    if (ctx->engine_frame) rccUiFrameFreeContext(ctx->engine_frame);
+    if (ctx->charset_frame) rccUiFrameFreeContext(ctx->charset_frame);
+    if (ctx->language_frame) rccUiFrameFreeContext(ctx->language_frame);
+        
     if (ctx->charsets) {
 	classes = rccGetClassList(ctx->rccctx);
 	for (i=0; classes[i]; i++)
@@ -219,7 +245,6 @@ rcc_ui_widget rccUiGetCharsetMenu(rcc_ui_context ctx, rcc_class_id id) {
 
     classes = rccGetClassList(ctx->rccctx);
     for (i=0;classes[i];i++);
-    printf("Recalc: %i %i\n", id, i);
     if (id>=i) return NULL;
     
     if (rccUiMenuConfigureWidget(ctx->charsets[id])) return NULL;
@@ -265,7 +290,6 @@ rcc_ui_box rccUiGetCharsetBox(rcc_ui_context ctx, rcc_class_id id, const char *t
 
     classes = rccGetClassList(ctx->rccctx);
     for (i=0; classes[i]; i++);
-    printf("Charset Box: %i %i\n", id, i);    
     if (id>=i) return NULL;
 
     if (ctx->charsets[id]->box) return ctx->charsets[id]->box;
@@ -274,10 +298,7 @@ rcc_ui_box rccUiGetCharsetBox(rcc_ui_context ctx, rcc_class_id id, const char *t
     charset = rccUiGetCharsetMenu(ctx, id);
     if (!charset) return NULL;
 
-    puts("Charset Box Pre");    
-    printf("%p %p\n", ctx->charsets[id], ctx->charsets[id]->widget);
     ctx->charsets[id]->box = rccUiBoxCreate(ctx->charsets[id], title);
-    puts("Charset Box Post");    
     return ctx->charsets[id]->box;
 }
 
@@ -297,38 +318,35 @@ rcc_ui_box rccUiGetEngineBox(rcc_ui_context ctx, const char *title) {
 rcc_ui_box rccUiGetOptionBox(rcc_ui_context ctx, rcc_option option, const char *title) {
     rcc_ui_widget opt;
 
-    printf("Option Strt: %i %p\n", option, title);
     if ((!ctx)||(option<0)||(option>=RCC_MAX_OPTIONS)) return NULL;
     if (ctx->options[option]->box) return ctx->options[option]->box;
 
-    puts("=== Option Box ===");
     opt = rccUiGetOptionMenu(ctx, option);
     if (!opt) return NULL;
-    puts("Option Menu");
     
     ctx->options[option]->box = rccUiBoxCreate(ctx->options[option], title);
-    puts("Option Finish");
     return ctx->options[option]->box;
 
 }
 
 rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, const char *title) {
+    rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
     rcc_ui_box language;
 
     if (!ctx) return NULL;
-
-    if (ctx->language_frame) return ctx->language_frame;
     
-    frame = rccUiFrameCreate(ctx, title);
-    if (!frame) return NULL;
+    framectx = ctx->language_frame;
+    if (framectx->frame) return framectx->frame;
+    
+    frame = rccUiFrameCreate(ctx->language_frame, title);
+    if (frame) framectx->frame = frame;
+    else return NULL;
     
     language = rccUiGetLanguageBox(ctx, title);
     if (!language) return NULL;
 
-    rccUiFrameAdd(frame, language);
-    
-    ctx->language_frame = frame;
+    rccUiFrameAdd(framectx, language);
     
     return frame;
 }
@@ -336,25 +354,27 @@ rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, const char *title) {
 rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, const char *title) {
     unsigned int i;
     rcc_class_ptr *classes;
+    rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
     rcc_ui_box charset;
     
     if (!ctx) return NULL;
 
-    if (ctx->charset_frame) return ctx->charset_frame;
+    framectx = ctx->charset_frame;
+    if (framectx->frame) return framectx->frame;
 
-    frame = rccUiFrameCreate(ctx, title);
-    if (!frame) return NULL;
+    frame = rccUiFrameCreate(framectx, title);
+    if (frame) framectx->frame = frame;
+    else return NULL;
 
     classes = rccGetClassList(ctx->rccctx);
     for (i=0; classes[i]; i++) {
 	if (classes[i]->fullname) {
 	    charset = rccUiGetCharsetBox(ctx, (rcc_class_id)i,  classes[i]->fullname);
-	    rccUiFrameAdd(frame, charset);
+	    rccUiFrameAdd(framectx, charset);
 	}
     }
     
-    ctx->charset_frame = frame;
     
     return frame;
 }
@@ -362,29 +382,27 @@ rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, const char *title) {
 
 rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
     unsigned int i;
+    rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
     rcc_ui_box engine;
     rcc_ui_box opt;
 
     if (!ctx) return NULL;
 
-    if (ctx->engine_frame) return ctx->engine_frame;
+    framectx = ctx->engine_frame;
+    if (framectx->frame) return framectx->frame;
     
-    frame = rccUiFrameCreate(ctx, title);
-    if (!frame) return NULL;
+    frame = rccUiFrameCreate(framectx, title);
+    if (frame) framectx->frame = frame;
+    else return NULL;
     
     engine = rccUiGetEngineBox(ctx, title);
-    puts("Engine");
-    rccUiFrameAdd(frame, engine);
-    puts("Added");
+    rccUiFrameAdd(framectx, engine);
 
     for (i=0; i<RCC_MAX_OPTIONS; i++) {
-	printf("OptionBox: %u\n", i);
 	opt = rccUiGetOptionBox(ctx, (rcc_option)i,  rccUiGetOptionName(ctx, i));
-	rccUiFrameAdd(frame, opt);
+	rccUiFrameAdd(framectx, opt);
     }
-    
-    ctx->engine_frame = frame;
     
     return frame;
 }
@@ -401,18 +419,14 @@ rcc_ui_page rccUiGetPage(rcc_ui_context ctx, const char *title, const char *lang
     page = rccUiPageCreate(ctx, title);
     if (!page) return NULL;
 
-    puts("P C");    
     frame = rccUiGetLanguageFrame(ctx, language_title);
     rccUiPageAdd(page, frame);
-    puts("L C");    
 
     frame = rccUiGetCharsetsFrame(ctx, charset_title);
     rccUiPageAdd(page, frame);
-    puts("C C");    
 
     frame = rccUiGetEngineFrame(ctx, engine_title);
     rccUiPageAdd(page, frame);
-    puts("E C");    
     
     ctx->page = page;
     

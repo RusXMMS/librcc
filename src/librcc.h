@@ -140,6 +140,8 @@ typedef enum rcc_option_t {
 struct rcc_option_name_t {
     rcc_option option;
     const char *name;
+
+    const char *sn;
 };
 typedef struct rcc_option_name_t rcc_option_name;
 
@@ -158,6 +160,8 @@ int rccSetLanguageByName(rcc_context ctx, const char *name);
 
 /* opt.c */
 rcc_option_value rccGetOption(rcc_context ctx, rcc_option option);
+int rccOptionIsDefault(rcc_context ctx, rcc_option option);
+int rccOptionSetDefault(rcc_context ctx, rcc_option option);
 int rccSetOption(rcc_context ctx, rcc_option option, rcc_option_value value);
 
 /* lngconfig.c */
@@ -169,6 +173,7 @@ rcc_engine_id rccConfigGetEngineByName(rcc_language_config config, const char *n
 rcc_charset_id rccConfigGetCharsetByName(rcc_language_config config, const char *name);
 rcc_charset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const char *name);
 
+rcc_language_config rccCheckConfig(rcc_context ctx, rcc_language_id language_id);
 rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id);
 rcc_language_config rccGetConfigByName(rcc_context ctx, const char *name);
 rcc_language_config rccGetCurrentConfig(rcc_context ctx);
@@ -225,6 +230,16 @@ rcc_charset *rccGetCurrentCharsetList(rcc_context ctx);
 rcc_engine_ptr *rccGetCurrentEngineList(rcc_context ctx);
 rcc_charset *rccGetCurrentAutoCharsetList(rcc_context ctx);
 rcc_class_ptr *rccGetClassList(rcc_context ctx);
+
+/*******************************************************************************
+************************ Default Configuaration ********************************
+*******************************************************************************/
+
+/* rccconfig.c */
+const char *rccGetOptionName(rcc_option option);
+const char *rccGetOptionFullName(rcc_option option);
+rcc_option_value rccGetOptionDefaultValue(rcc_option option);
+const char *rccGetLanguageFullName(const char *lang);
 
 
 /*******************************************************************************

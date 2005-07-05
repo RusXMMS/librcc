@@ -15,6 +15,7 @@ struct rcc_context_t {
     rcc_language_alias_list aliases;
 
     rcc_option_value options[RCC_MAX_OPTIONS];
+    unsigned char default_options[RCC_MAX_OPTIONS];
      
     unsigned int max_languages;
     unsigned int n_languages;

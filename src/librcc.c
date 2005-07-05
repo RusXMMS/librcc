@@ -1,5 +1,20 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include "../config.h"
+
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#ifdef HAVE_PWD_H
+# include <pwd.h>
+#endif /* HAVE_PWD_H */
 
 #include <librcd.h>
 
@@ -7,16 +22,58 @@
 #include "rccconfig.h"
 #include "rccenca.h"
 #include "rcclist.h"
+#include "rccenca.h"
+#include "rccxml.h"
 
-
+static int initialized = 0;
+char *rcc_home_dir = NULL;
 
 int rccInit() {
-    /*DS: Load addition languages from config! */
-    return rccEncaInit();
+    int err;
+    char *tmp;
+
+#ifdef HAVE_PWD_H
+    struct passwd *pw;
+#endif /* HAVE_PWD_H */
+    
+    if (initialized) return 0;
+    
+    tmp = getenv ("HOME");
+    if (tmp) rcc_home_dir = strdup (tmp);
+#ifdef HAVE_PWD_H
+    else {
+	setpwent ();
+	pw = getpwuid(getuid ());
+	endpwent ();
+	if ((pw)&&(pw->pw_dir)) rcc_home_dir = strdup (pw->pw_dir);
+    }
+#endif /* HAVE_PWD_H */
+    if (!rcc_home_dir) rcc_home_dir = strdup("/");
+
+
+    err = rccEncaInit();
+    if (!err) err = rccXmlInit();
+
+    if (err) {
+	rccFree();
+	return err;
+    }
+
+    initialized = 1;
+
+    return 0;
 }
 
 void rccFree() {
+    rccXmlFree();
     rccEncaFree();
+
+    if (rcc_home_dir) {
+	free(rcc_home_dir);
+	rcc_home_dir = NULL;
+    }
+
+    initialized = 0;
 }
 
 rcc_context rccCreateContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags) {
@@ -137,8 +194,10 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 	}	    
     }
 
-    for (i=0;i<RCC_MAX_OPTIONS;i++)
-	ctx->options[i] = 0;    
+    for (i=0;i<RCC_MAX_OPTIONS;i++) {
+	ctx->options[i] = rccGetOptionDefaultValue((rcc_option)i);    
+	ctx->default_options[i] = 1;
+    }
 
     ctx->configure = 1;
     
@@ -258,12 +317,10 @@ rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias
 }
 
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
-    puts("yes");
     if ((!ctx)||(!cl)) return -1;
     if (ctx->configuration_lock) return -3;
     if (ctx->n_classes == ctx->max_classes) return -2;
 
-    puts(" -----> New class");
     ctx->configure = 1;
     ctx->classes[ctx->n_classes++] = cl;
     ctx->classes[ctx->n_classes] = NULL;
