@@ -48,7 +48,8 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, int 
     // DS: Learning. check database (language_id)
 
     charset_id = rccIConvAuto(ctx, class_id, buf, len);
-    if (charset_id > 0) icnv = ctx->iconv_auto[charset_id];
+    if (charset_id != (rcc_charset_id)-1) icnv = ctx->iconv_auto[charset_id];
+
     if (icnv == (iconv_t)-1) {
 	icnv = ctx->iconv_from[class_id];
 	if (icnv == (iconv_t)-1) return NULL;
@@ -61,7 +62,7 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, int 
 	if (err<=0) return NULL;
 	result = rccCreateString(language_id, ctx->tmpbuffer, err, rlen);
     }
-    
+
     // DS: Learning. write database
     
     return result;
@@ -88,7 +89,6 @@ char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, int le
 
     class_type = rccGetClassType(ctx, class_id);
     if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES))) {
-	// DS: file_names (aut odetect fspath)
 	    prefix = NULL; name = buf + sizeof(rcc_string_header);
 	    err = rccFS0(NULL, buf, &prefix, &name);
 	    if (!err) {

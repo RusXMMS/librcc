@@ -67,6 +67,8 @@ loop:
 	    return -1;
 	}
     }
-        
+    
+    ctx->tmpbuffer[RCC_MAX_STRING_CHARS - out_left] = 0;
+
     return RCC_MAX_STRING_CHARS - out_left;
 }

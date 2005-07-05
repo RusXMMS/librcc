@@ -14,7 +14,7 @@ rcc_string rccCreateString(rcc_language_id language_id, const char *buf, int len
     if (!res) return NULL;
 
     strncpy(res + sizeof(rcc_string_header), buf, len);
-    res[sizeof(rcc_string_header) + 1 + len] = 0;
+    res[sizeof(rcc_string_header) + len] = 0;
 
     memcpy(res, &header, sizeof(rcc_string_header));
 

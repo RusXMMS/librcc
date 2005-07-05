@@ -32,13 +32,11 @@ int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
     int locale_class;
     const char *l;
     
-    printf("Locale: %p\n", lv);
     if (!lv) return -1;
 
     locale_class = rccLocaleGetClassByName(lv);
     if (locale_class >= 0) {
 	l = setlocale(locale_class, NULL);
-	puts(l);
 	if (!l) return -1;
 	else if ((strcmp(l,"C")==0)||(strcmp(l,"POSIX")==0)) return -1;
     } else return -1;
@@ -56,8 +54,6 @@ int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
 
     strncpy(result,l,i);
     result[i]=0;
-    puts("------------------->");
-    puts(result);
 
     return 0;
 }

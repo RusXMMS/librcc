@@ -66,7 +66,7 @@ rcc_engine_id rccConfigGetEngineByName(rcc_language_config config, const char *n
     
     engines = config->language->engines;
     for (i=0;engines[i];i++)
-	if (!strcmp(engines[i]->title,name)) return i;
+	if (!strcasecmp(engines[i]->title,name)) return i;
     
     return -1;
 }
@@ -79,7 +79,7 @@ rcc_charset_id rccConfigGetCharsetByName(rcc_language_config config, const char 
     
     charsets = config->language->charsets;
     for (i=0;charsets[i];i++)
-	if (!strcmp(charsets[i],name)) return i;
+	if (!strcasecmp(charsets[i],name)) return i;
     
     return 0;
 }
@@ -95,7 +95,7 @@ rcc_charset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const c
     charsets = engines[config->engine]->charsets;
     
     for (i=0;charsets[i];i++)
-	if (!strcmp(charsets[i],name)) return i;
+	if (!strcasecmp(charsets[i],name)) return i;
     
     return -1;
 }
@@ -230,7 +230,6 @@ const char *rccConfigGetSelectedCharsetName(rcc_language_config config, rcc_clas
 rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_id class_id) {
     int err;
     unsigned int i;
-    rcc_language_id language_id;
     rcc_charset_id charset_id;
 
     rcc_language *language;
@@ -241,7 +240,7 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
 
     char stmp[RCC_MAX_CHARSET_CHARS + 1];
     const char *defvalue;
-    
+
     if ((!config)||(!config->ctx)||(class_id<0)||(class_id>=config->ctx->n_classes)) return -1;
     
     charset_id = config->charset[class_id];
@@ -260,11 +259,11 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
 		return rccConfigGetCurrentCharset(config, i); 
 	}
     } else defvalue = config->ctx->locale_variable;
-
+    
     charset_id = rccConfigGetLocaleCharset(config, defvalue);
-    if (charset_id > 0) return charset_id;
+    if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) return charset_id;
 	
-    charsets=config->ctx->languages[language_id]->charsets;
+    charsets=language->charsets;
     if ((charsets[0])&&(charsets[1])) return 1;
     return -1;
 }

@@ -75,7 +75,6 @@ int rccXmlInit() {
 	if (pos == RCC_MAX_LANGUAGES) goto clear;
 
 	for (npos = 0; rcc_default_language_names[npos].sn; npos++);
-	puts("+++");
 
 	
 	nnodes = node_set->nodeNr;
@@ -85,11 +84,9 @@ int rccXmlInit() {
 	    lang = attr->children->content;
 	    
 	    if ((!lang)||(!lang[0])) continue;
-	    puts(lang);
 	    
 	    for (cpos=1,fullname=NULL,node=pnode->children;node;node=node->next) {
 	    	if (node->type != XML_ELEMENT_NODE) continue;
-		puts(node->name);
 		if (!xmlStrcmp(node->name, "Charsets")) {
 		    for (cpos = 0, cnode=node->children;cnode;cnode=cnode->next) {
 			if (cnode->type != XML_ELEMENT_NODE) continue;

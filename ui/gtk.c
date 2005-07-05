@@ -113,7 +113,6 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 		item = gtk_menu_item_new_with_label(charsets[i]);
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
-		puts(charsets[i]);
 	    }
 
 	    if (ctx->widget) menu = ctx->widget;
@@ -139,7 +138,6 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 		item = gtk_menu_item_new_with_label(engines[i]->title);
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
-		puts(engines[i]->title);
 	    }	
 
 	    if (ctx->widget) menu = ctx->widget;
@@ -152,7 +150,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
 
 	    config = rccGetConfig(rccctx, language_id);
-	    engine_id = rccConfigGetSelectedEngine(config);
+	    engine_id = rccConfigGetCurrentEngine(config);
 	    if (engine_id < 0) engine_id = 0;
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), engine_id);
 		    

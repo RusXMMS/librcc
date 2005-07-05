@@ -254,23 +254,23 @@ void rccFreeContext(rcc_context ctx) {
 
 int rccLockConfiguration(rcc_context ctx, unsigned int lock_code) {
     if (!ctx) return -1;
-    if (ctx->configuration_lock) return -3;
+    if (ctx->configuration_lock) return -1;
     ctx->configuration_lock = lock_code;
     return 0;
 }
 
 int rccUnlockConfiguration(rcc_context ctx, unsigned int lock_code) {
     if (!ctx) return -1;
-    if (ctx->configuration_lock != lock_code) return -3;
+    if (ctx->configuration_lock != lock_code) return -1;
     ctx->configuration_lock = 0;
     return 0;    
 }
 
 rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
-    if ((!ctx)||(!language)) return -1;
-    if (ctx->configuration_lock) return -3;
+    if ((!ctx)||(!language)) return (rcc_language_id)-1;
+    if (ctx->configuration_lock) return (rcc_language_id)-1;
     
-    if (ctx->n_languages == ctx->max_languages) return -2;
+    if (ctx->n_languages == ctx->max_languages) return (rcc_language_id)-1;
     ctx->languages[ctx->n_languages++] = language;
     ctx->languages[ctx->n_languages] = NULL;
     
@@ -283,9 +283,9 @@ rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
 rcc_charset_id rccLanguageRegisterCharset(rcc_language *language, rcc_charset charset) {
     unsigned int i;
     
-    if ((!language)||(!charset)) return -1;
+    if ((!language)||(!charset)) return (rcc_charset_id)-1;
     for (i=0;language->charsets[i];i++);
-    if (i>=RCC_MAX_CHARSETS) return -2;
+    if (i>=RCC_MAX_CHARSETS) return (rcc_charset_id)-1;
     language->charsets[i++] = charset;
     language->charsets[i] = NULL;
     return i-1;
@@ -294,9 +294,9 @@ rcc_charset_id rccLanguageRegisterCharset(rcc_language *language, rcc_charset ch
 rcc_engine_id rccLanguageRegisterEngine(rcc_language *language, rcc_engine *engine) {
     unsigned int i;
     
-    if ((!language)||(!engine)) return -1;
+    if ((!language)||(!engine)) return (rcc_engine_id)-1;
     for (i=0;language->engines[i];i++);
-    if (i>=RCC_MAX_ENGINES) return -2;
+    if (i>=RCC_MAX_ENGINES) return (rcc_engine_id)-1;
     language->engines[i++] = engine;
     language->engines[i] = NULL;
     return i-1;
@@ -305,10 +305,10 @@ rcc_engine_id rccLanguageRegisterEngine(rcc_language *language, rcc_engine *engi
 rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias) {
     unsigned int i;
     
-    if ((!ctx)||(!alias)) return -1;
+    if ((!ctx)||(!alias)) return (rcc_alias_id)-1;
     
     for (i=0;ctx->aliases[i];i++)
-    if (i>=RCC_MAX_ALIASES) return -2;
+    if (i>=RCC_MAX_ALIASES) return (rcc_alias_id)-1;
     
     ctx->aliases[i++] = alias;
     ctx->aliases[i] = NULL;
@@ -317,9 +317,9 @@ rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias
 }
 
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
-    if ((!ctx)||(!cl)) return -1;
-    if (ctx->configuration_lock) return -3;
-    if (ctx->n_classes == ctx->max_classes) return -2;
+    if ((!ctx)||(!cl)) return (rcc_class_id)-1;
+    if (ctx->configuration_lock) return (rcc_class_id)-1;
+    if (ctx->n_classes == ctx->max_classes) return (rcc_class_id)-1;
 
     ctx->configure = 1;
     ctx->classes[ctx->n_classes++] = cl;
@@ -336,6 +336,7 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
 
 
 int rccConfigure(rcc_context ctx) {
+    int err;
     unsigned int i;
     rcc_charset *charsets;
     const char *charset;
@@ -343,9 +344,11 @@ int rccConfigure(rcc_context ctx) {
     if (!ctx) return -1;
     if (!ctx->configure) return 0;
     
+    rccGetCurrentCharsetName(ctx, (rcc_class_id)0);
     rccFreeIConv(ctx);
     for (i=0;i<ctx->n_classes;i++) {
-	charset = rccGetCurrentCharsetName(ctx, i);
+	charset = rccGetCurrentCharsetName(ctx, (rcc_class_id)i);
+	printf("Configure %i: %s\n", i, charset);
 	if (strcmp(charset, "UTF-8")&&strcmp(charset, "UTF8")) {
 	    ctx->iconv_from[i] = iconv_open("UTF-8", charset);
 	    ctx->iconv_to[i] = iconv_open(charset, "UTF-8");
@@ -354,7 +357,7 @@ int rccConfigure(rcc_context ctx) {
 	    ctx->iconv_to[i] = (iconv_t)-2;
 	}
     }
-
+    
     charsets = rccGetCurrentAutoCharsetList(ctx);
     for (i=0;charsets[i];i++) {
 	charset = charsets[i];
@@ -364,8 +367,10 @@ int rccConfigure(rcc_context ctx) {
 	    ctx->iconv_auto[i] = (iconv_t)-2;
     }
     
-    rccEngineConfigure(&ctx->engine_ctx);
+    err = rccEngineConfigure(&ctx->engine_ctx);
+    if (err) return err;
     
+    ctx->configure = 0;
     return 0;
 }
 

@@ -14,7 +14,7 @@ int rccEngineInit(rcc_engine_context engine_ctx, rcc_context ctx) {
 
 void rccEngineFree(rcc_engine_context engine_ctx) {
     if (!engine_ctx) return;
-    
+
     if (engine_ctx->free_func) {
 	engine_ctx->free_func(engine_ctx);
 	engine_ctx->free_func = NULL;
@@ -34,10 +34,10 @@ int rccEngineConfigure(rcc_engine_context ctx) {
     rccEngineFree(ctx);
     
     language_id = rccGetCurrentLanguage(ctx->ctx);
-    if (language_id<0) return -1;
+    if (language_id == (rcc_language_id)-1) return -1;
 
     engine_id = rccGetCurrentEngine(ctx->ctx);
-    if (engine_id<0) return -1;
+    if (engine_id == (rcc_engine_id)-1) return -1;
     
     engine = ctx->ctx->languages[language_id]->engines[engine_id];
     
@@ -45,7 +45,9 @@ int rccEngineConfigure(rcc_engine_context ctx) {
     ctx->func = engine->func;
     ctx->language = ctx->ctx->languages[language_id];
 
-    ctx->internal = engine->init_func(ctx);
+    if (engine->init_func) ctx->internal = engine->init_func(ctx);
+    else ctx->internal = NULL;
+    
     return 0;
 }
 
