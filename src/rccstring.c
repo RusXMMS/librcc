@@ -4,7 +4,7 @@
 #include "internal.h"
 #include "rccstring.h"
 
-rcc_string rccCreateString(rcc_language_id language_id, const char *buf, int len, int *rlen) {
+rcc_string rccCreateString(rcc_language_id language_id, const char *buf, size_t len, size_t *rlen) {
     char *res;
     rcc_string_header header = {RCC_STRING_MAGIC, language_id};
 
@@ -26,53 +26,93 @@ void rccStringFree(rcc_string str) {
     if (str) free(str);
 }
 
-rcc_language_id rccStringCheck(const rcc_string str) {
-    int len;
-    rcc_string_header *header;
+size_t rccStringCheck(const char *str) {
+    size_t len;
 
-    len = strlen(str);
+    if (!str) return 0;
     
-    if ((!str)||(len<=sizeof(unsigned int))||(*((unsigned int*)(str))!=RCC_STRING_MAGIC)) return 0;
+    len = strlen(str);
+    if (len>sizeof(rcc_string_header)) {
+	len-=sizeof(rcc_string_header);
+        if (((rcc_string_header*)str)->magic == RCC_STRING_MAGIC) return len;
+    }
 
-    header = (rcc_string_header*)(str);
-    return header->language_id;
+    return 0;
 }
 
-const char *rccStringGet(const rcc_string str) {
-    if (rccStringCheck(str)) return (const char *)str + sizeof(rcc_string_header);
-    return (const char *)str;
+size_t rccStringSizedCheck(const char *str, size_t len) {
+    size_t newlen;
+
+    if (!str) return 0;
+    
+    newlen = STRNLEN(str, len);
+    if (newlen>sizeof(rcc_string_header)) {
+	if ((len==newlen)&&(str[newlen-1])) return 0;
+	newlen-=sizeof(rcc_string_header);
+    } else return 0;
+
+    if (((rcc_string_header*)str)->magic == RCC_STRING_MAGIC) return newlen;
+    return 0;
 }
 
-char *rccStringExtract(const rcc_string buf, int len, int *rlen) {
+
+rcc_language_id rccStringGetLanguage(const rcc_string str) {
+    if (!str) return (rcc_language_id)-1;
+    return ((rcc_string_header*)str)->language_id;
+}
+
+const char *rccStringGetString(const rcc_string str) {
+    return (const char *)str + sizeof(rcc_string_header);
+}
+
+char *rccStringExtractString(const rcc_string str) {
+    size_t len;
     char *res;
     
-    len = STRNLEN(buf, len) - sizeof(rcc_string_header);
-    if (len<0) return NULL;
+    len = rccStringCheck(str);
+    if (!len) return NULL;
     
     res = (char*)malloc(len+1);
     if (!res) return NULL;
 
-    strncpy(res, buf + sizeof(rcc_string_header), len);
+    strncpy(res, rccStringGetString(str), len);
     res[len] = 0;
-    
-    if (rlen) *rlen = len;
     
     return res;    
 }
 
-int rccStringCmp(const rcc_string str1, const rcc_string str2) {
-    return strcmp(rccStringGet(str1), rccStringGet(str2));
+
+const char *rccGetString(const char *str) {
+    if (rccStringCheck(str)) return rccStringGetString((const rcc_string)str);
+    return str;
 }
 
-int rccStringNCmp(const rcc_string str1, const rcc_string str2, size_t n) {
-    return strncmp(rccStringGet(str1), rccStringGet(str2), n);
+const char *rccSizedGetString(const char *str, size_t len, size_t *rlen) {
+    size_t newlen;
+    
+    newlen = rccStringSizedCheck(str, len);
+    if (newlen) {
+	if (rlen) *rlen = newlen;
+	return rccStringGetString((const rcc_string)str);
+    }
+    
+    return (const char *)str;
 }
 
-int rccStringCaseCmp(const rcc_string str1, const rcc_string str2) {
-    return strcasecmp(rccStringGet(str1), rccStringGet(str2));
+
+int rccStringCmp(const char *str1, const char *str2) {
+    return strcmp(rccGetString(str1), rccGetString(str2));
 }
 
-int rccStringNCaseCmp(const rcc_string str1, const rcc_string str2, size_t n) {
-    return strncasecmp(rccStringGet(str1), rccStringGet(str2), n);
+int rccStringNCmp(const char *str1, const char *str2, size_t n) {
+    return strncmp(rccGetString(str1), rccGetString(str2), n);
+}
+
+int rccStringCaseCmp(const char *str1, const char *str2) {
+    return strcasecmp(rccGetString(str1), rccGetString(str2));
+}
+
+int rccStringNCaseCmp(const char *str1, const char *str2, size_t n) {
+    return strncasecmp(rccGetString(str1), rccGetString(str2), n);
 }
 

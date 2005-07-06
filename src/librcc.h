@@ -17,7 +17,6 @@
 #define RCC_MAX_LANGUAGE_CHARS 16
 #define RCC_MAX_VARIABLE_CHARS 16
 
-#define RCC_MAX_STRING_CHARS 1024
 
 /* ID's */
 typedef char rcc_language_id;
@@ -45,7 +44,8 @@ void rccFree();
 *******************************************************************************/
 typedef unsigned int rcc_init_flags;
 #define RCC_NO_DEFAULT_CONFIGURATION 1
-rcc_context rccCreateContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr classes, rcc_init_flags flags);
+rcc_context rccCreateContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags);
+int rccInitDefaultContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags);
 void rccFreeContext(rcc_context ctx);
 
 int rccLockConfiguration(rcc_context ctx, unsigned int lock_code);
@@ -248,24 +248,29 @@ const char *rccGetLanguageFullName(const char *lang);
 /* string.c */
 typedef char *rcc_string;
 
-rcc_language_id rccStringCheck(const rcc_string str);
-const char *rccStringGet(const rcc_string str);
-char *rccStringExtract(const rcc_string buf, int len, int *rlen);
+size_t rccStringCheck(const char *str);
+size_t rccStringSizedCheck(const char *str, size_t len);
 
-int rccStringCmp(const rcc_string str1, const rcc_string str2);
-int rccStringNCmp(const rcc_string str1, const rcc_string str2, size_t n);
-int rccStringCaseCmp(const rcc_string str1, const rcc_string str2);
-int rccStringNCaseCmp(const rcc_string str1, const rcc_string str2, size_t n);
+rcc_language_id rccStringGetLanguage(const rcc_string str);
+const char *rccStringGetString(const rcc_string str);
+char *rccStringExtractString(const rcc_string str);
 
+const char *rccGetString(const char *str);
+const char *rccSizedGetString(const char *str, size_t len, size_t *rlen);
+
+int rccStringCmp(const char *str1, const char *str2);
+int rccStringNCmp(const char *str1, const char *str2, size_t n);
+int rccStringCaseCmp(const char *str1, const char *str2);
+int rccStringNCaseCmp(const char *str1, const char *str2, size_t n);
 
 /*******************************************************************************
 ******************************** Recoding **************************************
 *******************************************************************************/
 
 /* recode.c */
-rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, int len, int *rlen);
-char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, int len, int *rlen);
-char *rccRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *buf, int len, int *rlen);
+rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len, size_t *rlen);
+char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t len, size_t *rlen);
+char *rccRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen);
 char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fspath, const char *path, const char *filename);
 
 /*******************************************************************************

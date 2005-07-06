@@ -6,8 +6,12 @@
 #include "recode.h"
 #include "engine.h"
 #include "lngconfig.h"
+#include "rccstring.h"
 
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
+
+#define RCC_MAX_STRING_CHARS 1024
+#define RCC_MAX_PREFIX_CHARS 32
 
 struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];
@@ -33,6 +37,7 @@ struct rcc_context_t {
     iconv_t iconv_auto[RCC_MAX_CHARSETS];
 
     char tmpbuffer[RCC_MAX_STRING_CHARS+sizeof(rcc_string_header)+1];
+    char lastprefix[RCC_MAX_PREFIX_CHARS+1];
     iconv_t fsiconv;
     
     unsigned char configure;
@@ -44,6 +49,7 @@ struct rcc_context_t {
 typedef struct rcc_context_t rcc_context_s;
 
 int rccConfigure(rcc_context ctx);
-char *rccCreateResult(rcc_context ctx, int len, int *rlen);
+char *rccCreateResult(rcc_context ctx, size_t len, size_t *rlen);
 
+extern rcc_context rcc_default_ctx;
 #endif /* _RCC_INTERNAL_H */

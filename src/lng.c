@@ -6,7 +6,11 @@
 #include "rcclocale.h"
 
 rcc_language_ptr rccGetLanguagePointer(rcc_context ctx, rcc_language_id language_id) {
-    if ((!ctx)||(language_id<0)||(language_id>=ctx->n_languages)) return NULL;
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
+    if ((language_id<0)||(language_id>=ctx->n_languages)) return NULL;
     return ctx->languages[language_id];
 }
 
@@ -19,12 +23,17 @@ const char *rccGetLanguageName(rcc_context ctx, rcc_language_id language_id) {
 
 rcc_language_id rccGetLanguageByName(rcc_context ctx, const char *name) {
     unsigned int i;
-    if ((!ctx)||(!name)) return 0;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return (rcc_language_id)-1;
+    }
+    if (!name) return (rcc_language_id)-1;
     
     for (i=0;ctx->languages[i];i++) 
 	if (!strcmp(ctx->languages[i]->sn, name)) return i;
 
-    return 0;
+    return (rcc_language_id)-1;
 }
 
 static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
@@ -32,36 +41,43 @@ static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
     unsigned int i;
     char stmp[RCC_MAX_LANGUAGE_CHARS+1];
 
-    if (!ctx) return -1;
-    
     err = rccLocaleGetLanguage(stmp, ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS);
     if (err) {
-	if (ctx->n_languages>1) return 1;
-	return -1;
+	if (ctx->n_languages>1) return (rcc_language_id)1;
+	return (rcc_language_id)-1;
     }
     
     for (i=0;ctx->languages[i];i++)
-	if (!strcmp(ctx->languages[i]->sn, stmp)) return i;
+	if (!strcmp(ctx->languages[i]->sn, stmp)) return (rcc_language_id)i;
     
-    if (i>1) return 1;
-    return -1;
+    if (i>1) return (rcc_language_id)1;
+    return (rcc_language_id)-1;
 }
 
 rcc_language_id rccGetRealLanguage(rcc_context ctx, rcc_language_id language_id) {
-    if ((!ctx)||(language_id<0)||(language_id>=ctx->n_languages)) return -1;
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return (rcc_language_id)-1;
+    }
+    if ((language_id<0)||(language_id>=ctx->n_languages)) return (rcc_language_id)-1;
+
     if (language_id) return language_id;
     return rccGetDefaultLanguage(ctx);    
 }
 
 const char *rccGetRealLanguageName(rcc_context ctx, rcc_language_id language_id) {
     language_id = rccGetRealLanguage(ctx, language_id);
-    if (language_id<0) return NULL;
+    if (language_id == (rcc_language_id)-1) return NULL;
     
     return rccGetLanguageName(ctx, language_id);
 }
 
 rcc_language_id rccGetSelectedLanguage(rcc_context ctx) {
-    if (!ctx) return -1;
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return (rcc_language_id)-1;
+    }
+
     return ctx->current_language;
 }
 
@@ -69,13 +85,17 @@ const char *rccGetSelectedLanguageName(rcc_context ctx) {
     rcc_language_id language_id;
     
     language_id = rccGetSelectedLanguage(ctx);
-    if (language_id<0) return NULL;
+    if (language_id == (rcc_language_id)-1) return NULL;
     
     return rccGetLanguageName(ctx, language_id);
 }
 
 rcc_language_id rccGetCurrentLanguage(rcc_context ctx) {
-    if (!ctx) return -1;
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return (rcc_language_id)-1;
+    }
+    
     return rccGetRealLanguage(ctx, ctx->current_language);    
 }
 
@@ -83,7 +103,7 @@ const char *rccGetCurrentLanguageName(rcc_context ctx) {
     rcc_language_id language_id;
     
     language_id = rccGetCurrentLanguage(ctx);
-    if (language_id<0) return NULL;
+    if (language_id == (rcc_language_id)-1) return NULL;
     
     return rccGetLanguageName(ctx, language_id);
 }
@@ -91,8 +111,12 @@ const char *rccGetCurrentLanguageName(rcc_context ctx) {
 
 int rccSetLanguage(rcc_context ctx, rcc_language_id language_id) {
     rcc_language_config config;
-    
-    if ((!ctx)||(language_id < 0)||(language_id >= ctx->n_languages)) return -1;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+    if ((language_id < 0)||(language_id >= ctx->n_languages)) return -1;
     if ((!ctx->languages[language_id]->engines[0])||(!ctx->languages[language_id]->charsets[0])) return -2;
 
     if (ctx->current_language != language_id) {
@@ -109,7 +133,7 @@ int rccSetLanguageByName(rcc_context ctx, const char *name) {
     rcc_language_id language_id;
     
     language_id = rccGetLanguageByName(ctx, name);
-    if (language_id < 0) return -1;
+    if (language_id == (rcc_language_id)-1) return -1;
     
     return rccSetLanguage(ctx, language_id);
 }

@@ -28,17 +28,17 @@ static int rccIConvUTFBytes(unsigned char c) {
     return 6-j;
 }
 
-int rccIConv(rcc_context ctx, iconv_t icnv, const char *buf, int len) {
+size_t rccIConv(rcc_context ctx, iconv_t icnv, const char *buf, size_t len) {
     char *in_buf, *out_buf, *res, err;
     int in_left, out_left, olen;
     int ub, utf_mode=0;
     int errors=0;
     
-    if ((!buf)||(!ctx)||(icnv == (iconv_t)-1)) return -1;
+    if ((!buf)||(!ctx)||(icnv == (iconv_t)-1)) return (size_t)-1;
     
     len = STRNLEN(buf,len);
     
-    if (iconv(icnv, NULL, NULL, NULL, NULL) == -1) return -1;
+    if (iconv(icnv, NULL, NULL, NULL, NULL) == -1) return (size_t)-1;
     
 loop_restart:
     errors = 0;
@@ -61,10 +61,10 @@ loop:
 		utf_mode = 1;
 		goto loop_restart;
 	    } else {
-	        return -1;
+	        return (size_t)-1;
 	    }
 	} else {
-	    return -1;
+	    return (size_t)-1;
 	}
     }
     

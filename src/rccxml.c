@@ -216,6 +216,11 @@ int rccSave(rcc_context ctx, const char *name) {
     int memsize;
     xmlChar *mem;
 
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+
     if ((!name)||(!strcmp(name, "rcc"))||(strlen(rcc_home_dir)<3)) name = "default";
 
     size = strlen(rcc_home_dir) + strlen(name) + 32;
@@ -370,6 +375,11 @@ int rccLoad(rcc_context ctx, const char *name) {
     xmlXPathContextPtr xpathctx;    
     xmlDocPtr doc = NULL;
     xmlNodePtr node, lnode;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
 
     if ((!name)||(!strcmp(name, "rcc"))||(strlen(rcc_home_dir)<3)) name = "default";
 
