@@ -16,13 +16,11 @@
 # include <pwd.h>
 #endif /* HAVE_PWD_H */
 
-#include <librcd.h>
-
 #include "internal.h"
 #include "rccconfig.h"
 #include "rccenca.h"
 #include "rcclist.h"
-#include "rccenca.h"
+#include "engine.h"
 #include "rccxml.h"
 
 static int initialized = 0;
@@ -51,8 +49,7 @@ int rccInit() {
 #endif /* HAVE_PWD_H */
     if (!rcc_home_dir) rcc_home_dir = strdup("/");
 
-
-    err = rccEncaInit();
+    err = rccEngineInit();
     if (!err) err = rccXmlInit();
 
     if (err) {
@@ -72,7 +69,7 @@ void rccFree() {
     }
     
     rccXmlFree();
-    rccEncaFree();
+    rccEngineFree();
 
     if (rcc_home_dir) {
 	free(rcc_home_dir);
@@ -126,6 +123,8 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     }
 
     ctx->configuration_lock = 0;
+    
+    ctx->db4ctx = NULL;
 
     ctx->aliases[0] = NULL;
     for (i=0;rcc_default_aliases[i].alias;i++)
@@ -158,7 +157,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     for (i=0;i<max_languages;i++)
 	configs[i].charset = NULL;
 
-    err = rccEngineInit(&ctx->engine_ctx, ctx);
+    err = rccEngineInitContext(&ctx->engine_ctx, ctx);
     if (err) {
 	rccFree(ctx);
 	return NULL;
@@ -175,6 +174,8 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     } else {
 	strcpy(ctx->locale_variable, RCC_LOCALE_VARIABLE);
     }
+
+    for (i=0;i<RCC_MAX_OPTIONS;i++) rccOptionSetDefault(ctx, (rcc_option)i);
     
     if (flags&RCC_NO_DEFAULT_CONFIGURATION) {
 	rccRegisterLanguage(ctx, rcc_default_languages);
@@ -199,11 +200,6 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 	    rccFree(ctx);
 	    return NULL;
 	}	    
-    }
-
-    for (i=0;i<RCC_MAX_OPTIONS;i++) {
-	ctx->options[i] = rccGetOptionDefaultValue((rcc_option)i);    
-	ctx->default_options[i] = 1;
     }
 
     ctx->configure = 1;
@@ -251,7 +247,8 @@ void rccFreeContext(rcc_context ctx) {
     unsigned int i;
     
     if (ctx) {
-	rccEngineFree(&ctx->engine_ctx);
+	if (ctx->db4ctx) rccDb4FreeContext(ctx->db4ctx);
+	rccEngineFreeContext(&ctx->engine_ctx);
 	rccFreeIConv(ctx);
 	if (ctx->iconv_from) free(ctx->iconv_from);
 	if (ctx->iconv_to) free(ctx->iconv_to);
@@ -380,14 +377,19 @@ int rccConfigure(rcc_context ctx) {
     unsigned int i;
     rcc_charset *charsets;
     const char *charset;
+    rcc_language_config cfg;
     
     if (!ctx) return -1;
     if (!ctx->configure) return 0;
     
-    rccGetCurrentCharsetName(ctx, (rcc_class_id)0);
+    cfg = rccGetCurrentConfig(ctx);
+    if (!cfg) return 1;
+    
+    rccConfigGetCurrentCharsetName(cfg, (rcc_class_id)0);
     rccFreeIConv(ctx);
     for (i=0;i<ctx->n_classes;i++) {
-	charset = rccGetCurrentCharsetName(ctx, (rcc_class_id)i);
+	charset = rccConfigGetCurrentCharsetName(cfg, (rcc_class_id)i);
+	if (!charset) continue;
 	printf("Configure %i: %s\n", i, charset);
 	if (strcmp(charset, "UTF-8")&&strcmp(charset, "UTF8")) {
 	    ctx->iconv_from[i] = iconv_open("UTF-8", charset);
@@ -399,12 +401,14 @@ int rccConfigure(rcc_context ctx) {
     }
     
     charsets = rccGetCurrentAutoCharsetList(ctx);
-    for (i=0;charsets[i];i++) {
-	charset = charsets[i];
-	if (strcmp(charset, "UTF-8")&&strcmp(charset, "UTF8"))
-	    ctx->iconv_auto[i] = iconv_open("UTF-8", charset);
-	else
-	    ctx->iconv_auto[i] = (iconv_t)-2;
+    if (charsets) {
+	for (i=0;charsets[i];i++) {
+	    charset = charsets[i];
+	    if (strcmp(charset, "UTF-8")&&strcmp(charset, "UTF8"))
+		ctx->iconv_auto[i] = iconv_open("UTF-8", charset);
+	    else
+		ctx->iconv_auto[i] = (iconv_t)-2;
+	}
     }
     
     err = rccEngineConfigure(&ctx->engine_ctx);

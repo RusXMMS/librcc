@@ -165,12 +165,9 @@ int rccUiRestoreLanguage(rcc_ui_context ctx) {
     rcc_class_ptr *classes;
     rcc_language_id language_id;
     
-    rcc_language_config config;
-    
     if (!ctx) return -1;
 
     language_id = (rcc_language_id)rccUiMenuGet(ctx->language);
-    config = rccGetConfig(ctx->rccctx, language_id);
     
     rccUiMenuConfigureWidget(ctx->engine);
     //rccUiMenuSet(ctx->engine, (rcc_ui_id)rccConfigGetSelectedEngine(config));
@@ -386,6 +383,7 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
     rcc_ui_frame frame;
     rcc_ui_box engine;
     rcc_ui_box opt;
+    const char *optname;
 
     if (!ctx) return NULL;
 
@@ -400,7 +398,10 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
     rccUiFrameAdd(framectx, engine);
 
     for (i=0; i<RCC_MAX_OPTIONS; i++) {
-	opt = rccUiGetOptionBox(ctx, (rcc_option)i,  rccUiGetOptionName(ctx, i));
+	optname = rccUiGetOptionName(ctx, i);
+	if (!optname) continue;
+	
+	opt = rccUiGetOptionBox(ctx, (rcc_option)i, optname);
 	rccUiFrameAdd(framectx, opt);
     }
     

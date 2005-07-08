@@ -8,6 +8,7 @@
 #include "lng.h"
 #include "rccstring.h"
 #include "rccconfig.h"
+#include "rccdb4.h"
 
 
 
@@ -20,8 +21,8 @@ static rcc_charset_id rccIConvAuto(rcc_context ctx, rcc_class_id class_id, const
 
     class_type = rccGetClassType(ctx, class_id);
     if ((class_type == RCC_CLASS_STANDARD)||((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_AUTODETECT_FS_TITLES)))) {
-	engine = rccGetEnginePointer(ctx, rccGetCurrentEngine(ctx));
-	if ((!engine)||(!engine->func)||(!strcasecmp(engine->title, "off"))||(!strcasecmp(engine->title, "dissable"))) return -1;
+	engine = rccGetCurrentEnginePointer(ctx);
+	if ((!engine)||(!engine->func)) return (rcc_charset_id)-1;
 	return engine->func(&ctx->engine_ctx, buf, len);
     }
     
@@ -42,6 +43,13 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size
     }
     if ((class_id<0)||(class_id>=ctx->n_classes)||(!buf)) return NULL;
     
+
+    string = rccDb4GetKey(ctx->db4ctx, buf, len);
+    if (string) {
+	puts("Got a string");
+	return string;
+    }
+    
     err = rccConfigure(ctx);
     if (err) return NULL;
 
@@ -50,7 +58,7 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size
     if (ret) return NULL;
 
     language_id = rccGetCurrentLanguage(ctx);
-    // DS: Learning. check database (language_id)
+    // DS: Learning. check database (language_id, check if language_id initialized)
 
     charset_id = rccIConvAuto(ctx, class_id, buf, len);
     if (charset_id != (rcc_charset_id)-1) icnv = ctx->iconv_auto[charset_id];
@@ -96,8 +104,10 @@ char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t
     language_id = rccStringGetLanguage(buf);
     utfstring = rccStringGetString(buf);
 
+    /* COnfigure is only required in case of current language */
     err = rccConfigure(ctx);
     if (err) return NULL;
+    /* Do something even in case of error (Language can be changed) */
 
     icnv =  ctx->iconv_to[class_id];
 

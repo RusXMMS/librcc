@@ -22,6 +22,7 @@ rcc_library_handle rccLibraryOpen(char *filename)
 void rccLibraryClose(rcc_library_handle handle)
 {
 #ifdef RCC_PLUGINS
+    puts("HHHHHHHHHHHHHHHHHHHH");
     dlclose(handle);
 #endif /* RCC_PLUGINS */
 }

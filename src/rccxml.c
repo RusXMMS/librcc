@@ -14,8 +14,6 @@
 #include "internal.h"
 #include "rccconfig.h"
 
-extern char *rcc_home_dir;
-
 #define MAX_HOME_CHARS 96
 #define XPATH_LANGUAGE "//Language[@name]"
 
@@ -149,6 +147,8 @@ static xmlNodePtr rccNodeFind(xmlXPathContextPtr xpathctx, const char *request, 
     unsigned int size = 64;
     va_list ap;
     char *req;
+    
+    if (!xpathctx) return NULL;
 
     for (req = strstr(request, "%s"); req; req = strstr(req + 1, "%s")) args++;
     
@@ -358,7 +358,7 @@ clear:
 int rccLoad(rcc_context ctx, const char *name) {
     int err;
     
-    int fd;
+    int fd, sysfd;
     char *config;
     struct stat st;
     
@@ -372,8 +372,8 @@ int rccLoad(rcc_context ctx, const char *name) {
     rcc_class_ptr *classes;
     rcc_class_ptr cl;
     
-    xmlXPathContextPtr xpathctx;    
-    xmlDocPtr doc = NULL;
+    xmlXPathContextPtr xpathctx = NULL, sysxpathctx = NULL, curxpathctx;    
+    xmlDocPtr doc = NULL, sysdoc = NULL;
     xmlNodePtr node, lnode;
 
     if (!ctx) {
@@ -389,17 +389,52 @@ int rccLoad(rcc_context ctx, const char *name) {
 
     sprintf(config,"%s/.rcc/%s.xml",rcc_home_dir,name);
     fd = open(config, O_RDONLY);
-    if (fd == -1) goto clear;
-    flock(fd, LOCK_EX);
+
+    sprintf(config, "/etc/rcc/%s.xml",name);
+    sysfd = open(config, O_RDONLY);
     
-    if ((!fstat(fd, &st))&&(st.st_size)) {
-	doc = xmlReadFd(fd, config, NULL, 0);
-    } else goto clear;
+    free(config);
+
+    if (fd != -1) {
+	flock(fd, LOCK_EX);
+	if ((!fstat(fd, &st))&&(st.st_size)) {
+	    doc = xmlReadFd(fd, name, NULL, 0);
+	} 
+	flock(fd, LOCK_UN);
+	close(fd);
     
-    xpathctx = xmlXPathNewContext(doc);
-    if (!xpathctx) goto clear;
+	if (doc) {
+	    xpathctx = xmlXPathNewContext(doc);
+	    if (!xpathctx) {
+		xmlFreeDoc(doc);
+		doc = NULL;
+	    }
+	}
+    }
+
+    if (sysfd != -1) {
+	flock(sysfd, LOCK_EX);
+	if ((!fstat(sysfd, &st))&&(st.st_size)) {
+	    sysdoc = xmlReadFd(sysfd, name, NULL, 0);
+	} 
+	flock(sysfd, LOCK_UN);
+	close(sysfd);
+    
+	if (sysdoc) {
+	    sysxpathctx = xmlXPathNewContext(sysdoc);
+	    if (!sysxpathctx) {
+		xmlFreeDoc(sysdoc);
+		sysdoc = NULL;
+	    }
+	}
+    }
+    
+    if ((!doc)&&(!sysdoc)) goto clear;
+
+
 
     node = rccNodeFind(xpathctx, XPATH_SELECTED_LANGUAGE);
+    if (!node) node = rccNodeFind(sysxpathctx, XPATH_SELECTED_LANGUAGE);
     if (node) {
 	tmp = rccXmlGetText(node);
 	if (tmp) err = rccSetLanguageByName(ctx, tmp);
@@ -412,6 +447,7 @@ int rccLoad(rcc_context ctx, const char *name) {
 	if (!oname) continue;
 
 	node = rccNodeFind(xpathctx, XPATH_SELECTED_OPTION, oname);
+	if (!node) node = rccNodeFind(sysxpathctx, XPATH_SELECTED_OPTION, oname);
 	if (node) {
 	    tmp = rccXmlGetText(node);
 	    if ((tmp)&&(strcasecmp(tmp,rcc_option_nonconfigured))) err = rccSetOption(ctx, (rcc_option)i, (rcc_option_value)atoi(tmp));
@@ -427,12 +463,17 @@ int rccLoad(rcc_context ctx, const char *name) {
 	language = languages[i];
 
 	lnode = rccNodeFind(xpathctx, XPATH_SELECTED_LANG, language->sn);
-	if (!lnode) continue;
+	if (lnode) curxpathctx = xpathctx;
+	else {
+	    lnode = rccNodeFind(sysxpathctx, XPATH_SELECTED_LANG, language->sn);
+	    if (lnode) curxpathctx = sysxpathctx;
+	    else continue;
+	}
 
 	cfg = rccGetConfig(ctx, (rcc_language_id)i);
 	if (!cfg) continue;
 	
-	node = rccNodeFind(xpathctx, XPATH_SELECTED_ENGINE, language->sn);
+	node = rccNodeFind(curxpathctx, XPATH_SELECTED_ENGINE, language->sn);
 	if (node) {
 	    tmp = rccXmlGetText(node);
 	    if (tmp) err = rccConfigSetEngineByName(cfg, tmp);
@@ -443,7 +484,7 @@ int rccLoad(rcc_context ctx, const char *name) {
 	for (j=0;classes[j];j++) {
 	    cl = classes[j];
 	    
-	    node = rccNodeFind(xpathctx, XPATH_SELECTED_CLASS, language->sn, cl->name);
+	    node = rccNodeFind(curxpathctx, XPATH_SELECTED_CLASS, language->sn, cl->name);
 	    if (node) {
 		tmp = rccXmlGetText(node);
 		if (tmp) err = rccConfigSetCharsetByName(cfg, (rcc_class_id)j, tmp);
@@ -454,18 +495,24 @@ int rccLoad(rcc_context ctx, const char *name) {
     }
 
 clear:
-    if (config) {    
-	if (fd != -1) {
-	    if (doc) {
-		if (xpathctx) {
-		    xmlXPathFreeContext(xpathctx);
-		}
-		xmlFreeDoc(doc);
-	    }
-	    close(fd);
+
+    if (sysdoc) {
+	if (sysxpathctx) {
+	    xmlXPathFreeContext(sysxpathctx);
 	}
-	free(config);
+	xmlFreeDoc(sysdoc);
+    }
+    if (doc) {
+	if (xpathctx) {
+	    xmlXPathFreeContext(xpathctx);
+	}
+	xmlFreeDoc(doc);
     }
 
+    if ((!ctx->current_language)&&(rccGetOption(ctx, RCC_CONFIGURED_LANGUAGES_ONLY))) {
+	ctx->current_config = rccGetCurrentConfig(ctx);
+    	ctx->configure = 1;
+    }
+    
     return 0;
 }

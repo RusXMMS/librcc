@@ -7,6 +7,7 @@
 #include "engine.h"
 #include "lngconfig.h"
 #include "rccstring.h"
+#include "rccdb4.h"
 
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
 
@@ -44,6 +45,8 @@ struct rcc_context_t {
     rcc_language_config current_config;
     rcc_language_id current_language;
 
+    db4_context db4ctx;
+    
     unsigned int configuration_lock;
 };
 typedef struct rcc_context_t rcc_context_s;
@@ -52,4 +55,6 @@ int rccConfigure(rcc_context ctx);
 char *rccCreateResult(rcc_context ctx, size_t len, size_t *rlen);
 
 extern rcc_context rcc_default_ctx;
+extern char *rcc_home_dir;
+
 #endif /* _RCC_INTERNAL_H */

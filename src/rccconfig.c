@@ -1,13 +1,9 @@
 #include <stdio.h>
-#include <librcd.h>
 
 #include "internal.h"
 #include "rccconfig.h"
+#include "engine.h"
 #include "opt.h"
-
-static rcc_charset_id rcc_autoengine_russian(rcc_engine_context ctx, const char *buf, int len) {
-    return (rcc_charset_id)rcdGetRussianCharset(buf,len);
-}
 
 rcc_language_alias rcc_default_aliases[] = {
     { "cs_SK", "sk" },
@@ -23,7 +19,7 @@ rcc_engine rcc_default_engine = {
 };
 
 rcc_engine rcc_russian_engine = {
-    "Russian", NULL, NULL, &rcc_autoengine_russian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
+    "Russian", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
 };
 
 rcc_language rcc_default_languages[RCC_MAX_LANGUAGES + 1] = {
@@ -37,12 +33,16 @@ rcc_language rcc_default_languages[RCC_MAX_LANGUAGES + 1] = {
 }},
 {"ru", {"Default","KOI8-R","CP1251","UTF-8","IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
     &rcc_default_engine,
+#ifdef RCC_RCD_SUPPORT
     &rcc_russian_engine,
+#endif /* RCC_RCD_SUPPORT */
     NULL
 }},
 {"uk", {"Default","KOI8-U","CP1251","UTF-8","IBM855","MACCYRILLIC","ISO8859-5","CP1125", NULL}, {
     &rcc_default_engine,
+#ifdef RCC_RCD_SUPPORT
     &rcc_russian_engine,
+#endif /* RCC_RCD_SUPPORT */
     NULL
 }},
 {"be", {"Default", "UTF-8", "CP1251", "IBM866", "ISO-8859-5", "KOI8-UNI", "maccyr" "IBM855", NULL},{
@@ -116,6 +116,13 @@ rcc_language_name rcc_default_language_names[RCC_MAX_LANGUAGES+1] = {
 {NULL, NULL}
 };
 
+rcc_option_description rcc_default_option_descriptions[] = {
+    {RCC_LEARNING_MODE, "LEARNING_MODE", RCC_OPTION_TYPE_BOOLEAN, 0, 0},
+    {RCC_AUTODETECT_FS_TITLES, "AUTODETECT_FS_TITLES", RCC_OPTION_TYPE_BOOLEAN, 0, 0},
+    {RCC_AUTODETECT_FS_NAMES, "AUTODETECT_FS_NAMES", RCC_OPTION_TYPE_NAMES;
+    {RCC_AUTODETECT_FS_TITLES, "AUTODETECT_FS_TITLES", RCC_OPTION_TYPE_NAMES;
+    RCC_CONFIGURED_LANGUAGES_ONLY
+
 rcc_option_name rcc_default_option_names[] = {
     { RCC_LEARNING_MODE, "Learning Mode", "LEARNING_MODE" },
     { RCC_AUTODETECT_FS_TITLES, "Autodetect FS Encoding", "AUTODETECT_FS_TITLES" },
@@ -127,6 +134,7 @@ rcc_option_defval rcc_default_option_values[] = {
     { RCC_LEARNING_MODE, 0 },
     { RCC_AUTODETECT_FS_TITLES, 1},
     { RCC_AUTODETECT_FS_NAMES, 1},
+    { RCC_CONFIGURED_LANGUAGES_ONLY, 1},
     { RCC_MAX_OPTIONS, 0}
 };
 

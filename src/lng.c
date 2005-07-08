@@ -29,9 +29,9 @@ rcc_language_id rccGetLanguageByName(rcc_context ctx, const char *name) {
 	else return (rcc_language_id)-1;
     }
     if (!name) return (rcc_language_id)-1;
-    
-    for (i=0;ctx->languages[i];i++) 
-	if (!strcmp(ctx->languages[i]->sn, name)) return i;
+
+    for (i=0;ctx->languages[i];i++)
+	if (!strcasecmp(ctx->languages[i]->sn, name)) return (rcc_language_id)i;
 
     return (rcc_language_id)-1;
 }
@@ -41,16 +41,18 @@ static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
     unsigned int i;
     char stmp[RCC_MAX_LANGUAGE_CHARS+1];
 
-    err = rccLocaleGetLanguage(stmp, ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS);
-    if (err) {
-	if (ctx->n_languages>1) return (rcc_language_id)1;
-	return (rcc_language_id)-1;
+    if (!rccLocaleGetLanguage(stmp, ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS)) {
+    	for (i=0;ctx->languages[i];i++) {
+	    if (!strcmp(ctx->languages[i]->sn, stmp)) {
+		if (rccGetOption(ctx, RCC_CONFIGURED_LANGUAGES_ONLY)) {
+		    if (!rccCheckConfig(ctx, (rcc_language_id)i)) break;
+		}
+		return (rcc_language_id)i;
+	    }
+	}
     }
     
-    for (i=0;ctx->languages[i];i++)
-	if (!strcmp(ctx->languages[i]->sn, stmp)) return (rcc_language_id)i;
-    
-    if (i>1) return (rcc_language_id)1;
+    if (ctx->n_languages>1) return (rcc_language_id)1;
     return (rcc_language_id)-1;
 }
 
@@ -116,17 +118,20 @@ int rccSetLanguage(rcc_context ctx, rcc_language_id language_id) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
 	else return -1;
     }
+    
     if ((language_id < 0)||(language_id >= ctx->n_languages)) return -1;
     if ((!ctx->languages[language_id]->engines[0])||(!ctx->languages[language_id]->charsets[0])) return -2;
 
     if (ctx->current_language != language_id) {
 	config = rccGetConfig(ctx, language_id);
-	if (!config) return -1;
+	// NULL is Okey (Off), if (!config) return -1;
 	
 	ctx->configure = 1;
 	ctx->current_language = language_id;
 	ctx->current_config = config; 
     }
+
+    return 0;
 }
 
 int rccSetLanguageByName(rcc_context ctx, const char *name) {

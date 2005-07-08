@@ -126,7 +126,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 
 	    config = rccGetConfig(rccctx, language_id);
 	    charset_id = rccConfigGetSelectedCharset(config, (rcc_class_id)ctx->id);
-	    if (charset_id < 0) charset_id = 0;
+	    if (charset_id == (rcc_charset_id)-1) charset_id = 0;
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), charset_id);
 	break;
 	case RCC_UI_MENU_ENGINE:
@@ -148,12 +148,10 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 
 	    gtk_option_menu_remove_menu(GTK_OPTION_MENU(menu));
 	    gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
-
 	    config = rccGetConfig(rccctx, language_id);
 	    engine_id = rccConfigGetCurrentEngine(config);
-	    if (engine_id < 0) engine_id = 0;
+	    if (engine_id == (rcc_engine_id)-1) engine_id = 0;
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), engine_id);
-		    
 	break;
 	case RCC_UI_MENU_OPTION:
 	    if (!ctx->widget) {

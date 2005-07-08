@@ -40,5 +40,5 @@ const char *rccUiGetOptionName(rcc_ui_context ctx, rcc_option option) {
     res = rccGetOptionFullName(option);
     if (res) return res;
     
-    return "";
+    return NULL;
 }

@@ -56,18 +56,17 @@ rcc_charset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
     EncaEncoding ee;
 
     internal = rccEngineGetInternal(ctx);
-    if ((!internal)||(!buf)) return -1;
-    
+    if ((!internal)||(!buf)) return (rcc_charset_id)-1;
     
     len = STRNLEN(buf, len);
 
     ee = enca_analyse_const((EncaAnalyser)ctx->internal,buf,len);
-    if (ee.charset<0) return -1;
+    if (ee.charset<0) return (rcc_charset_id)-1;
 
     charset = enca_charset_name(ee.charset, ENCA_NAME_STYLE_ICONV);
     return rccGetAutoCharsetByName(ctx->ctx, charset);
 #else /* RCC_ENCA_SUPPORT */
-    return -1;
+    return (rcc_charset_id)-1;
 #endif /* RCC_ENCA_SUPPORT */
 }
 
@@ -107,6 +106,7 @@ static int rccEncaLibraryLoad() {
 # ifdef RCC_DEBUG
 	    perror( "rccEnca. Incomplete function set in library" );
 # endif /* RCC_DEBUG */
+	    return -1;
     }
 
 #endif /* RCC_ENCA_DYNAMIC */
@@ -116,7 +116,7 @@ static int rccEncaLibraryLoad() {
 static void rccEncaLibraryUnload() {
 #ifdef RCC_ENCA_DYNAMIC
     if (enca_handle) {
-	rccLibraryUnload(enca_handle);
+	rccLibraryClose(enca_handle);
 	enca_handle = NULL;
     }
 #endif /* RCC_ENCA_DYNAMIC */
@@ -130,15 +130,16 @@ int rccEncaInit() {
     
     int *charsets;
     size_t n_charsets;
+    const char *charset;
 
 #ifdef RCC_ENCA_SUPPORT
-    if (enca_engines) return -1;
+    if (enca_engines) return 0;
     for (i=0;rcc_default_languages[i].sn;i++);
     enca_engines = (rcc_engine*)malloc(i*sizeof(rcc_engine));
     if (!enca_engines) return -1;
 
     err = rccEncaLibraryLoad();
-    if (err) return err;
+    if (err) return 0;
 
     for (i=0;rcc_default_languages[i].sn;i++) {
 	engines = rcc_default_languages[i].engines;
@@ -152,10 +153,15 @@ int rccEncaInit() {
 	if (charsets) {
 	    memcpy(enca_engines+i, &rcc_enca_engine, sizeof(rcc_engine));
 	    for (k=0;enca_engines[i].charsets[k];k++);
+
 	    if (n_charsets+k>=RCC_MAX_CHARSETS) n_charsets = RCC_MAX_CHARSETS-k;
 	    
-	    for (l=0;l<n_charsets;l++)
-		enca_engines[j].charsets[k++] = enca_charset_name(charsets[l], ENCA_NAME_STYLE_ICONV);
+	    for (l=0;l<n_charsets;l++) {
+		    // Enca bug, STYLE_ICONV return's a lot of NULL's
+		charset = enca_charset_name(charsets[l], ENCA_NAME_STYLE_ICONV);
+		if (!charset) charset = enca_charset_name(charsets[l], ENCA_NAME_STYLE_ENCA);
+		enca_engines[i].charsets[k++] = charset;
+	    }
 	    enca_engines[j].charsets[k] = NULL;
 
 	    engines[j] = enca_engines + i;

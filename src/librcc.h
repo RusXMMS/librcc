@@ -48,6 +48,9 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 int rccInitDefaultContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags);
 void rccFreeContext(rcc_context ctx);
 
+typedef unsigned int rcc_db4_flags;
+int rccInitDb4(rcc_context ctx, const char *name, rcc_db4_flags flags);
+
 int rccLockConfiguration(rcc_context ctx, unsigned int lock_code);
 int rccUnlockConfiguration(rcc_context ctx, unsigned int lock_code);
 
@@ -114,10 +117,17 @@ typedef enum rcc_class_type_t {
     RCC_CLASS_FS
 } rcc_class_type;
 
+struct rcc_class_default_charset_t {
+    const char *lang;
+    const char *charset;
+};
+typedef const struct rcc_class_default_charset_t rcc_class_default_charset;
+
 struct rcc_class_t {
     const char *name;
-    const char *defvalue; /* locale variable name or parrent name */
     const rcc_class_type class_type;
+    const char *defvalue; /* locale variable name or parrent name */
+    rcc_class_default_charset *defcharset;
     const char *fullname;
 };
 typedef const struct rcc_class_t rcc_class;
@@ -134,6 +144,7 @@ typedef enum rcc_option_t {
     RCC_LEARNING_MODE = 0,
     RCC_AUTODETECT_FS_TITLES,
     RCC_AUTODETECT_FS_NAMES,
+    RCC_CONFIGURED_LANGUAGES_ONLY,
     RCC_MAX_OPTIONS
 } rcc_option;
 
@@ -141,7 +152,7 @@ struct rcc_option_name_t {
     rcc_option option;
     const char *name;
 
-    const char *sn;
+    const char **subnames;
 };
 typedef struct rcc_option_name_t rcc_option_name;
 

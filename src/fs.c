@@ -174,15 +174,12 @@ const char *rccFS2(rcc_context ctx, iconv_t icnv, const char *prefix, const char
     
     if (icnv == (iconv_t)-1) return NULL;
     if (icnv == (iconv_t)-2) {
-	puts("-1");
 	strncpy(ctx->tmpbuffer, name, RCC_MAX_STRING_CHARS);
 	ctx->tmpbuffer[RCC_MAX_STRING_CHARS] = 0;
     } else {
-	puts("-2");
 	err = rccIConv(ctx, icnv, name, 0);
 	if (err<=0) return NULL;
     }
-    puts("ok");
     return rccCheckFile(prefix, ctx->tmpbuffer);
 }
 
