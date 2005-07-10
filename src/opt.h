@@ -11,7 +11,8 @@ enum rcc_option_type_t {
     RCC_OPTION_TYPE_BOOLEAN = 0,
     RCC_OPTION_TYPE_RANGE,
     RCC_OPTION_TYPE_FLAGS,
-    RCC_OPTION_TYPE_MENU
+    RCC_OPTION_TYPE_MENU,
+    RCC_OPTION_TYPE_MAX
 };
 typedef enum rcc_option_type_t rcc_option_type;
 
