@@ -152,7 +152,6 @@ int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
 	}
     }
     
-    puts("--");
     if (rccFS0(ctx, fspath, result, prefix, name)) {
 	*prefix = NULL;
 	*name = result;
@@ -160,7 +159,6 @@ int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
 	if ((path)&&(filename)) return 0;
 	return 2;
     }
-    puts("++");
 
     if ((path)&&(filename)) free(result);
     

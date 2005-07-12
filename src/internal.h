@@ -44,6 +44,8 @@ struct rcc_context_t {
     unsigned char configure;
     rcc_language_config current_config;
     rcc_language_id current_language;
+    
+    rcc_language_id default_language;
 
     db4_context db4ctx;
     

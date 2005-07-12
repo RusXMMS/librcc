@@ -294,7 +294,7 @@ int rccSave(rcc_context ctx, const char *name) {
     for (i=1;languages[i];i++) {
 	language = languages[i];
 	cfg = rccCheckConfig(ctx, (rcc_language_id)i);
-	if (!cfg) continue;
+	if ((!cfg)||(!cfg->configured)) continue;
 	
 	if (llflag) lnode = rccNodeFind(xpathctx, XPATH_SELECTED_LANG, language->sn);
 	else lnode = NULL;

@@ -32,8 +32,9 @@ rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx) {
     GtkWidget *menu;
     
     if (!ctx) return (rcc_ui_id)-1;
+    printf("Widget: %p\n", ctx->widget);
 
-    if (ctx->type == RCC_UI_MENU_OPTION)
+    if ((ctx->type == RCC_UI_MENU_OPTION)&&(rccUiMenuGetRangeType(ctx)==RCC_OPTION_RANGE_TYPE_BOOLEAN))
 	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ctx->widget));
     
     menu = gtk_option_menu_get_menu(ctx->widget);
@@ -45,7 +46,16 @@ int rccUiMenuSet(rcc_ui_menu_context ctx, rcc_ui_id id) {
     
     switch (ctx->type) {
 	case RCC_UI_MENU_OPTION:
-	    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ctx->widget),id);
+	    switch (rccUiMenuGetRangeType(ctx)) {
+		case RCC_OPTION_RANGE_TYPE_BOOLEAN:
+		    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ctx->widget),id);
+		break;
+		case RCC_OPTION_RANGE_TYPE_MENU:
+		    gtk_option_menu_set_history(ctx->widget, id);
+		break;
+		default:
+		    return -1;
+	    }	
 	break;
 	default:
 	    gtk_option_menu_set_history(ctx->widget, id);
@@ -170,8 +180,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 		        item = gtk_check_button_new_with_label(rccUiGetOptionName(uictx, rccUiMenuGetOption(ctx)));
 			ctx->widget = item;
 		    }
-
-    		    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(item), rccGetOption(rccctx, rccUiMenuGetOption(ctx)));
+    		    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ctx->widget), rccGetOption(rccctx, rccUiMenuGetOption(ctx)));
 		break;
 		case RCC_OPTION_RANGE_TYPE_MENU:
 		    if (!ctx->widget) {
@@ -193,8 +202,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 			gtk_option_menu_remove_menu(GTK_OPTION_MENU(menu));
 			gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
 		    }
-		    
-		    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), rccGetOption(rccctx, rccUiMenuGetOption(ctx)));
+		    gtk_option_menu_set_history(GTK_OPTION_MENU(ctx->widget), rccGetOption(rccctx, rccUiMenuGetOption(ctx)));
 		break;
 		default:
 		    return -1;

@@ -39,14 +39,31 @@ rcc_language_id rccGetLanguageByName(rcc_context ctx, const char *name) {
 static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
     int err;
     unsigned int i;
+    rcc_option_value clo;
+    rcc_engine_ptr *engines;
+    rcc_language_config config;
     char stmp[RCC_MAX_LANGUAGE_CHARS+1];
 
+    printf("DL: %lu\n", ctx->default_language);
+    if (ctx->default_language) return ctx->default_language;
+    
     if (!rccLocaleGetLanguage(stmp, ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS)) {
     	for (i=0;ctx->languages[i];i++) {
 	    if (!strcmp(ctx->languages[i]->sn, stmp)) {
-		if (rccGetOption(ctx, RCC_CONFIGURED_LANGUAGES_ONLY)) {
-		    if (!rccCheckConfig(ctx, (rcc_language_id)i)) break;
+		clo = rccGetOption(ctx, RCC_CONFIGURED_LANGUAGES_ONLY);
+		printf("CLO: %lu\n", clo);
+		if (clo) {
+		    config = rccCheckConfig(ctx, (rcc_language_id)i);
+		    if ((!config)||(!config->configured)) {
+			if (clo == 1) {
+			    engines = ctx->languages[i]->engines;
+			    printf("%p",engines[0]);
+			    printf("%p",engines[1]);
+			    if ((!engines[0])||(!engines[1])) break;
+			} else break;
+		    }
 		}
+		ctx->default_language = (rcc_language_id)i;
 		return (rcc_language_id)i;
 	    }
 	}

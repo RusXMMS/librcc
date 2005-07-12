@@ -164,6 +164,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     }
     
     ctx->current_language = 0;
+    ctx->default_language = 0;
 
     if (locale_variable) {
 	if (strlen(locale_variable)>=RCC_MAX_VARIABLE_CHARS) {

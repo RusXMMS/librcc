@@ -8,6 +8,9 @@ struct rcc_language_config_t {
     
     rcc_engine_id engine;
     rcc_charset_id *charset;
+    
+    rcc_charset_id default_charset;
+    unsigned char configured;
 };
 typedef struct rcc_language_config_t rcc_language_config_s;
 

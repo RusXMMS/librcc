@@ -438,8 +438,11 @@ int rccUiRestore(rcc_ui_context ctx) {
     language_id = rccGetSelectedLanguage(rccctx);
     rccUiMenuSet(ctx->language, (rcc_ui_id)language_id);
     
-    for (i=0;i<RCC_MAX_OPTIONS;i++)
+    for (i=0;i<RCC_MAX_OPTIONS;i++) {
+	if (rccUiMenuGetType(ctx->options[i]) == RCC_OPTION_TYPE_INVISIBLE) continue;
+
 	rccUiMenuSet(ctx->options[i], rccGetOption(rccctx, (rcc_option)i));
+    }
 
     return 0;
 }
@@ -455,8 +458,10 @@ int rccUiUpdate(rcc_ui_context ctx) {
 
     rccSetLanguage(rccctx, (rcc_language_id)rccUiMenuGet(ctx->language));
 
-    for (i=0;i<RCC_MAX_OPTIONS;i++)
+    for (i=0;i<RCC_MAX_OPTIONS;i++) {
+	if (rccUiMenuGetType(ctx->options[i]) == RCC_OPTION_TYPE_INVISIBLE) continue;
 	rccSetOption(rccctx, (rcc_option)i, (rcc_option_value)rccUiMenuGet(ctx->options[i]));
+    }
 
     rccSetEngine(rccctx, (rcc_language_id)rccUiMenuGet(ctx->engine));
 
