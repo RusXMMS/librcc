@@ -3,6 +3,8 @@
 #include <string.h>
 #include <locale.h>
 
+#include "../config.h"
+
 #ifdef HAVE_CODESET
 # include <langinfo.h>
 #endif
@@ -10,6 +12,8 @@
 #include "rccconfig.h"
 
 static int rccLocaleGetClassByName(const char *locale) {
+    if (!locale) return LC_CTYPE;
+
     if (!strcmp(locale, "LC_CTYPE")) return LC_CTYPE;
     if (!strcmp(locale, "LC_MESSAGES")) return LC_MESSAGES;
     if (!strcmp(locale, "LC_COLLATE")) return LC_COLLATE;
@@ -32,7 +36,7 @@ int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
     int locale_class;
     const char *l;
     
-    if (!lv) return -1;
+    if ((!result)||(!n)) return -1;
 
     locale_class = rccLocaleGetClassByName(lv);
     if (locale_class >= 0) {
@@ -63,7 +67,7 @@ int rccLocaleGetCharset(char *result, const char *lv, unsigned int n) {
     int locale_class;
     char *l;
 
-    if (!lv) return -1;
+    if ((!result)||(!n)) return -1;
 
     locale_class = rccLocaleGetClassByName(lv);
     

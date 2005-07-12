@@ -1,31 +1,272 @@
 #include <stdio.h>
-#include "../src/rccconfig.h"
+#include <string.h>
+#include <stdarg.h>
+#include <locale.h>
+
+#include "../config.h"
+
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xpath.h>
+
+#include <librcc.h>
+
 #include "internal.h"
 #include "rccnames.h"
 
 #define RCC_UI_LOCK_CODE 0x1111
 
-static rcc_ui_menu_context rccUiMenuCreateContext(rcc_ui_menu_type type, rcc_ui_id id, rcc_ui_context uictx) {
-    rcc_ui_menu_context ctx;
-    if ((!uictx)||(type>RCC_UI_MENU_MAX)) return NULL;
-    
-    ctx = (rcc_ui_menu_context)malloc(sizeof(rcc_ui_menu_context_s));
-    if (!ctx) return ctx;
-    
-    ctx->uictx = uictx;
-    ctx->type = type;
-    ctx->id = id;
-    
-    ctx->widget = rccUiMenuCreateWidget(ctx);
-    ctx->box = NULL;
-    
-    return ctx;
+#define XPATH_LANGUAGE "//Languages/Language[@name]"
+#define XPATH_OPTION "//Options/Option[@name]"
+#define XPATH_VALUE "//Options/Option[@name=\"%s\"]/Value[@name]"
+#define XPATH_LANGUAGE_REQUEST_LOCALE "//Languages/Language[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_LANGUAGE_REQUEST "//Languages/Language[@name=\"%s\"]/FullName"
+#define XPATH_OPTION_REQUEST_LOCALE "//Options/Option[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_OPTION_REQUEST "//Options/Option[@name=\"%s\"]/FullName"
+#define XPATH_VALUE_REQUEST_LOCALE "//Options/Option[@name=\"%s\"]/Value[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_VALUE_REQUEST "//Options/Option[@name=\"%s\"]/Value[@name=\"%s\"]/FullName"
+
+static const char *rccUiXmlGetText(xmlNodePtr node) {
+    if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
 }
 
-static void rccUiMenuFreeContext(rcc_ui_menu_context ctx) {
-    if (!ctx) return;
-    rccUiMenuFreeWidget(ctx);
-    free(ctx);
+static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request, ...) {
+    xmlXPathObjectPtr obj;
+    xmlNodeSetPtr node_set;
+    xmlNodePtr res = NULL;
+
+    unsigned int i, args = 0;
+    unsigned int size = 128;
+    va_list ap;
+    char *req;
+    
+    if (!xpathctx) return NULL;
+
+    for (req = strstr(request, "%s"); req; req = strstr(req + 1, "%s")) args++;
+    
+    if (args) {
+	va_start(ap, request);
+	for (i=0;i<args;i++) {
+	    req = va_arg(ap, char*);
+	    size += strlen(req);
+	}
+	va_end(ap);
+	
+	req = (char*)malloc(size*sizeof(char));
+	if (!req) return NULL;
+	
+	va_start(ap, request);
+	vsprintf(req,request,ap);
+	va_end(ap);
+    } else req = (char*)request;
+    
+    obj = xmlXPathEvalExpression(req, xpathctx);
+    if (obj) {
+	node_set = obj->nodesetval;
+	if ((node_set)&&(node_set->nodeNr > 0)) {
+	    res = node_set->nodeTab[0];
+	}
+	xmlXPathFreeObject(obj);
+    }
+
+    if (args) free(req);
+
+    return res;
+}
+
+int rccUiInit() {
+    int err;
+    unsigned long i, j, k, nnodes;
+
+    xmlDocPtr xmlctx;
+    xmlXPathContextPtr xpathctx = NULL;    
+    xmlXPathObjectPtr obj;
+    xmlNodeSetPtr node_set;
+
+    xmlNodePtr node, cnode;
+    xmlAttrPtr attr;
+
+    rcc_language_name *lang_name;
+    const char *lang, *fullname;
+    const char *locale;
+    char *lpos;
+    char *search[4];
+
+    rcc_option option;
+    const char *opt, *val;
+    rcc_option_name *option_name;
+    const char *value_name;
+    
+    unsigned int npos;
+
+    size_t newsize;    
+    char tmpbuf[RCC_UI_MAX_STRING_CHARS+1];
+    char ctype_charset[32];
+    rcc_iconv icnv;
+
+    err = rccInit();
+    if (err) return err;
+    
+    if (rccLocaleGetCharset(ctype_charset, NULL, 32)) icnv = NULL;
+    else {
+	if ((!strcasecmp(ctype_charset, "UTF-8"))||(!strcasecmp(ctype_charset, "UTF8"))) icnv = NULL;
+	else icnv = rccIConvOpen(ctype_charset, "UTF-8");
+    }
+    
+    locale = setlocale(LC_CTYPE, NULL);
+    if (locale) {
+	search[0] = strdup(locale);
+	if (!search[0]) goto clean;
+	lpos = strrchr(search[0], '@');
+	if (lpos) *lpos = 0;
+
+	lpos = strrchr(search[0], '.');
+	if (lpos) {
+	    search[1] = strdup(search[0]);
+	    if (!search[1]) goto clean;
+	    *strchr(search[1], '.') = 0;
+    
+	    lpos = strrchr(search[1], '_');
+	    if (lpos) {
+		search[2] = strdup(search[1]);
+		if (!search[2]) goto clean;
+		*strchr(search[2],'_') = 0;
+		search[3] = NULL;
+	    } else search[2] = NULL;
+	} else search[1] = NULL;
+    } else search[0] = NULL;
+	
+    for (npos = 0; rcc_default_language_names[npos].sn; npos++);
+    
+    xmlctx = (xmlDocPtr)rccGetConfiguration();
+    if (xmlctx) xpathctx = xmlXPathNewContext(xmlctx);
+    else xpathctx = NULL;
+    if (xpathctx) {
+	obj = xmlXPathEvalExpression(XPATH_LANGUAGE, xpathctx);
+	if (obj) {
+	    node_set = obj->nodesetval;
+	    if (node_set) nnodes = node_set->nodeNr;
+	    else nnodes = 0;
+	} else nnodes = 0;
+	
+        for (i=0;i<nnodes;i++) {
+	    node = node_set->nodeTab[i];
+	    attr = xmlHasProp(node, "name");
+	    lang = attr->children->content;
+	    
+	    if ((!lang)||(!lang[0])) continue;
+	    
+	    for (j=0, node = NULL;((search[j])&&(!node));j++)
+		node = rccUiNodeFind(xpathctx, XPATH_LANGUAGE_REQUEST_LOCALE, lang, search[j]);
+	    if (!node) {
+		node = rccUiNodeFind(xpathctx, XPATH_LANGUAGE_REQUEST, lang);
+		if (!node) continue;
+	    }
+	    
+	    fullname = rccUiXmlGetText(node);
+	    if (!fullname) continue;
+
+	    if (icnv) {
+		newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0);
+		if (newsize != (size_t)-1) {
+		    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
+		    fullname = rccUiXmlGetText(cnode);
+		    if (!fullname) fullname = rccUiXmlGetText(node);
+		}
+	    }
+	    
+	    lang_name = rccUiGetLanguageRccName(NULL, lang);
+	    if (lang_name) lang_name->name = fullname;
+	    else if (npos<RCC_MAX_LANGUAGES) {
+		rcc_default_language_names[npos].sn = lang;
+		rcc_default_language_names[npos].name = fullname;
+		rcc_default_language_names[++npos].sn = NULL;
+		rcc_default_language_names[npos].name = NULL;
+	    }
+	}
+	
+	if (obj) xmlXPathFreeObject(obj);
+	
+	obj = xmlXPathEvalExpression(XPATH_OPTION, xpathctx);
+	if (obj) {
+	    node_set = obj->nodesetval;
+	    if (node_set) nnodes = node_set->nodeNr;
+	    else nnodes = 0;
+	} else nnodes = 0;
+	
+        for (i=0;i<nnodes;i++) {
+	    node = node_set->nodeTab[i];
+	    attr = xmlHasProp(node, "name");
+	    opt = attr->children->content;
+
+	    if ((!opt)||(!opt[0])) continue;
+	    option = rccGetOptionByName(opt);
+	    if (option == (rcc_option)-1) continue;
+	    option_name = rccUiGetOptionRccName(NULL, option);
+	    if (!option_name) continue;
+	    
+	    for (j=0, node = NULL;((search[j])&&(!node));j++)
+		node = rccUiNodeFind(xpathctx, XPATH_OPTION_REQUEST_LOCALE, opt, search[j]);
+	    if (!node) {
+		node = rccUiNodeFind(xpathctx, XPATH_OPTION_REQUEST, opt);
+	    }
+
+	    if (node) {
+		fullname = rccUiXmlGetText(node);
+		if (fullname) {
+		    if (icnv) {
+			newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0);
+			if (newsize != (size_t)-1) {
+			    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
+			    fullname = rccUiXmlGetText(cnode);
+			    if (!fullname) fullname = rccUiXmlGetText(node);
+			}
+		    }
+		    option_name->name = fullname;
+		}
+	    }
+	    
+	    if (!option_name->value_names) continue;
+	    
+	    for (k=0;option_name->value_names[k];k++) {
+		value_name = rccGetOptionValueName(option, (rcc_option_value)k);
+		if (!value_name) continue;
+
+		for (j=0, node = NULL;((search[j])&&(!node));j++)
+		    node = rccUiNodeFind(xpathctx, XPATH_VALUE_REQUEST_LOCALE, opt, value_name, search[j]);
+		if (!node) {
+		    node = rccUiNodeFind(xpathctx, XPATH_VALUE_REQUEST, opt, value_name);
+		}	
+	    
+		if (node) {
+		    fullname = rccUiXmlGetText(node);
+		    if (fullname) {
+			if (icnv) {
+			    newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0);
+			    if (newsize != (size_t)-1) {
+				cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
+				fullname = rccUiXmlGetText(cnode);
+				if (!fullname) fullname = rccUiXmlGetText(node);
+			    }
+			}
+			option_name->value_names[k] = fullname;
+		    }
+		}
+	    }
+	}
+	if (obj) xmlXPathFreeObject(obj);
+	
+	xmlXPathFreeContext(xpathctx);
+    }
+
+clean:
+    for (j=0;search[j];j++) free(search[j]);
+    if (icnv) rccIConvClose(icnv);
+
+    return 0;
+}
+
+void rccUiFree() {
 }
 
 static rcc_ui_frame_context rccUiFrameCreateContext(rcc_ui_frame_type type, rcc_ui_context uictx) {
@@ -57,6 +298,8 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
     rcc_ui_context ctx;
     rcc_ui_menu_context *charsets;
     rcc_ui_menu_context *options;
+    rcc_option_type otype;
+    rcc_option_range *orange;
     
     if (!rccctx) return NULL;
 
@@ -85,15 +328,17 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
 
     ctx->internal = rccUiCreateInternal(ctx);
 
-    ctx->language = rccUiMenuCreateContext(RCC_UI_MENU_LANGUAGE, 0, ctx);
-    ctx->engine = rccUiMenuCreateContext(RCC_UI_MENU_ENGINE, 0, ctx);
+    ctx->language = rccUiMenuCreateContext(RCC_UI_MENU_LANGUAGE, ctx);
+    ctx->engine = rccUiMenuCreateContext(RCC_UI_MENU_ENGINE, ctx);
     for (i=0; classes[i]; i++) {
-        charsets[i] = rccUiMenuCreateContext(RCC_UI_MENU_CHARSET, i, ctx);
+        charsets[i] = rccUiCharsetMenuCreateContext(RCC_UI_MENU_CHARSET, (rcc_charset_id)i, ctx);
 	if (!charsets[i]) err = 1;
     }
     charsets[i] = NULL;
     for (i=0; i<RCC_MAX_OPTIONS; i++) {
-        options[i] = rccUiMenuCreateContext(RCC_UI_MENU_OPTION, i, ctx);
+	otype = rccOptionGetType(rccctx, (rcc_option)i);
+	orange = rccOptionGetRange(rccctx, (rcc_option)i);
+        options[i] = rccUiOptionMenuCreateContext(RCC_UI_MENU_OPTION, (rcc_option)i, otype, orange, ctx);
 	if (!options[i]) err = 1;
     }
 
@@ -145,17 +390,15 @@ void rccUiFreeContext(rcc_ui_context ctx) {
 
 int rccUiSetLanguageNames(rcc_ui_context ctx, rcc_language_name *names) {
     if (!ctx) return -1;
-    
-    if (names) ctx->language_names = names;
-    else ctx->language_names = rcc_default_language_names;
+
+    ctx->language_names = names;
     return 0;
 }
 
 int rccUiSetOptionNames(rcc_ui_context ctx, rcc_option_name *names) {
     if (!ctx) return -1;
 
-    if (names) ctx->option_names = names;
-    else ctx->option_names = rcc_default_option_names;
+    ctx->option_names = names;
     return 0;
 }
 
@@ -383,7 +626,7 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
     rcc_ui_frame frame;
     rcc_ui_box engine;
     rcc_ui_box opt;
-    const char *optname;
+    rcc_option_name *optname;
 
     if (!ctx) return NULL;
 
@@ -398,10 +641,12 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
     rccUiFrameAdd(framectx, engine);
 
     for (i=0; i<RCC_MAX_OPTIONS; i++) {
-	optname = rccUiGetOptionName(ctx, i);
+	if (rccUiMenuGetType(ctx->options[i]) == RCC_OPTION_TYPE_INVISIBLE) continue;
+
+	optname = rccUiGetOptionRccName(ctx, i);
 	if (!optname) continue;
 	
-	opt = rccUiGetOptionBox(ctx, (rcc_option)i, optname);
+	opt = rccUiGetOptionBox(ctx, (rcc_option)i, optname->name);
 	rccUiFrameAdd(framectx, opt);
     }
     

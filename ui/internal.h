@@ -1,34 +1,13 @@
 #ifndef _RCC_UI_INTERNAL_H
 #define _RCC_UI_INTERNAL_H
 
-#include "../src/librcc.h"
-#include "librccui.h"
+#define RCC_UI_MAX_STRING_CHARS 1024
+
+#include <librcc.h>
+
+#include "rccmenu.h"
 
 typedef unsigned int rcc_ui_id;
-
-typedef void *rcc_ui_menu_internal;
-
-enum rcc_ui_menu_type_t {
-    RCC_UI_MENU_LANGUAGE = 0,
-    RCC_UI_MENU_CHARSET,
-    RCC_UI_MENU_ENGINE,
-    RCC_UI_MENU_OPTION,
-    RCC_UI_MENU_MAX
-};
-typedef enum rcc_ui_menu_type_t rcc_ui_menu_type;
-
-struct rcc_ui_menu_context_t {
-    rcc_ui_widget widget;
-    rcc_ui_box box;
-    
-    rcc_ui_context uictx;
-    rcc_ui_menu_type type;
-    rcc_ui_id id;
-    
-    rcc_ui_menu_internal internal;
-};
-typedef struct rcc_ui_menu_context_t rcc_ui_menu_context_s;
-typedef struct rcc_ui_menu_context_t *rcc_ui_menu_context;
 
 typedef void *rcc_ui_frame_internal;
 

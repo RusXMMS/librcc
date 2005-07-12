@@ -11,8 +11,8 @@ rcc_language_alias rcc_default_aliases[] = {
     { NULL, NULL}
 };
 
-const char rcc_engine_nonconfigured[] = "default";
-const char rcc_option_nonconfigured[] = "default";
+const char rcc_engine_nonconfigured[] = "Default";
+const char rcc_option_nonconfigured[] = "DEFAULT";
 
 rcc_engine rcc_default_engine = {
     "Off", NULL, NULL, NULL, {NULL}
@@ -96,103 +96,36 @@ rcc_language rcc_default_languages[RCC_MAX_LANGUAGES + 1] = {
 {NULL}
 };
 
-rcc_language_name rcc_default_language_names[RCC_MAX_LANGUAGES+1] = {
-{"default", "Autodetect"},
-{"off", "Dissable"},
-{"ru","Russian"},
-{"uk","Ukrainian"}, 
-{"be","Belarussian"},
-{"bg","Bulgarian"},
-{"cz","Czech"},
-{"es","Estonian"},
-{"hr","Croatian"},
-{"hu","Hungarian"},
-{"lt","Lithuanian"},
-{"lv","Latvian"},
-{"pl","Polish"},
-{"sk","Slovak"},
-{"sl","Slovenian"},
-{"zh","Chinese"},
-{NULL, NULL}
+rcc_option_value_name rcc_sn_boolean[] = { "OFF", "ON", NULL };
+rcc_option_value_name rcc_sn_learning[] = { "OFF", "ON", "RELEARN", "LEARN", NULL };
+rcc_option_value_name rcc_sn_clo[] = { "ALL", "CONFIGURED_AND_AUTO", "CONFIGURED_ONLY", NULL };
+
+rcc_option_description rcc_option_descriptions[] = {
+    {RCC_LEARNING_MODE, 0, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1 }, RCC_OPTION_TYPE_STANDARD,  "LEARNING_MODE", rcc_sn_learning },
+    {RCC_AUTODETECT_FS_NAMES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD,  "AUTODETECT_FS_NAMES", rcc_sn_boolean},
+    {RCC_AUTODETECT_FS_TITLES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_INVISIBLE, "AUTODETECT_FS_TITLES", rcc_sn_boolean},
+    {RCC_CONFIGURED_LANGUAGES_ONLY, 0, { RCC_OPTION_RANGE_TYPE_MENU, 0, 2, 1}, RCC_OPTION_TYPE_INVISIBLE, "CONFIGURED_LANGUAGES_ONLY", rcc_sn_clo},
+    {RCC_MAX_OPTIONS}
 };
 
-rcc_option_description rcc_default_option_descriptions[] = {
-    {RCC_LEARNING_MODE, "LEARNING_MODE", RCC_OPTION_TYPE_MENU, 0, 3},
-    {RCC_AUTODETECT_FS_NAMES, "AUTODETECT_FS_NAMES", RCC_OPTION_TYPE_BOOLEAN, 0, 0},
-    {RCC_AUTODETECT_FS_TITLES, "AUTODETECT_FS_TITLES", RCC_OPTION_TYPE_BOOLEAN, 0, 0},
-    {RCC_CONFIGURED_LANGUAGES_ONLY, "CONFIGURED_LANGUAGES_ONLY", RCC_OPTION_MENU, 0, 2},
-    {RCC_MAX_OPTIONS, NULL}
-};
-
-
-rcc_option_name rcc_default_option_names[] = {
-    { RCC_LEARNING_MODE, "Learning Mode", },
-    { RCC_AUTODETECT_FS_NAMES, "Autodetect File Names",  NULL},
-    { RCC_AUTODETECT_FS_TITLES, NULL, NULL},
-    { RCC_CONFIGURED_LANGUAGES_ONLY, NULL, NULL},
-    { RCC_MAX_OPTIONS, NULL, NULL}
-};
-
-rcc_option_defval rcc_default_option_values[] = {
-    { RCC_LEARNING_MODE, 0 },
-    { RCC_AUTODETECT_FS_TITLES, 1},
-    { RCC_AUTODETECT_FS_NAMES, 1},
-    { RCC_CONFIGURED_LANGUAGES_ONLY, 1},
-    { RCC_MAX_OPTIONS, 0}
-};
-
-const char *rccGetLanguageFullName(const char *lang) {
+rcc_option_description *rccGetOptionDescription(rcc_option option) {
     unsigned int i;
-    rcc_language_name *names;
-    
-    if (!lang) return NULL;
-    
-    names = rcc_default_language_names;
 
-    for (i=0;names[i].sn;i++)
-	if (!strcmp(lang, names[i].sn)) return names[i].name;
-    
-    return NULL;
-}
-
-const char *rccGetOptionName(rcc_option option) {
-    unsigned int i;
-    rcc_option_name *names;
-    
     if ((option<0)||(option>=RCC_MAX_OPTIONS)) return NULL;
 
-    names = rcc_default_option_names;
-
-    for (i=0;names[i].option!=RCC_MAX_OPTIONS;i++)
-	if (names[i].option == option) return names[i].sn;
+    for (i=0;rcc_option_descriptions[i].option!=RCC_MAX_OPTIONS;i++)
+	if (rcc_option_descriptions[i].option == option) return rcc_option_descriptions+i;
     
     return NULL;
 }
 
-const char *rccGetOptionFullName(rcc_option option) {
+rcc_option_description *rccGetOptionDescriptionByName(const char *name) {
     unsigned int i;
-    rcc_option_name *names;
-    
-    if ((option<0)||(option>=RCC_MAX_OPTIONS)) return NULL;
 
-    names = rcc_default_option_names;
+    if (!name) return NULL;
 
-    for (i=0;names[i].option!=RCC_MAX_OPTIONS;i++)
-	if (names[i].option == option) return names[i].name;
+    for (i=0;rcc_option_descriptions[i].option!=RCC_MAX_OPTIONS;i++)
+	if (!strcasecmp(rcc_option_descriptions[i].sn,name)) return rcc_option_descriptions+i;
     
     return NULL;
-}
-
-rcc_option_value rccGetOptionDefaultValue(rcc_option option) {
-    unsigned int i;
-    rcc_option_defval *values;
-    
-    if ((option<0)||(option>=RCC_MAX_OPTIONS)) return 0;
-
-    values = rcc_default_option_values;
-
-    for (i=0;values[i].option!=RCC_MAX_OPTIONS;i++)
-	if (values[i].option == option) return values[i].value;
-    
-    return 0;
 }

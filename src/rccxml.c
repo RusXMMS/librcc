@@ -19,6 +19,10 @@
 
 static xmlDocPtr xmlctx = NULL;
 
+rcc_config rccGetConfiguration() {
+    return (rcc_config)xmlctx;
+}
+
 static const char *rccXmlGetText(xmlNodePtr node) {
     if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
 }
@@ -34,7 +38,7 @@ int rccXmlInit() {
     xmlNodePtr cnode, pnode, node;
     xmlAttrPtr attr;
     const char *lang, *fullname;
-    unsigned int pos, cpos, npos;
+    unsigned int pos, cpos;
     
     xmlInitParser();
     xmlInitCharEncodingHandlers();
@@ -67,14 +71,11 @@ int rccXmlInit() {
 	if (!obj) goto clear;
 	
 	node_set = obj->nodesetval;
-	if (!node_set) return 0;
+	if (!node_set) goto clear;
 	
 	for (pos = 0; rcc_default_languages[pos].sn; pos++);
 	if (pos == RCC_MAX_LANGUAGES) goto clear;
 
-	for (npos = 0; rcc_default_language_names[npos].sn; npos++);
-
-	
 	nnodes = node_set->nodeNr;
         for (i=0;i<nnodes;i++) {
 	    pnode = node_set->nodeTab[i];
@@ -83,7 +84,7 @@ int rccXmlInit() {
 	    
 	    if ((!lang)||(!lang[0])) continue;
 	    
-	    for (cpos=1,fullname=NULL,node=pnode->children;node;node=node->next) {
+	    for (cpos=1,node=pnode->children;node;node=node->next) {
 	    	if (node->type != XML_ELEMENT_NODE) continue;
 		if (!xmlStrcmp(node->name, "Charsets")) {
 		    for (cpos = 0, cnode=node->children;cnode;cnode=cnode->next) {
@@ -92,9 +93,7 @@ int rccXmlInit() {
 			        rcc_default_languages[pos].charsets[cpos++] = rccXmlGetText(cnode);
 			}
 		    }
-		} else if (!xmlStrcmp(node->name, "FullName")) {
-		    if (rccXmlGetText(node)) fullname = rccXmlGetText(node);
-		}
+		} 
 	    }
 	    
 	    if (cpos > 1) {
@@ -103,12 +102,6 @@ int rccXmlInit() {
 		rcc_default_languages[pos].charsets[cpos] = NULL;
 		rcc_default_languages[pos].engines[0] = &rcc_default_engine;
 		rcc_default_languages[pos].engines[1] = NULL;
-		if ((fullname)&&(npos<RCC_MAX_LANGUAGES)) {
-		    rcc_default_language_names[npos].sn = lang;
-		    rcc_default_language_names[npos].name = fullname;
-		    rcc_default_language_names[++npos].sn = NULL;
-		    rcc_default_language_names[npos].name = NULL;
-		}
 
 		rcc_default_languages[++pos].sn = NULL;
 		if (pos == RCC_MAX_LANGUAGES) break;
@@ -171,7 +164,7 @@ static xmlNodePtr rccNodeFind(xmlXPathContextPtr xpathctx, const char *request, 
     obj = xmlXPathEvalExpression(req, xpathctx);
     if (obj) {
 	node_set = obj->nodesetval;
-	if (node_set->nodeNr > 0) {
+	if ((node_set)&&(node_set->nodeNr > 0)) {
 	    res = node_set->nodeTab[0];
 	}
 	xmlXPathFreeObject(obj);
@@ -210,7 +203,9 @@ int rccSave(rcc_context ctx, const char *name) {
     xmlDocPtr doc = NULL;
     xmlNodePtr pnode, lnode, onode, llnode, cnode, enode, node;
     unsigned char oflag = 0, llflag = 0, cflag;
-    const char *oname;
+    rcc_option_description *odesc;
+    rcc_option_value ovalue;
+    const char *oname, *ovname;
     char value[16];
 
     int memsize;
@@ -266,15 +261,24 @@ int rccSave(rcc_context ctx, const char *name) {
     else onode = xmlNewChild(pnode, NULL, "Options", NULL);
     
     for (i=0;i<RCC_MAX_OPTIONS;i++) {
-	oname = rccGetOptionName(i);
+	odesc = rccGetOptionDescription(i);
+	if (!odesc) continue;
+
+	oname = rccOptionDescriptionGetName(odesc);
 	if (!oname) continue;
+
 	
 	if (oflag) node = rccNodeFind(xpathctx, XPATH_SELECTED_OPTION, oname);
 	else node = NULL;
 
 	if (rccOptionIsDefault(ctx, (rcc_option)i)) strcpy(value, rcc_option_nonconfigured);
-	else sprintf(value, "%i", rccGetOption(ctx, (rcc_option)i));
-
+	else {
+	    ovalue = rccGetOption(ctx, (rcc_option)i);
+	    ovname = rccOptionDescriptionGetValueName(odesc, ovalue);
+	    if (ovname) strcpy(value, ovname);
+	    else sprintf(value, "%i", ovalue);
+	}
+	
 	if (node) xmlNodeSetContent(node, value);
 	else {
 	    node = xmlNewChild(onode, NULL, "Option", value);
@@ -364,6 +368,9 @@ int rccLoad(rcc_context ctx, const char *name) {
     
     unsigned int i, j, size;
     const char *tmp;
+
+    rcc_option_description *odesc;
+    rcc_option_value ovalue;
     const char *oname;
 
     rcc_language_config cfg;
@@ -443,14 +450,21 @@ int rccLoad(rcc_context ctx, const char *name) {
     if (err) rccSetLanguage(ctx, 0);
 
     for (i=0;i<RCC_MAX_OPTIONS;i++) {
-	oname = rccGetOptionName((rcc_option)i);
+	odesc = rccGetOptionDescription(i);
+	if (!odesc) continue;
+
+	oname = rccOptionDescriptionGetName(odesc);
 	if (!oname) continue;
 
 	node = rccNodeFind(xpathctx, XPATH_SELECTED_OPTION, oname);
 	if (!node) node = rccNodeFind(sysxpathctx, XPATH_SELECTED_OPTION, oname);
 	if (node) {
 	    tmp = rccXmlGetText(node);
-	    if ((tmp)&&(strcasecmp(tmp,rcc_option_nonconfigured))) err = rccSetOption(ctx, (rcc_option)i, (rcc_option_value)atoi(tmp));
+	    if ((tmp)&&(strcasecmp(tmp,rcc_option_nonconfigured))) {
+		ovalue = rccOptionDescriptionGetValueByName(odesc, tmp);
+		if (ovalue == (rcc_option_value)-1) ovalue = (rcc_option_value)atoi(tmp);
+		 err = rccSetOption(ctx, (rcc_option)i, ovalue);
+	    }
 	    else err = -1;
 	} else err = -1;
 	if (err) rccOptionSetDefault(ctx, (rcc_option)i);

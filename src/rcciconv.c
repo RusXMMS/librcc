@@ -28,6 +28,72 @@ static int rccIConvUTFBytes(unsigned char c) {
     return 6-j;
 }
 
+
+rcc_iconv rccIConvOpen(const char *to, const char *from) {
+    rcc_iconv icnv;
+    
+    if ((!from)||(!to)||(!strcasecmp(from,to))) return NULL;
+    
+    icnv = (rcc_iconv)malloc(sizeof(rcc_iconv_s));
+    if (!icnv) return icnv;
+    
+    icnv->icnv = iconv_open(to, from);
+    return icnv;
+}
+
+void rccIConvClose(rcc_iconv icnv) {
+    if (icnv) {
+	if (icnv->icnv != (iconv_t)-1) iconv_close(icnv->icnv);
+	free(icnv);
+    }
+}
+
+size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size) {
+    char *in_buf, *out_buf, *res, err;
+    int in_left, out_left, olen;
+    int ub, utf_mode=0;
+    int errors=0;
+    
+    if ((!buf)||(!outbuf)||(!outsize)||(!icnv)||(icnv->icnv == (iconv_t)-1)) return (size_t)-1;
+    if (iconv(icnv->icnv, NULL, NULL, NULL, NULL) == -1) return (size_t)-1;
+
+    size = STRNLEN(buf,size);
+    
+loop_restart:
+    errors = 0;
+    in_buf = (char*)buf; /*DS*/
+    in_left = size;
+    out_buf = outbuf;
+    out_left = outsize;
+
+loop:
+    err=iconv(icnv->icnv, &in_buf, &in_left, &out_buf, &out_left);
+    if (err<0) {
+        if (errno==E2BIG) {
+    	    *(int*)(outbuf+(RCC_MAX_STRING_CHARS-sizeof(int)))=0;
+	} else if (errno==EILSEQ) {
+	    if (errors++<RCC_MAX_ERRORS) {
+		for (ub=utf_mode?rccIConvUTFBytes(*in_buf):1;ub>0;ub--)
+		    rccIConvCopySymbol(&in_buf, &in_left, &out_buf, &out_left);
+		if (in_left>0) goto loop;
+	    } else if (!utf_mode) {
+		utf_mode = 1;
+		goto loop_restart;
+	    } else {
+	        return (size_t)-1;
+	    }
+	} else {
+	    return (size_t)-1;
+	}
+    }
+    
+    outbuf[outsize - out_left] = 0;
+
+    return outsize - out_left;
+}
+
+
+
 size_t rccIConv(rcc_context ctx, iconv_t icnv, const char *buf, size_t len) {
     char *in_buf, *out_buf, *res, err;
     int in_left, out_left, olen;

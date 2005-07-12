@@ -311,6 +311,11 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
     charset_id = rccConfigGetLocaleCharset(config, defvalue);
     if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) return charset_id;
     
+    if (cl->defvalue) {
+	charset_id = rccConfigGetCharsetByName(config, defvalue);
+	if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) return charset_id;
+    }
+    
     defcharset = cl->defcharset;
     if (defcharset) {
 	    lang = config->language->sn;

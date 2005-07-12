@@ -96,12 +96,6 @@ typedef struct rcc_language_alias_t rcc_language_alias;
 typedef rcc_language_alias *rcc_language_alias_ptr;
 typedef rcc_language_alias_ptr rcc_language_alias_list[RCC_MAX_ALIASES+1];
 
-struct rcc_language_name_t {
-    const char *sn;
-    const char *name;
-};
-typedef struct rcc_language_name_t rcc_language_name;
-
 rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language);
 rcc_charset_id rccLanguageRegisterCharset(rcc_language *language, rcc_charset charset);
 rcc_engine_id rccLanguageRegisterEngine(rcc_language *language, rcc_engine *engine);
@@ -126,7 +120,7 @@ typedef const struct rcc_class_default_charset_t rcc_class_default_charset;
 struct rcc_class_t {
     const char *name;
     const rcc_class_type class_type;
-    const char *defvalue; /* locale variable name or parrent name */
+    const char *defvalue; /* locale variable name or parrent name or multibyte charset */
     rcc_class_default_charset *defcharset;
     const char *fullname;
 };
@@ -140,6 +134,7 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id);
 ************************ Altering Configuaration *******************************
 *******************************************************************************/
 typedef int rcc_option_value;
+
 typedef enum rcc_option_t {
     RCC_LEARNING_MODE = 0,
     RCC_AUTODETECT_FS_TITLES,
@@ -148,13 +143,27 @@ typedef enum rcc_option_t {
     RCC_MAX_OPTIONS
 } rcc_option;
 
-struct rcc_option_name_t {
-    rcc_option option;
-    const char *name;
+typedef enum rcc_option_type_t {
+    RCC_OPTION_TYPE_INVISIBLE = 0,
+    RCC_OPTION_TYPE_STANDARD,
+    RCC_OPTION_TYPE_MAX
+} rcc_option_type;
 
-    const char **subnames;
+typedef enum rcc_option_range_type_t {
+    RCC_OPTION_RANGE_TYPE_BOOLEAN = 0,
+    RCC_OPTION_RANGE_TYPE_RANGE,
+    RCC_OPTION_RANGE_TYPE_FLAGS,
+    RCC_OPTION_RANGE_TYPE_MENU,
+    RCC_OPTION_RANGE_TYPE_MAX
+} rcc_option_range_type;
+
+struct rcc_option_range_t {
+    rcc_option_range_type type;
+    rcc_option_value min;
+    rcc_option_value max;
+    rcc_option_value step;
 };
-typedef struct rcc_option_name_t rcc_option_name;
+typedef struct rcc_option_range_t rcc_option_range;
 
 /* lng.c */
 const char *rccGetLanguageName(rcc_context ctx, rcc_language_id language_id);
@@ -174,6 +183,13 @@ rcc_option_value rccGetOption(rcc_context ctx, rcc_option option);
 int rccOptionIsDefault(rcc_context ctx, rcc_option option);
 int rccOptionSetDefault(rcc_context ctx, rcc_option option);
 int rccSetOption(rcc_context ctx, rcc_option option, rcc_option_value value);
+rcc_option_type rccOptionGetType(rcc_context ctx, rcc_option option);
+rcc_option_range *rccOptionGetRange(rcc_context ctx, rcc_option option);
+
+const char *rccGetOptionName(rcc_option option);
+const char *rccGetOptionValueName(rcc_option option, rcc_option_value value);
+rcc_option rccGetOptionByName(const char *name);
+rcc_option_value rccGetOptionValueByName(rcc_option option, const char *name);
 
 /* lngconfig.c */
 
@@ -243,17 +259,6 @@ rcc_charset *rccGetCurrentAutoCharsetList(rcc_context ctx);
 rcc_class_ptr *rccGetClassList(rcc_context ctx);
 
 /*******************************************************************************
-************************ Default Configuaration ********************************
-*******************************************************************************/
-
-/* rccconfig.c */
-const char *rccGetOptionName(rcc_option option);
-const char *rccGetOptionFullName(rcc_option option);
-rcc_option_value rccGetOptionDefaultValue(rcc_option option);
-const char *rccGetLanguageFullName(const char *lang);
-
-
-/*******************************************************************************
 ************************ RCC_STRING Manipulations ******************************
 *******************************************************************************/
 /* string.c */
@@ -277,6 +282,12 @@ int rccStringNCaseCmp(const char *str1, const char *str2, size_t n);
 /*******************************************************************************
 ******************************** Recoding **************************************
 *******************************************************************************/
+typedef struct rcc_iconv_t *rcc_iconv;
+
+/* rcciconv.c */
+rcc_iconv rccIConvOpen(const char *from, const char *to);
+void rccIConvClose(rcc_iconv icnv);
+size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size);
 
 /* recode.c */
 rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len, size_t *rlen);
@@ -289,6 +300,9 @@ char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fsp
 *******************************************************************************/
 
 /* xml.c */
+typedef void *rcc_config;
+
+rcc_config rccGetConfiguration();
 int rccSave(rcc_context ctx, const char *name);
 int rccLoad(rcc_context ctx, const char *name);
 

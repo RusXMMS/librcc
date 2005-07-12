@@ -44,11 +44,13 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size
     if ((class_id<0)||(class_id>=ctx->n_classes)||(!buf)) return NULL;
     
 
-    string = rccDb4GetKey(ctx->db4ctx, buf, len);
-    if (string) {
+/*
+    result = rccDb4GetKey(ctx->db4ctx, buf, len);
+    if (result) {
 	puts("Got a string");
-	return string;
+	return result;
     }
+*/
     
     err = rccConfigure(ctx);
     if (err) return NULL;
