@@ -49,8 +49,11 @@ int rccInit() {
 #endif /* HAVE_PWD_H */
     if (!rcc_home_dir) rcc_home_dir = strdup("/");
 
-    err = rccEngineInit();
-    if (!err) err = rccXmlInit();
+    memcpy(rcc_default_languages, rcc_default_languages_embeded, (RCC_MAX_LANGUAGES + 1)*sizeof(rcc_language));
+    memcpy(rcc_option_descriptions, rcc_option_descriptions_embeded, (RCC_MAX_OPTIONS + 1)*sizeof(rcc_option_description));
+
+    err = rccXmlInit(1);
+    if (!err) err = rccEngineInit();
 
     if (err) {
 	rccFree();
@@ -68,8 +71,8 @@ void rccFree() {
 	rcc_default_ctx = NULL;
     }
     
-    rccXmlFree();
     rccEngineFree();
+    rccXmlFree();
 
     if (rcc_home_dir) {
 	free(rcc_home_dir);
@@ -89,6 +92,8 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     rcc_language_config configs;
     iconv_t *from, *to;
 
+    if (!initialized) return NULL;
+    
     if (!max_languages) {
 	if (flags&RCC_NO_DEFAULT_CONFIGURATION) max_languages = RCC_MAX_LANGUAGES;
 	else {
@@ -209,7 +214,8 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 }
 
 int rccInitDefaultContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags) {
-    if (rcc_default_ctx) return -1;
+    if (!initialized) return -1;
+    if (rcc_default_ctx) rccFreeContext(rcc_default_ctx);
     rcc_default_ctx = rccCreateContext(locale_variable, max_languages, max_classes, defclasses, flags);
     if (rcc_default_ctx) return 0;
     return -1;

@@ -37,11 +37,13 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
+pkgdatadir=${libdir}/rcc/
+AC_SUBST(pkgdatadir)
+
+dnl Checks for programs.
 AC_PATH_PROG(RM, rm, /bin/rm)
 AC_PATH_PROG(MV, mv, /bin/mv)
 AC_PATH_PROG(TAR, tar, /bin/tar)
-
-dnl Checks for programs.
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
@@ -118,6 +120,9 @@ AC_CHECK_HEADER(enca.h, [AC_CHECK_LIB(enca, enca_analyse, [
 ])])
 fi
 
+AM_CONDITIONAL(HAVE_RCD, [ test $HAVE_RCD = yes ])
+AM_CONDITIONAL(HAVE_ENCA, [ test $HAVE_ENCA = yes ])
+
 AC_SUBST(RCD_LIBS)
 AC_SUBST(RCD_INCLUDES)
 AC_SUBST(ENCA_LIBS)
@@ -162,7 +167,7 @@ AC_C_CONST
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strcasecmp strncasecmp strdup)
 
-AC_OUTPUT(src/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
+AC_OUTPUT(src/Makefile engines/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
 
 echo ""
 echo "Configuration:"

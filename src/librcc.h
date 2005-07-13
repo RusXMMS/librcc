@@ -306,6 +306,16 @@ rcc_config rccGetConfiguration();
 int rccSave(rcc_context ctx, const char *name);
 int rccLoad(rcc_context ctx, const char *name);
 
+/*******************************************************************************
+**************************** Engine Plugins ************************************
+*******************************************************************************/
+
+typedef rcc_engine *(*rcc_plugin_engine_info_function)(const char *lang);
+
+rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx);
+rcc_language *rccEngineGetLanguage(rcc_engine_context ctx);
+rcc_context rccEngineGetRccContext(rcc_engine_context ctx);
+
 #ifdef __cplusplus
 }
 #endif

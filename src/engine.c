@@ -143,3 +143,15 @@ rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx) {
 
     return ctx->internal;
 }
+
+rcc_language *rccEngineGetLanguage(rcc_engine_context ctx) {
+    if (!ctx) return NULL;
+
+    return ctx->language;
+}
+
+rcc_context rccEngineGetRccContext(rcc_engine_context ctx) {
+    if (!ctx) return NULL;
+
+    return ctx->ctx;
+}

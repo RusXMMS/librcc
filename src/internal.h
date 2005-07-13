@@ -2,6 +2,11 @@
 #define _RCC_INTERNAL_H
 
 #include <iconv.h>
+
+#ifndef LIBRCC_DATA_DIR
+# define LIBRCC_DATA_DIR "/usr/lib/rcc"
+#endif /* LIBRCC_DATA_DIR */
+
 #include "librcc.h"
 #include "recode.h"
 #include "engine.h"
@@ -11,6 +16,7 @@
 
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
 
+#define RCC_MAX_PLUGINS 32
 #define RCC_MAX_STRING_CHARS 1024
 #define RCC_MAX_PREFIX_CHARS 32
 

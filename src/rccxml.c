@@ -13,6 +13,7 @@
 
 #include "internal.h"
 #include "rccconfig.h"
+#include "plugin.h"
 
 #define MAX_HOME_CHARS 96
 #define XPATH_LANGUAGE "//Language[@name]"
@@ -27,7 +28,7 @@ static const char *rccXmlGetText(xmlNodePtr node) {
     if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
 }
 
-int rccXmlInit() {
+int rccXmlInit(int LoadConfiguration) {
     FILE *f;
     char config[MAX_HOME_CHARS + 32];
 
@@ -35,28 +36,32 @@ int rccXmlInit() {
     xmlXPathObjectPtr obj;
     xmlNodeSetPtr node_set;
     unsigned long i, nnodes;
-    xmlNodePtr cnode, pnode, node;
+    xmlNodePtr enode, cnode, pnode, node;
     xmlAttrPtr attr;
-    const char *lang, *fullname;
-    unsigned int pos, cpos;
+    const char *lang, *fullname, *engine_name;
+    unsigned int pos, lpos, epos, cpos;
+    
+    rcc_engine *engine;
     
     xmlInitParser();
     xmlInitCharEncodingHandlers();
     xmlKeepBlanksDefault(0);
 
-    if (strlen(rcc_home_dir)>MAX_HOME_CHARS) config[0] = 0;
-    else {
-	sprintf(config, "%s/.rcc/rcc.xml", rcc_home_dir);
-	f = fopen(config, "r");
-	if (f) fclose(f);
-	else config[0] = 0;
-    }
-    if (!config[0]) {
-	strcpy(config, "/etc/rcc.xml");
-	f = fopen(config, "r");
-	if (f) fclose(f);
-	else config[0] = 0;
-    }
+    if (LoadConfiguration) {
+	if (strlen(rcc_home_dir)>MAX_HOME_CHARS) config[0] = 0;
+	else {
+	    sprintf(config, "%s/.rcc/rcc.xml", rcc_home_dir);
+	    f = fopen(config, "r");
+	    if (f) fclose(f);
+	    else config[0] = 0;
+	}
+	if (!config[0]) {
+	    strcpy(config, "/etc/rcc.xml");
+	    f = fopen(config, "r");
+    	    if (f) fclose(f);
+	    else config[0] = 0;
+	}
+    } else config[0] = 0;
 
     
 	// Load Extra Languages
@@ -73,8 +78,7 @@ int rccXmlInit() {
 	node_set = obj->nodesetval;
 	if (!node_set) goto clear;
 	
-	for (pos = 0; rcc_default_languages[pos].sn; pos++);
-	if (pos == RCC_MAX_LANGUAGES) goto clear;
+	for (lpos = 0; rcc_default_languages[lpos].sn; lpos++);
 
 	nnodes = node_set->nodeNr;
         for (i=0;i<nnodes;i++) {
@@ -84,28 +88,47 @@ int rccXmlInit() {
 	    
 	    if ((!lang)||(!lang[0])) continue;
 	    
-	    for (cpos=1,node=pnode->children;node;node=node->next) {
+	    pos = rccDefaultGetLanguageByName(lang);
+	    if (!pos) continue;
+	    if (pos == (rcc_language_id)-1) pos = lpos;
+	    else if (pos == RCC_MAX_LANGUAGES) continue; 
+	    
+	    for (epos = 1, cpos = 1,node=pnode->children;node;node=node->next) {
 	    	if (node->type != XML_ELEMENT_NODE) continue;
 		if (!xmlStrcmp(node->name, "Charsets")) {
-		    for (cpos = 0, cnode=node->children;cnode;cnode=cnode->next) {
+		    for (cnode=node->children;cnode;cnode=cnode->next) {
 			if (cnode->type != XML_ELEMENT_NODE) continue;
 			if ((!xmlStrcmp(cnode->name, "Charset"))&&(rccXmlGetText(cnode))&&(cpos<RCC_MAX_CHARSETS)) {
 			        rcc_default_languages[pos].charsets[cpos++] = rccXmlGetText(cnode);
 			}
 		    }
 		} 
+		if (!xmlStrcmp(node->name, "Engines")) {
+		    for (enode=node->children;enode;enode=enode->next) {
+			if (enode->type != XML_ELEMENT_NODE) continue;
+			if ((!xmlStrcmp(enode->name, "Engine"))&&(rccXmlGetText(enode))&&(epos<RCC_MAX_ENGINES)) {
+				engine_name = rccXmlGetText(enode);
+				if (!engine_name) continue;
+				engine = rccPluginEngineGetInfo(engine_name, lang);
+				if (!engine) continue;
+				 
+				rcc_default_languages[pos].engines[epos++] = engine;
+			}
+		    }
+		}
 	    }
 	    
-	    if (cpos > 1) {
-		rcc_default_languages[pos].sn = lang;
-		rcc_default_languages[pos].charsets[0] = "Default";
-		rcc_default_languages[pos].charsets[cpos] = NULL;
-		rcc_default_languages[pos].engines[0] = &rcc_default_engine;
-		rcc_default_languages[pos].engines[1] = NULL;
-
-		rcc_default_languages[++pos].sn = NULL;
-		if (pos == RCC_MAX_LANGUAGES) break;
+	    rcc_default_languages[pos].sn = lang;
+	    rcc_default_languages[pos].charsets[0] = rcc_default_charset;
+	    if (cpos > 1) rcc_default_languages[pos].charsets[cpos] = NULL;
+	    else {
+		rcc_default_languages[pos].charsets[1] = rcc_utf8_charset;
+		rcc_default_languages[pos].charsets[2] = NULL;
 	    }
+	    rcc_default_languages[pos].engines[0] = &rcc_default_engine;
+	    rcc_default_languages[pos].engines[epos] = NULL;
+	    
+	    if (pos == lpos) rcc_default_languages[++lpos].sn = NULL;
 	}
 	
 clear:
