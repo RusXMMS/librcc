@@ -18,6 +18,7 @@
 #define RCC_MAX_PLUGINS 32
 #define RCC_MAX_STRING_CHARS 1024
 #define RCC_MAX_PREFIX_CHARS 32
+#define RCC_MIN_DB4_CHARS 3
 
 struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];

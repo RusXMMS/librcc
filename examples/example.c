@@ -1,31 +1,37 @@
 #include <stdio.h>
-#include <string.h>
-#include <librcd.h>
+#include <locale.h>
+
+#include <librcc.h>
+
+static rcc_class classes[] = {
+    { "input", RCC_CLASS_STANDARD, NULL, NULL, "Input Encoding" },
+    { "output", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, "Output Encoding" },
+    { NULL }
+};
 
 main() {
-    enum russian_charsets res;
+    const char *language;
     char buf[255];
+    char *recoded;
     int l;
+
+    setlocale(LC_ALL, "");
+    
+    rccInit();
+    rccInitDefaultContext(NULL, 0, 0, classes, 0);
+    
+    language = rccGetCurrentLanguageName(NULL);
+    if (language) printf("Current Language: %s\n\n", language);
+    else printf("Unable Detect Language\n\n");
     
     while (fgets(buf,255,stdin)) {
 	if (strlen(buf)<2) break;
-	
-	res = get_russian_charset(buf,0);
-	switch(res) {
-	    case RUSSIAN_CHARSET_WIN:
-		printf("CP1251: ");
-	    break;
-	    case RUSSIAN_CHARSET_ALT:
-		printf("CP866 : ");
-	    break;
-	    case RUSSIAN_CHARSET_KOI:
-		printf("KOI8-R: ");
-	    break;
-	    case RUSSIAN_CHARSET_UTF8:
-		printf("UTF8  : ");
-	    break;
-	}
-	printf("%s",buf);
-	if (buf[strlen(buf)-1]!='\n') printf("\n");
+	recoded = rccRecode(NULL, 0, 1, buf, 0, NULL);
+	if (recoded) {
+	    printf(recoded);
+	    free(recoded);
+	} else printf(buf);
     }
+
+    rccFree();
 }

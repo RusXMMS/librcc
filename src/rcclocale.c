@@ -46,7 +46,7 @@ int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
 	else if (!strcasecmp(lv, "LANGUAGE")) l = getenv("LANGUAGE");
 	else l = NULL;
     }
-    if ((!l)||(strcmp(l,"C")==0)||(strcmp(l,"POSIX")==0)) return -1;
+    if ((!l)||(!strcmp(l,"C"))||(!strcmp(l,"POSIX"))) return -1;
 
     for (i=0;((l[i])&&(l[i]!='.')&&(l[i]!=':'));i++);
 

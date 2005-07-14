@@ -80,10 +80,9 @@ size_t rccStringSizedCheck(const char *str, size_t len) {
     
     newlen = STRNLEN(str, len);
     if (newlen>sizeof(rcc_string_header)) {
-	if ((len==newlen)&&(str[newlen-1])) return 0;
+	if ((len==newlen)&&(!str[newlen-2])) return 0;
 	newlen-=sizeof(rcc_string_header);
     } else return 0;
-
     if (((rcc_string_header*)str)->magic == RCC_STRING_MAGIC) return newlen;
     return 0;
 }

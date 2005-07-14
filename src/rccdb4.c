@@ -4,7 +4,6 @@
 #include "rccdb4.h"
 
 #define DATABASE "autolearn.db"
-#define MIN_CHARS 3
 
 int rccInitDb4(rcc_context ctx, const char *name, rcc_db4_flags flags) {
     size_t size;
@@ -98,7 +97,7 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_strin
     data.data = (char*)string;
     data.size = strlen(string)+1;
     
-    if (key.size < MIN_CHARS) return -1;
+    if (key.size < RCC_MIN_DB4_CHARS) return -1;
     
     err = ctx->db->put(ctx->db, NULL, &key, &data, 0);
     return err;
@@ -117,6 +116,8 @@ rcc_string rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
     key.size = STRNLEN(orig, olen); /* No ending zero */
 
     data.flags = DB_DBT_REALLOC;
+
+    if (key.size < RCC_MIN_DB4_CHARS) return NULL;
     
     err = ctx->db->get(ctx->db, NULL, &key, &data, 0);
     if (err) return NULL;

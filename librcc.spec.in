@@ -50,10 +50,16 @@ is part of rusxmms patch.
 %configure
 
 %install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p $RPM_BUILD_ROOT/etc
+mkdir -p $RPM_BUILD_ROOT/%{prefix}/lib/rcc/
 %makeinstall prefix=$RPM_BUILD_ROOT%{prefix} 
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
-mkdir -p $RPM_BUILD_ROOT/etc
-install -m 644 example/rcc.xml $RPM_BUILD_ROOT/etc
+rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.?a
+rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.la
+
+install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -65,8 +71,10 @@ rm -rf $RPM_BUILD_ROOT
 %files 
 %defattr(-, root, root)
 %doc AUTHORS ChangeLog NEWS README COPYING
+%doc examples/rcc-example.xml
 /etc/rcc.xml
 %{prefix}/lib/lib*.so.*
+%{prefix}/lib/rcc/
 
 %files devel
 %defattr(-, root, root)  

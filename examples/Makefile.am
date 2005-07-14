@@ -1,7 +1,10 @@
 bin_PROGRAMS= example
 example_SOURCES= example.c
-example_LDADD= @RCD_LIBS@
-EXTRA_DIST= input.txt
+example_LDADD= ../src/librcc.la
 
-test: example
-	cat input.txt | ./example
+EXTRA_DIST= input-russian.txt rcc.xml rcc-example.xml
+
+test-russian: example
+	cat input-russian.txt | ./example
+
+INCLUDES = -I../src -I../ui
