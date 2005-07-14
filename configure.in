@@ -17,12 +17,12 @@ AC_SUBST(LIBRCC_VERSION_SUBMINOR)
 AC_SUBST(LIBRCC_VERSION_INFO)
 
 LIBRCC_CVS=`cat VERSION | sed -e s/.*CVS.*/CVS/`
-if test "x$LIBRCC_CVS" = "x"; then
-LIBRCC_CVS=0
-LIBRCC_CVS_DATE=0
-else 
+if test "x$LIBRCC_CVS" = "xCVS"; then
 LIBRCC_CVS=1
 LIBRCC_CVS_DATE=`date +%y%m%d.%H`
+else 
+LIBRCC_CVS=0
+LIBRCC_CVS_DATE=0
 fi
 AC_SUBST(LIBRCC_CVS)
 AC_SUBST(LIBRCC_CVS_DATE)
@@ -47,7 +47,7 @@ AC_PATH_PROG(TAR, tar, /bin/tar)
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
-AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h sys/stat.h unistd.h)
+AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h sys/stat.h sys/file.h unistd.h fcntl.h)
 
 AC_TRY_COMPILE([#include <langinfo.h>],
     [char *codeset = nl_langinfo (CODESET);],

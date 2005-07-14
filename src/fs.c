@@ -1,10 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <mntent.h>
+
+#include "../config.h"
+
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
+
+#ifdef HAVE_MNTENT_H
+# include <mntent.h>
+#endif /* HAVE_MNTENT_H */
 
 #include "internal.h"
 #include "rcciconv.h"
@@ -75,6 +89,7 @@ int rccFS0(rcc_language_config config, const char *fspath, const char *filename,
 	if (!len) return 1;
 	
 	if (!strncmp(filename, fspath, len)) tmp = filename + strlen(fspath);
+#ifdef HAVE_MNTENT_H
     } else {
 	lastprefix = config->ctx->lastprefix;
 	
@@ -102,6 +117,7 @@ int rccFS0(rcc_language_config config, const char *fspath, const char *filename,
 	    }
 	    endmntent(mtab);
 	}
+#endif /* HAVE_MNTENT_H */
     }
 
     if (!tmp) return 1;

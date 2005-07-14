@@ -1,11 +1,27 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/file.h>
+#include "../config.h"
+
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif /* HAVE_FCNTL_H */
+
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
+
+#ifdef HAVE_SYS_FILE_H
+# include <sys/file.h>
+#endif /* HAVE_SYS_FILE_H */
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>

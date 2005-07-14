@@ -37,6 +37,7 @@ int rccInitDb4(rcc_context ctx, const char *name, rcc_db4_flags flags) {
 db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     int err;
     db4_context ctx;
+#ifdef HAVE_DB_H
     DB_ENV *dbe;
     DB *db;
     
@@ -61,34 +62,43 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	dbe->close(dbe, 0);
 	return NULL;
     } 
+#endif /* HAVE_DB_H */
 
     ctx = (db4_context)malloc(sizeof(db4_context_s));
     if (!ctx) {
+#ifdef HAVE_DB_H
     	db->close(db, 0);
 	dbe->close(dbe, 0);
+#endif /* HAVE_DB_H */
 	return NULL;
     }
     
+#ifdef HAVE_DB_H
     ctx->db = db;
     ctx->dbe = dbe;
+#endif /* HAVE_DB_H */
     ctx->flags = flags;
     return ctx;
 }
 
 void rccDb4FreeContext(db4_context ctx) {
     if (ctx) {
+#ifdef HAVE_DB_H
 	ctx->db->close(ctx->db, 0);
 	ctx->dbe->close(ctx->dbe, 0);
+#endif /* HAVE_DB_H */
 	free(ctx);
     }
 }
 
 int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_string string) {
-    int err;
+#ifdef HAVE_DB_H
     DBT key, data;
+#endif /* HAVE_DB_H */
 
     if ((!ctx)||(!orig)||(!string)) return -1;
     
+#ifdef HAVE_DB_H
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
     
@@ -99,16 +109,20 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_strin
     
     if (key.size < RCC_MIN_DB4_CHARS) return -1;
     
-    err = ctx->db->put(ctx->db, NULL, &key, &data, 0);
-    return err;
+    if (!ctx->db->put(ctx->db, NULL, &key, &data, 0)) return 0;
+#endif /* HAVE_DB_H */
+
+    return 1;
 }
 
 rcc_string rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
-    int err;
+#ifdef HAVE_DB_H
     DBT key, data;
+#endif /* HAVE_DB_H */
 
     if ((!ctx)||(!orig)) return NULL;
 
+#ifdef HAVE_DB_H
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
 
@@ -119,7 +133,8 @@ rcc_string rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
 
     if (key.size < RCC_MIN_DB4_CHARS) return NULL;
     
-    err = ctx->db->get(ctx->db, NULL, &key, &data, 0);
-    if (err) return NULL;
-    return data.data;
+    if (!ctx->db->get(ctx->db, NULL, &key, &data, 0)) return data.data;
+#endif /* HAVE_DB_H */
+
+    return NULL;
 }

@@ -53,10 +53,10 @@ is part of rusxmms patch.
 rm -rf $RPM_BUILD_ROOT
 
 mkdir -p $RPM_BUILD_ROOT/etc
-mkdir -p $RPM_BUILD_ROOT/%{prefix}/lib/rcc/
-%makeinstall prefix=$RPM_BUILD_ROOT%{prefix} 
+mkdir -p $RPM_BUILD_ROOT/%{prefix}/lib/rcc/engines/
+make install DESTDIR=$RPM_BUILD_ROOT
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
-rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.?a
+rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.a
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.la
 
 install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc

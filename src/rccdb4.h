@@ -1,12 +1,19 @@
 #ifndef _RCC_DB4_H
 #define _RCC_DB4_H
 
-#include <db.h>
+#include "../config.h"
+
+#ifdef HAVE_DB_H
+# include <db.h>
+#endif /* HAVE_DB_H */
+
 #include "rccstring.h"
 
 struct db4_context_t {
+#ifdef HAVE_DB_H
     DB_ENV *dbe;
     DB *db;
+#endif /* HAVE_DB_H */
     
     rcc_db4_flags flags;
 };
