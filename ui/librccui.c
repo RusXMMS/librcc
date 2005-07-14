@@ -16,15 +16,41 @@
 
 #define RCC_UI_LOCK_CODE 0x1111
 
-#define XPATH_LANGUAGE "//Languages/Language[@name]"
 #define XPATH_OPTION "//Options/Option[@name]"
 #define XPATH_VALUE "//Options/Option[@name=\"%s\"]/Value[@name]"
-#define XPATH_LANGUAGE_REQUEST_LOCALE "//Languages/Language[@name=\"%s\"]/FullName[@locale=\"%s\"]"
-#define XPATH_LANGUAGE_REQUEST "//Languages/Language[@name=\"%s\"]/FullName"
 #define XPATH_OPTION_REQUEST_LOCALE "//Options/Option[@name=\"%s\"]/FullName[@locale=\"%s\"]"
-#define XPATH_OPTION_REQUEST "//Options/Option[@name=\"%s\"]/FullName"
+#define XPATH_OPTION_REQUEST "//Options/Option[@name=\"%s\"]/FullName[not(@locale)]"
 #define XPATH_VALUE_REQUEST_LOCALE "//Options/Option[@name=\"%s\"]/Value[@name=\"%s\"]/FullName[@locale=\"%s\"]"
-#define XPATH_VALUE_REQUEST "//Options/Option[@name=\"%s\"]/Value[@name=\"%s\"]/FullName"
+#define XPATH_VALUE_REQUEST "//Options/Option[@name=\"%s\"]/Value[@name=\"%s\"]/FullName[not(@locale)]"
+
+#define XPATH_PAGE "//Pages/Page[@name=\"RusXMMS\"]/FullName[not(@locale)]"
+#define XPATH_LANGUAGE_FRAME "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Language\"]/FullName[not(@locale)]"
+#define XPATH_LANGUAGE_BOX "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Language\"]/Boxes/Box[@name=\"Language\"]/FullName[not(@locale)]"
+#define XPATH_CHARSET_FRAME "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Charset\"]/FullName[not(@locale)]"
+#define XPATH_ENGINE_FRAME "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Engine\"]/FullName[not(@locale)]"
+#define XPATH_ENGINE_BOX "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Engine\"]/Boxes/Box[@name=\"Engine\"]/FullName[not(@locale)]"
+
+#define XPATH_PAGE_LOCALE "//Pages/Page[@name=\"RusXMMS\"]/FullName[@locale=\"%s\"]"
+#define XPATH_LANGUAGE_FRAME_LOCALE "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Language\"]/FullName[@locale=\"%s\"]"
+#define XPATH_LANGUAGE_BOX_LOCALE "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Language\"]/Boxes/Box[@name=\"Language\"]/FullName[@locale=\"%s\"]"
+#define XPATH_CHARSET_FRAME_LOCALE "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Charset\"]/FullName[@locale=\"%s\"]"
+#define XPATH_ENGINE_FRAME_LOCALE "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Engine\"]/FullName[@locale=\"%s\"]"
+#define XPATH_ENGINE_BOX_LOCALE "//Pages/Page[@name=\"RusXMMS\"]/Frames/Frame[@name=\"Engine\"]/Boxes/Box[@name=\"Engine\"]/FullName[@locale=\"%s\"]"
+
+#define XPATH_LANGUAGE "//Languages/Language[@name]"
+#define XPATH_LANGUAGE_REQUEST_LOCALE "//Languages/Language[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_LANGUAGE_REQUEST "//Languages/Language[@name=\"%s\"]/FullName[not(@locale)]"
+
+#define XPATH_CLASS "//Classes/Class[@name]"
+#define XPATH_CLASS_REQUEST_LOCALE "//Classes/Class[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_CLASS_REQUEST "//Classes/Class[@name=\"%s\"]/FullName[not(@locale)]"
+#define XPATH_CHARSET "//Charsets/Charset[@name]"
+#define XPATH_CHARSET_REQUEST_LOCALE "//Charsets/Charset[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_CHARSET_REQUEST "//Charsets/Charset[@name=\"%s\"]/FullName[not(@locale)]"
+#define XPATH_ENGINE "//Engines/Engine[@name]"
+#define XPATH_ENGINE_REQUEST_LOCALE "//Engines/Engine[@name=\"%s\"]/FullName[@locale=\"%s\"]"
+#define XPATH_ENGINE_REQUEST "//Engines/Engine[@name=\"%s\"]/FullName[not(@locale)]"
+
 
 static const char *rccUiXmlGetText(xmlNodePtr node) {
     if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
@@ -36,7 +62,7 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
     xmlNodePtr res = NULL;
 
     unsigned int i, args = 0;
-    unsigned int size = 128;
+    unsigned int size = 256;
     va_list ap;
     char *req;
     
@@ -74,6 +100,77 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
     return res;
 }
 
+
+#define DO_PAGE(XPATH_ME, XPATH_ME_LOCALE, var) \
+	for (j=0, node = NULL;((search[j])&&(!node));j++) \
+	    node = rccUiNodeFind(xpathctx, XPATH_ME_LOCALE, search[j]); \
+	if (!node) { \
+	    node = rccUiNodeFind(xpathctx, XPATH_ME); \
+	} \
+	if (node) { \
+	    fullname = rccUiXmlGetText(node); \
+	    if (fullname) { \
+		if (icnv) { \
+		    newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0); \
+		    if (newsize != (size_t)-1) { \
+			cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf); \
+			fullname = rccUiXmlGetText(cnode); \
+			if (!fullname) fullname = rccUiXmlGetText(node); \
+		    } \
+		} \
+		var = fullname; \
+	    } \
+	} \
+
+#define DO_NAME(XPATH_ME, XPATH_ME_REQUEST, XPATH_ME_REQUEST_LOCALE, my_name) \
+	obj = xmlXPathEvalExpression(XPATH_ME, xpathctx); \
+	if (obj) { \
+	    node_set = obj->nodesetval; \
+	    if (node_set) nnodes = node_set->nodeNr; \
+	    else nnodes = 0; \
+	} else nnodes = 0; \
+	\
+	if (nnodes) { \
+	    my_name = (rcc_name*)malloc((nnodes+1)*sizeof(rcc_name)); \
+	    if (!my_name) nnodes = 0; \
+	} \
+	\
+        for (i=0,k=0;i<nnodes;i++) { \
+	    node = node_set->nodeTab[i]; \
+	    attr = xmlHasProp(node, "name"); \
+	    class_name = attr->children->content; \
+	    \
+	    if ((!class_name)||(!class_name[0])) continue; \
+	    \
+	    for (j=0, node = NULL;((search[j])&&(!node));j++) { \
+		node = rccUiNodeFind(xpathctx, XPATH_ME_REQUEST_LOCALE, class_name, search[j]); \
+	    } \
+	    if (!node) { \
+		node = rccUiNodeFind(xpathctx, XPATH_ME_REQUEST, class_name); \
+	    } \
+	    \
+	    if (node) { \
+		fullname = rccUiXmlGetText(node); \
+		if (fullname) { \
+		    if (icnv) { \
+			newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0); \
+			if (newsize != (size_t)-1) { \
+			    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf); \
+			    fullname = rccUiXmlGetText(cnode); \
+			    if (!fullname) fullname = rccUiXmlGetText(node); \
+			} \
+		    } \
+		    \
+		    my_name[k].sn = class_name; \
+		    my_name[k++].name = fullname; \
+		} \
+	    } \
+	} \
+	if (my_name) my_name[k].sn = NULL; \
+	if (obj) xmlXPathFreeObject(obj);
+
+static int initialized = 0;
+
 int rccUiInit() {
     int err;
     unsigned long i, j, k, nnodes;
@@ -86,9 +183,8 @@ int rccUiInit() {
     xmlNodePtr node, cnode;
     xmlAttrPtr attr;
 
-    rcc_language_name *lang_name;
+    rcc_name *lang_name;
     const char *lang, *fullname;
-    const char *locale;
     char *lpos;
     char *search[4];
 
@@ -96,16 +192,24 @@ int rccUiInit() {
     const char *opt, *val;
     rcc_option_name *option_name;
     const char *value_name;
+    const char *class_name;
     
     unsigned int npos;
 
     size_t newsize;    
     char tmpbuf[RCC_UI_MAX_STRING_CHARS+1];
     char ctype_charset[32];
+    char locale[32];
     rcc_iconv icnv;
 
+    if (initialized) return 0;
+    
     err = rccInit();
     if (err) return err;
+    
+    memcpy(rcc_default_language_names, rcc_default_language_names_embeded, (RCC_MAX_LANGUAGES+1)*sizeof(rcc_name));
+    memcpy(rcc_default_option_names, rcc_default_option_names_embeded, (RCC_MAX_OPTIONS+1)*sizeof(rcc_option_name));
+    memcpy(&rcc_ui_default_page_name, &rcc_ui_default_page_name_embeded, sizeof(rcc_ui_page_name));
     
     if (rccLocaleGetCharset(ctype_charset, NULL, 32)) icnv = NULL;
     else {
@@ -113,8 +217,7 @@ int rccUiInit() {
 	else icnv = rccIConvOpen(ctype_charset, "UTF-8");
     }
     
-    locale = setlocale(LC_CTYPE, NULL);
-    if (locale) {
+    if (!rccLocaleGetLanguage(locale, "LANGUAGE", 32)) {
 	search[0] = strdup(locale);
 	if (!search[0]) goto clean;
 	lpos = strrchr(search[0], '@');
@@ -256,6 +359,17 @@ int rccUiInit() {
 	}
 	if (obj) xmlXPathFreeObject(obj);
 	
+	DO_PAGE(XPATH_PAGE, XPATH_PAGE_LOCALE, rcc_ui_default_page_name.title)
+	DO_PAGE(XPATH_LANGUAGE_FRAME, XPATH_LANGUAGE_FRAME_LOCALE, rcc_ui_default_page_name.language.title)
+	DO_PAGE(XPATH_LANGUAGE_BOX, XPATH_LANGUAGE_BOX_LOCALE, rcc_ui_default_page_name.language.language)
+	DO_PAGE(XPATH_CHARSET_FRAME, XPATH_CHARSET_FRAME_LOCALE, rcc_ui_default_page_name.charset.title)
+	DO_PAGE(XPATH_ENGINE_FRAME, XPATH_ENGINE_FRAME_LOCALE, rcc_ui_default_page_name.engine.title)
+	DO_PAGE(XPATH_ENGINE_BOX, XPATH_ENGINE_BOX_LOCALE, rcc_ui_default_page_name.engine.engine)
+
+	DO_NAME(XPATH_CLASS, XPATH_CLASS_REQUEST, XPATH_CLASS_REQUEST_LOCALE, rcc_default_class_names);
+	DO_NAME(XPATH_CHARSET, XPATH_CHARSET_REQUEST, XPATH_CHARSET_REQUEST_LOCALE, rcc_default_charset_names);
+	DO_NAME(XPATH_ENGINE, XPATH_ENGINE_REQUEST, XPATH_ENGINE_REQUEST_LOCALE, rcc_default_engine_names);
+	
 	xmlXPathFreeContext(xpathctx);
     }
 
@@ -263,10 +377,25 @@ clean:
     for (j=0;search[j];j++) free(search[j]);
     if (icnv) rccIConvClose(icnv);
 
+    initialized = 1;
+    
     return 0;
 }
 
 void rccUiFree() {
+    if (rcc_default_class_names) {
+	free(rcc_default_class_names);
+	rcc_default_class_names = NULL;
+    }
+    if (rcc_default_charset_names) {
+	free(rcc_default_charset_names);
+	rcc_default_charset_names = NULL;
+    }
+    if (rcc_default_engine_names) {
+	free(rcc_default_engine_names);
+	rcc_default_engine_names = NULL;
+    }
+    initialized = 0;
 }
 
 static rcc_ui_frame_context rccUiFrameCreateContext(rcc_ui_frame_type type, rcc_ui_context uictx) {
@@ -324,7 +453,10 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
     ctx->rccctx = rccctx;
     
     ctx->language_names = NULL;
+    ctx->engine_names = NULL;
+    ctx->charset_names = NULL;
     ctx->option_names = NULL;
+    ctx->class_names = 0;
 
     ctx->internal = rccUiCreateInternal(ctx);
 
@@ -388,10 +520,24 @@ void rccUiFreeContext(rcc_ui_context ctx) {
     free(ctx);
 }
 
-int rccUiSetLanguageNames(rcc_ui_context ctx, rcc_language_name *names) {
+int rccUiSetLanguageNames(rcc_ui_context ctx, rcc_name *names) {
     if (!ctx) return -1;
 
     ctx->language_names = names;
+    return 0;
+}
+
+int rccUiSetCharsetNames(rcc_ui_context ctx, rcc_name *names) {
+    if (!ctx) return -1;
+
+    ctx->charset_names = names;
+    return 0;
+}
+
+int rccUiSetEngineNames(rcc_ui_context ctx, rcc_name *names) {
+    if (!ctx) return -1;
+
+    ctx->engine_names = names;
     return 0;
 }
 
@@ -402,6 +548,10 @@ int rccUiSetOptionNames(rcc_ui_context ctx, rcc_option_name *names) {
     return 0;
 }
 
+int rccUiSetClassNames(rcc_ui_context ctx) {
+    if (!ctx) return -1;
+    ctx->class_names = 1;
+}
 
 int rccUiRestoreLanguage(rcc_ui_context ctx) {
     unsigned int i;
@@ -574,7 +724,7 @@ rcc_ui_box rccUiGetOptionBox(rcc_ui_context ctx, rcc_option option, const char *
 
 }
 
-rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, const char *title) {
+rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, rcc_ui_language_frame_name *name) {
     rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
     rcc_ui_box language;
@@ -584,11 +734,13 @@ rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, const char *title) {
     framectx = ctx->language_frame;
     if (framectx->frame) return framectx->frame;
     
-    frame = rccUiFrameCreate(ctx->language_frame, title);
+    if (!name) name = &rcc_ui_default_page_name.language;
+    
+    frame = rccUiFrameCreate(ctx->language_frame, name->title);
     if (frame) framectx->frame = frame;
     else return NULL;
     
-    language = rccUiGetLanguageBox(ctx, title);
+    language = rccUiGetLanguageBox(ctx, name->language);
     if (!language) return NULL;
 
     rccUiFrameAdd(framectx, language);
@@ -596,8 +748,9 @@ rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, const char *title) {
     return frame;
 }
 
-rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, const char *title) {
+rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, rcc_ui_charset_frame_name *name) {
     unsigned int i;
+    const char *class_name;
     rcc_class_ptr *classes;
     rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
@@ -608,14 +761,18 @@ rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, const char *title) {
     framectx = ctx->charset_frame;
     if (framectx->frame) return framectx->frame;
 
-    frame = rccUiFrameCreate(framectx, title);
+    if (!name) name = &rcc_ui_default_page_name.charset;
+
+    frame = rccUiFrameCreate(framectx, name->title);
     if (frame) framectx->frame = frame;
     else return NULL;
 
     classes = rccGetClassList(ctx->rccctx);
     for (i=0; classes[i]; i++) {
 	if (classes[i]->fullname) {
-	    charset = rccUiGetCharsetBox(ctx, (rcc_class_id)i,  classes[i]->fullname);
+	    class_name = rccUiGetClassName(ctx, classes[i]->name);
+	    if (!class_name) class_name = classes[i]->fullname;
+	    charset = rccUiGetCharsetBox(ctx, (rcc_class_id)i, class_name);
 	    rccUiFrameAdd(framectx, charset);
 	}
     }
@@ -625,7 +782,7 @@ rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, const char *title) {
 }
 
 
-rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
+rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, rcc_ui_engine_frame_name *name) {
     unsigned int i;
     rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
@@ -637,12 +794,14 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
 
     framectx = ctx->engine_frame;
     if (framectx->frame) return framectx->frame;
+
+    if (!name) name = &rcc_ui_default_page_name.engine;
     
-    frame = rccUiFrameCreate(framectx, title);
+    frame = rccUiFrameCreate(framectx, name->title);
     if (frame) framectx->frame = frame;
     else return NULL;
     
-    engine = rccUiGetEngineBox(ctx, title);
+    engine = rccUiGetEngineBox(ctx, name->engine);
     rccUiFrameAdd(framectx, engine);
 
     for (i=0; i<RCC_MAX_OPTIONS; i++) {
@@ -659,7 +818,7 @@ rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, const char *title) {
 }
 
 
-rcc_ui_page rccUiGetPage(rcc_ui_context ctx, const char *title, const char *language_title, const char *charset_title, const char *engine_title) {
+rcc_ui_page rccUiGetPage(rcc_ui_context ctx, rcc_ui_page_name *name) {
     rcc_ui_page page;
     rcc_ui_frame frame;
     
@@ -667,16 +826,18 @@ rcc_ui_page rccUiGetPage(rcc_ui_context ctx, const char *title, const char *lang
 
     if (ctx->page) return ctx->page;
 
-    page = rccUiPageCreate(ctx, title);
+    if (!name) name = &rcc_ui_default_page_name;
+    
+    page = rccUiPageCreate(ctx, name->title);
     if (!page) return NULL;
 
-    frame = rccUiGetLanguageFrame(ctx, language_title);
+    frame = rccUiGetLanguageFrame(ctx, &name->language);
     rccUiPageAdd(page, frame);
 
-    frame = rccUiGetCharsetsFrame(ctx, charset_title);
+    frame = rccUiGetCharsetsFrame(ctx, &name->charset);
     rccUiPageAdd(page, frame);
 
-    frame = rccUiGetEngineFrame(ctx, engine_title);
+    frame = rccUiGetEngineFrame(ctx, &name->engine);
     rccUiPageAdd(page, frame);
     
     ctx->page = page;

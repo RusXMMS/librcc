@@ -43,8 +43,11 @@ struct rcc_ui_context_t {
 
     rcc_ui_internal internal;
     
-    rcc_language_name *language_names;
+    rcc_name *language_names;
+    rcc_name *charset_names;
+    rcc_name *engine_names;
     rcc_option_name *option_names;
+    unsigned char class_names;
     
     rcc_ui_frame_context language_frame;
     rcc_ui_frame_context charset_frame;

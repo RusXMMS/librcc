@@ -6,7 +6,7 @@
 #include "internal.h"
 #include "rccnames.h"
 
-#define TITLE_WIDTH 160
+#define TITLE_WIDTH 224
 #define TITLE_HEIGHT 10
 #define BOX_SPACING 1
 #define BOX_BORDER 0
@@ -127,7 +127,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    
 	    list = gtk_menu_new();
 	    for (i=0;charsets[i];i++) {
-		item = gtk_menu_item_new_with_label(charsets[i]);
+		item = gtk_menu_item_new_with_label(rccUiGetCharsetName(uictx,charsets[i]));
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
 	    }
@@ -154,7 +154,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    
 	    list = gtk_menu_new();
 	    for (i=0;engines[i];i++) {
-		item = gtk_menu_item_new_with_label(engines[i]->title);
+		item = gtk_menu_item_new_with_label(rccUiGetEngineName(uictx,engines[i]->title));
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
 	    }	

@@ -118,17 +118,19 @@ int rccXmlInit(int LoadConfiguration) {
 		}
 	    }
 	    
-	    rcc_default_languages[pos].sn = lang;
-	    rcc_default_languages[pos].charsets[0] = rcc_default_charset;
-	    if (cpos > 1) rcc_default_languages[pos].charsets[cpos] = NULL;
-	    else {
-		rcc_default_languages[pos].charsets[1] = rcc_utf8_charset;
-		rcc_default_languages[pos].charsets[2] = NULL;
-	    }
-	    rcc_default_languages[pos].engines[0] = &rcc_default_engine;
-	    rcc_default_languages[pos].engines[epos] = NULL;
+	    if ((cpos > 1)||(epos > 1)) {
+		rcc_default_languages[pos].sn = lang;
+	        rcc_default_languages[pos].charsets[0] = rcc_default_charset;
+		if (cpos > 1) rcc_default_languages[pos].charsets[cpos] = NULL;
+		else {
+		    rcc_default_languages[pos].charsets[1] = rcc_utf8_charset;
+		    rcc_default_languages[pos].charsets[2] = NULL;
+		}
+		rcc_default_languages[pos].engines[0] = &rcc_default_engine;
+		rcc_default_languages[pos].engines[epos] = NULL;
 	    
-	    if (pos == lpos) rcc_default_languages[++lpos].sn = NULL;
+		if (pos == lpos) rcc_default_languages[++lpos].sn = NULL;
+	    }
 	}
 	
 clear:

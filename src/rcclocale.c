@@ -41,11 +41,14 @@ int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
     locale_class = rccLocaleGetClassByName(lv);
     if (locale_class >= 0) {
 	l = setlocale(locale_class, NULL);
-	if (!l) return -1;
-	else if ((strcmp(l,"C")==0)||(strcmp(l,"POSIX")==0)) return -1;
-    } else return -1;
+    } else {
+	if (!strcasecmp(lv, "LANG")) l = getenv("LANG");
+	else if (!strcasecmp(lv, "LANGUAGE")) l = getenv("LANGUAGE");
+	else l = NULL;
+    }
+    if ((!l)||(strcmp(l,"C")==0)||(strcmp(l,"POSIX")==0)) return -1;
 
-    for (i=0;((l[i])&&(l[i]!='.'));i++);
+    for (i=0;((l[i])&&(l[i]!='.')&&(l[i]!=':'));i++);
 
     for (j=0;rcc_default_aliases[j].alias;j++) 
 	if (strncmp(l,rcc_default_aliases[j].alias,i)==0) {

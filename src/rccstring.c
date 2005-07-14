@@ -48,7 +48,7 @@ int rccStringFixID(rcc_string string, rcc_context ctx) {
     
     language_id = rccGetLanguageByName(ctx, lang);
     if ((language_id == (rcc_language_id)-1)||(language_id == 0)) return -1;
-    config = rccGetLanguageConfig(ctx, language_id);
+    config = rccGetConfig(ctx, language_id);
     if (!config) return -1;
     
     header->language_id = language_id;
