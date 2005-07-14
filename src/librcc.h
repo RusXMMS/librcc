@@ -135,11 +135,13 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id);
 *******************************************************************************/
 typedef int rcc_option_value;
 
+#define RCC_OPTION_LEARNING_FLAG_USE 1
+#define RCC_OPTION_LEARNING_FLAG_LEARN 2
 typedef enum rcc_option_t {
-    RCC_LEARNING_MODE = 0,
-    RCC_AUTODETECT_FS_TITLES,
-    RCC_AUTODETECT_FS_NAMES,
-    RCC_CONFIGURED_LANGUAGES_ONLY,
+    RCC_OPTION_LEARNING_MODE = 0,
+    RCC_OPTION_AUTODETECT_FS_TITLES,
+    RCC_OPTION_AUTODETECT_FS_NAMES,
+    RCC_OPTION_CONFIGURED_LANGUAGES_ONLY,
     RCC_MAX_OPTIONS
 } rcc_option;
 

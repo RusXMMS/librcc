@@ -84,7 +84,7 @@ void rccDb4FreeContext(db4_context ctx) {
     }
 }
 
-int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_string string, size_t slen) {
+int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_string string) {
     int err;
     DBT key, data;
 
@@ -94,9 +94,9 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_strin
     memset(&data, 0, sizeof(data));
     
     key.data = (char*)orig;
-    key.size = STRNLEN(orig, olen);
+    key.size = STRNLEN(orig, olen); /* No ending zero */
     data.data = (char*)string;
-    data.size = STRNLEN(string, slen);
+    data.size = strlen(string)+1;
     
     if (key.size < MIN_CHARS) return -1;
     
@@ -114,7 +114,7 @@ rcc_string rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
     memset(&data, 0, sizeof(data));
 
     key.data = (char*)orig;
-    key.size = STRNLEN(orig, olen);
+    key.size = STRNLEN(orig, olen); /* No ending zero */
 
     data.flags = DB_DBT_REALLOC;
     

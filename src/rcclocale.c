@@ -11,7 +11,7 @@
 
 #include "rccconfig.h"
 
-static int rccLocaleGetClassByName(const char *locale) {
+int rccLocaleGetClassByName(const char *locale) {
     if (!locale) return LC_CTYPE;
 
     if (!strcmp(locale, "LC_CTYPE")) return LC_CTYPE;

@@ -29,10 +29,10 @@ rcc_option_value_name rcc_default_option_learning_names[] = { "Off", "On", "Rele
 rcc_option_value_name rcc_default_option_clo_names[] = { "All Languages", "Configured / AutoEngine", "Configured Only", NULL };
 
 rcc_option_name rcc_default_option_names[RCC_MAX_OPTIONS+1] = {
-    { RCC_LEARNING_MODE, "Recodings Cache", rcc_default_option_learning_names },
-    { RCC_AUTODETECT_FS_NAMES, "Autodetect File Names",  rcc_default_option_boolean_names },
-    { RCC_AUTODETECT_FS_TITLES, "Autodetect FS Titles", rcc_default_option_boolean_names },
-    { RCC_CONFIGURED_LANGUAGES_ONLY, "Enabled Languages", rcc_default_option_clo_names },
+    { RCC_OPTION_LEARNING_MODE, "Recodings Cache", rcc_default_option_learning_names },
+    { RCC_OPTION_AUTODETECT_FS_NAMES, "Autodetect File Names",  rcc_default_option_boolean_names },
+    { RCC_OPTION_AUTODETECT_FS_TITLES, "Autodetect FS Titles", rcc_default_option_boolean_names },
+    { RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, "Enabled Languages", rcc_default_option_clo_names },
     { RCC_MAX_OPTIONS }
 };
 

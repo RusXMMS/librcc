@@ -546,7 +546,7 @@ clear:
 	xmlFreeDoc(doc);
     }
 
-    if ((!ctx->current_language)&&(rccGetOption(ctx, RCC_CONFIGURED_LANGUAGES_ONLY))) {
+    if ((!ctx->current_language)&&(rccGetOption(ctx, RCC_OPTION_CONFIGURED_LANGUAGES_ONLY))) {
 	ctx->current_config = rccGetCurrentConfig(ctx);
     	ctx->configure = 1;
     }

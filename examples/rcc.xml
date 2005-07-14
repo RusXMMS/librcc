@@ -11,12 +11,4 @@
 	    </Charsets>
 	</Language>
     </Languages>
-    <Options>
-	<Option name="LEARNING_MODE">
-	    <FullName>L. M.</FullName>
-	    <Value name="OFF">
-		<FullName>Dissable</FullName>
-	    </Value>
-	</Option>
-    </Options>
 </LibRCC>

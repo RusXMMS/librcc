@@ -110,10 +110,10 @@ rcc_option_value_name rcc_sn_clo[] = { "ALL", "CONFIGURED_AND_AUTO", "CONFIGURED
 
 rcc_option_description rcc_option_descriptions[RCC_MAX_OPTIONS+1];
 rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
-    {RCC_LEARNING_MODE, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1 }, RCC_OPTION_TYPE_STANDARD,  "LEARNING_MODE", rcc_sn_learning },
-    {RCC_AUTODETECT_FS_NAMES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD,  "AUTODETECT_FS_NAMES", rcc_sn_boolean},
-    {RCC_AUTODETECT_FS_TITLES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_INVISIBLE, "AUTODETECT_FS_TITLES", rcc_sn_boolean},
-    {RCC_CONFIGURED_LANGUAGES_ONLY, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 2, 1}, RCC_OPTION_TYPE_INVISIBLE, "CONFIGURED_LANGUAGES_ONLY", rcc_sn_clo},
+    {RCC_OPTION_LEARNING_MODE, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1 }, RCC_OPTION_TYPE_STANDARD,  "LEARNING_MODE", rcc_sn_learning },
+    {RCC_OPTION_AUTODETECT_FS_NAMES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD,  "AUTODETECT_FS_NAMES", rcc_sn_boolean},
+    {RCC_OPTION_AUTODETECT_FS_TITLES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_INVISIBLE, "AUTODETECT_FS_TITLES", rcc_sn_boolean},
+    {RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 2, 1}, RCC_OPTION_TYPE_INVISIBLE, "CONFIGURED_LANGUAGES_ONLY", rcc_sn_clo},
     {RCC_MAX_OPTIONS}
 };
 
@@ -148,4 +148,9 @@ rcc_language_id rccDefaultGetLanguageByName(const char *name) {
 	if (!strcasecmp(rcc_default_languages[i].sn, name)) return (rcc_language_id)i;
 
     return (rcc_language_id)-1;
+}
+
+int rccIsUTF8(const char *name) {
+    if ((!name)||(strcasecmp(name, "UTF-8")&&strcasecmp(name, "UTF8"))) return 0;
+    return 1;
 }

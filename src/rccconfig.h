@@ -27,4 +27,6 @@ rcc_option_description *rccGetOptionDescriptionByName(const char *name);
 
 rcc_language_id rccDefaultGetLanguageByName(const char *name);
 
+int rccIsUTF8(const char *name);
+
 #endif /* _RCC_CONFIG_H */

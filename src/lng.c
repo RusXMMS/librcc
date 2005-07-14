@@ -44,21 +44,17 @@ static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
     rcc_language_config config;
     char stmp[RCC_MAX_LANGUAGE_CHARS+1];
 
-    printf("DL: %lu\n", ctx->default_language);
     if (ctx->default_language) return ctx->default_language;
     
     if (!rccLocaleGetLanguage(stmp, ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS)) {
     	for (i=0;ctx->languages[i];i++) {
 	    if (!strcmp(ctx->languages[i]->sn, stmp)) {
-		clo = rccGetOption(ctx, RCC_CONFIGURED_LANGUAGES_ONLY);
-		printf("CLO: %lu\n", clo);
+		clo = rccGetOption(ctx, RCC_OPTION_CONFIGURED_LANGUAGES_ONLY);
 		if (clo) {
 		    config = rccCheckConfig(ctx, (rcc_language_id)i);
 		    if ((!config)||(!config->configured)) {
 			if (clo == 1) {
 			    engines = ctx->languages[i]->engines;
-			    printf("%p",engines[0]);
-			    printf("%p",engines[1]);
 			    if ((!engines[0])||(!engines[1])) break;
 			} else break;
 		    }

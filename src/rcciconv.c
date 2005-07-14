@@ -92,49 +92,7 @@ loop:
     return outsize - out_left;
 }
 
-
-
-size_t rccIConv(rcc_context ctx, iconv_t icnv, const char *buf, size_t len) {
-    char *in_buf, *out_buf, *res, err;
-    int in_left, out_left, olen;
-    int ub, utf_mode=0;
-    int errors=0;
-    
-    if ((!buf)||(!ctx)||(icnv == (iconv_t)-1)) return (size_t)-1;
-    
-    len = STRNLEN(buf,len);
-    
-    if (iconv(icnv, NULL, NULL, NULL, NULL) == -1) return (size_t)-1;
-    
-loop_restart:
-    errors = 0;
-    in_buf = (char*)buf; /*DS*/
-    in_left = len;
-    out_buf = ctx->tmpbuffer;
-    out_left = RCC_MAX_STRING_CHARS;
-
-loop:
-    err=iconv(icnv, &in_buf, &in_left, &out_buf, &out_left);
-    if (err<0) {
-        if (errno==E2BIG) {
-    	    *(int*)(ctx->tmpbuffer+(RCC_MAX_STRING_CHARS-sizeof(int)))=0;
-	} else if (errno==EILSEQ) {
-	    if (errors++<RCC_MAX_ERRORS) {
-		for (ub=utf_mode?rccIConvUTFBytes(*in_buf):1;ub>0;ub--)
-		    rccIConvCopySymbol(&in_buf, &in_left, &out_buf, &out_left);
-		if (in_left>0) goto loop;
-	    } else if (!utf_mode) {
-		utf_mode = 1;
-		goto loop_restart;
-	    } else {
-	        return (size_t)-1;
-	    }
-	} else {
-	    return (size_t)-1;
-	}
-    }
-    
-    ctx->tmpbuffer[RCC_MAX_STRING_CHARS - out_left] = 0;
-
-    return RCC_MAX_STRING_CHARS - out_left;
+size_t rccIConv(rcc_context ctx, rcc_iconv icnv, const char *buf, size_t len) {
+    if (!ctx) return (size_t)-1;
+    return rccIConvRecode(icnv, ctx->tmpbuffer, RCC_MAX_STRING_CHARS, buf, len);
 }

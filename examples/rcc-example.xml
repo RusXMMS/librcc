@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding="UTF-8"?>
+<LibRCC>
+    <Languages>
+	<Language name="ru">
+	    <FullName>Russian</FullName>
+	    <FullName locale="ru">Русский</FullName>
+	    <Engines>
+		<Engine>russian</Engine>
+	    </Engines>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+		<Charset>KOI8-R</Charset>
+		<Charset>CP1251</Charset>
+		<Charset>IBM866</Charset>
+		<Charset>ISO8859-5</Charset>
+		<Charset>MACCYRILLIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="ja">
+	    <FullName>Japanese</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-2022-JP</Charset>
+		<Charset>EUC-JP</Charset>
+		<Charset>SHIFT-JIS</Charset>
+	    </Charsets>
+	</Language>
+    </Languages>
+    <Options>
+	<Option name="LEARNING_MODE">
+	    <FullName>Recodings Cache</FullName>
+	    <FullName locale="ru">Кэширование</FullName>
+	    <Value name="OFF">
+		<FullName>Dissable</FullName>
+		<FullName locale="ru">Выключено</FullName>
+	    </Value>
+	    <Value name="ON">
+		<FullName>Enable</FullName>
+		<FullName locale="ru">Включено</FullName>
+	    </Value>
+	    <Value name="RELEARN">
+		<FullName>ReLearn</FullName>
+		<FullName locale="ru">Обновлять данные кэша</FullName>
+	    </Value>
+	    <Value name="LEARN">
+		<FullName>Learn</FullName>
+		<FullName locale="ru">Добовлять данные в кэш</FullName>
+	    </Value>
+	</Option>
+	<Option name="AUTODETECT_FS_NAMES">
+	    <FullName>Autodetect File Names</FullName>
+	    <FullName locale="ru">Поиск файлов</FullName>
+	</Option>
+    </Options>
+</LibRCC>

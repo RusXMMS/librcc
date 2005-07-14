@@ -52,7 +52,8 @@ int rccInit() {
     memcpy(rcc_default_languages, rcc_default_languages_embeded, (RCC_MAX_LANGUAGES + 1)*sizeof(rcc_language));
     memcpy(rcc_option_descriptions, rcc_option_descriptions_embeded, (RCC_MAX_OPTIONS + 1)*sizeof(rcc_option_description));
 
-    err = rccXmlInit(1);
+    err = rccPluginInit();
+    if (!err) err = rccXmlInit(1);
     if (!err) err = rccEngineInit();
 
     if (err) {
@@ -73,6 +74,7 @@ void rccFree() {
     
     rccEngineFree();
     rccXmlFree();
+    rccPluginFree();
 
     if (rcc_home_dir) {
 	free(rcc_home_dir);
@@ -90,7 +92,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     rcc_language_ptr *languages;
     rcc_class_ptr *classes;
     rcc_language_config configs;
-    iconv_t *from, *to;
+    rcc_iconv *from;
 
     if (!initialized) return NULL;
     
@@ -112,14 +114,12 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     ctx = (rcc_context)malloc(sizeof(struct rcc_context_t));
     languages = (rcc_language_ptr*)malloc((max_languages+1)*sizeof(rcc_language_ptr));
     classes = (rcc_class_ptr*)malloc((max_classes+1)*sizeof(rcc_class_ptr));
-    from = (iconv_t*)malloc((max_classes)*sizeof(iconv_t));
-    to = (iconv_t*)malloc((max_classes)*sizeof(iconv_t));
+    from = (rcc_iconv*)malloc((max_classes)*sizeof(rcc_iconv));
 
     configs = (rcc_language_config)malloc((max_languages)*sizeof(struct rcc_language_config_t));
     
     if ((!ctx)||(!languages)||(!classes)) {
 	if (from) free(from);
-	if (to) free(to);
 	if (configs) free(configs);
 	if (classes) free(classes);
 	if (languages) free(languages);
@@ -145,18 +145,11 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     ctx->n_classes = 0;
     classes[0] = NULL;
 
-    ctx->fsiconv = (iconv_t)-1;
     ctx->lastprefix[0] = 0;
     
     ctx->iconv_from = from;
-    ctx->iconv_to = to;
-    for (i=0;i<max_classes;i++) {
-	from[i] = (iconv_t)-1;
-	to[i] = (iconv_t)-1;
-    }
-    
-    for (i=0;i<RCC_MAX_CHARSETS;i++)
-	ctx->iconv_auto[i] = (iconv_t)-1;
+    for (i=0;i<max_classes;i++) from[i] = NULL;
+    for (i=0;i<RCC_MAX_CHARSETS;i++) ctx->iconv_auto[i] = NULL;
     
     ctx->configs = configs;
     for (i=0;i<max_languages;i++)
@@ -225,27 +218,18 @@ int rccInitDefaultContext(const char *locale_variable, unsigned int max_language
 static void rccFreeIConv(rcc_context ctx) {
     unsigned int i;
     
-    if ((!ctx)||(!ctx->iconv_from)||(!ctx->iconv_to)) return;
+    if ((!ctx)||(!ctx->iconv_from)) return;
 
-    if ((ctx->fsiconv != (iconv_t)-1)&&(ctx->fsiconv != (iconv_t)-2)) {
-	iconv_close(ctx->fsiconv);
-	ctx->fsiconv = (iconv_t)-1;
-    }
-    
     for (i=0;i<ctx->n_classes;i++) {
-	if ((ctx->iconv_from[i] != (iconv_t)-1)&&(ctx->iconv_from[i] != (iconv_t)-2)) {
-	    iconv_close(ctx->iconv_from[i]);
-	    ctx->iconv_from[i] = (iconv_t)-1;
-	}
-	if ((ctx->iconv_to[i] != (iconv_t)-1)&&(ctx->iconv_to[i] != (iconv_t)-2)) {
-	    iconv_close(ctx->iconv_to[i]);
-	    ctx->iconv_to[i] = (iconv_t)-1;
+	if (ctx->iconv_from[i]) {
+	    rccIConvClose(ctx->iconv_from[i]);
+	    ctx->iconv_from[i] = NULL;
 	}
     }
     for (i=0;i<RCC_MAX_CHARSETS;i++) {
-	if ((ctx->iconv_auto[i] != (iconv_t)-1)&&(ctx->iconv_auto[i] != (iconv_t)-2)) {
-	    iconv_close(ctx->iconv_auto[i]);
-	    ctx->iconv_auto[i] = (iconv_t)-1;
+	if (ctx->iconv_auto[i]) {
+	    rccIConvClose(ctx->iconv_auto[i]);
+	    ctx->iconv_auto[i] = NULL;
 	}
     }    
 }
@@ -258,11 +242,10 @@ void rccFreeContext(rcc_context ctx) {
 	rccEngineFreeContext(&ctx->engine_ctx);
 	rccFreeIConv(ctx);
 	if (ctx->iconv_from) free(ctx->iconv_from);
-	if (ctx->iconv_to) free(ctx->iconv_to);
 	
 	if (ctx->configs) {
 	    for (i=0;i<ctx->max_languages;i++)
-		rccConfigFree(ctx->configs+i);
+		rccConfigClear(ctx->configs+i);
 	    free(ctx->configs);
 	}
 	if (ctx->classes) free(ctx->classes);
@@ -392,29 +375,19 @@ int rccConfigure(rcc_context ctx) {
     cfg = rccGetCurrentConfig(ctx);
     if (!cfg) return 1;
     
-    rccConfigGetCurrentCharsetName(cfg, (rcc_class_id)0);
     rccFreeIConv(ctx);
     for (i=0;i<ctx->n_classes;i++) {
 	charset = rccConfigGetCurrentCharsetName(cfg, (rcc_class_id)i);
-	if (!charset) continue;
-	printf("Configure %i: %s\n", i, charset);
-	if (strcmp(charset, "UTF-8")&&strcmp(charset, "UTF8")) {
-	    ctx->iconv_from[i] = iconv_open("UTF-8", charset);
-	    ctx->iconv_to[i] = iconv_open(charset, "UTF-8");
-	} else {
-	    ctx->iconv_from[i] = (iconv_t)-2;
-	    ctx->iconv_to[i] = (iconv_t)-2;
-	}
+	if ((!charset)||(rccIsUTF8(charset))) continue;
+	ctx->iconv_from[i] = rccIConvOpen("UTF-8", charset);
     }
     
     charsets = rccGetCurrentAutoCharsetList(ctx);
     if (charsets) {
 	for (i=0;charsets[i];i++) {
 	    charset = charsets[i];
-	    if (strcmp(charset, "UTF-8")&&strcmp(charset, "UTF8"))
-		ctx->iconv_auto[i] = iconv_open("UTF-8", charset);
-	    else
-		ctx->iconv_auto[i] = (iconv_t)-2;
+	    if ((!charset)||(rccIsUTF8(charset))) continue;
+	    ctx->iconv_auto[i] = rccIConvOpen("UTF-8", charset);
 	}
     }
     

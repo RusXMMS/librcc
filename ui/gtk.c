@@ -32,7 +32,6 @@ rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx) {
     GtkWidget *menu;
     
     if (!ctx) return (rcc_ui_id)-1;
-    printf("Widget: %p\n", ctx->widget);
 
     if ((ctx->type == RCC_UI_MENU_OPTION)&&(rccUiMenuGetRangeType(ctx)==RCC_OPTION_RANGE_TYPE_BOOLEAN))
 	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ctx->widget));

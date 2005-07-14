@@ -20,7 +20,7 @@ static rcc_charset_id rccIConvAuto(rcc_context ctx, rcc_class_id class_id, const
     if (!buf) return (rcc_charset_id)-1;
 
     class_type = rccGetClassType(ctx, class_id);
-    if ((class_type == RCC_CLASS_STANDARD)||((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_AUTODETECT_FS_TITLES)))) {
+    if ((class_type == RCC_CLASS_STANDARD)||((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_TITLES)))) {
 	engine = rccGetCurrentEnginePointer(ctx);
 	if ((!engine)||(!engine->func)) return (rcc_charset_id)-1;
 	return engine->func(&ctx->engine_ctx, buf, len);
@@ -34,51 +34,52 @@ rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size
     size_t ret;
     rcc_language_id language_id;
     rcc_charset_id charset_id;
-    iconv_t icnv = (iconv_t)-1;
+    rcc_iconv icnv = NULL;
     rcc_string result;
+    rcc_option_value usedb4;
 
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
 	else return NULL;
     }
     if ((class_id<0)||(class_id>=ctx->n_classes)||(!buf)) return NULL;
-    
-
-/*
-    result = rccDb4GetKey(ctx->db4ctx, buf, len);
-    if (result) {
-	puts("Got a string");
-	return result;
-    }
-*/
-    
-    err = rccConfigure(ctx);
-    if (err) return NULL;
 
 	// Checking if rcc_string passed
     ret = rccStringSizedCheck(buf, len);
     if (ret) return NULL;
+    
+    usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
 
+    if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
+	result = rccDb4GetKey(ctx->db4ctx, buf, len);
+	if (result) {
+	     if (rccStringFixID(result, ctx)) free(result);
+	     else return result;
+	}
+    }
+
+    err = rccConfigure(ctx);
+    if (err) return NULL;
+    
     language_id = rccGetCurrentLanguage(ctx);
-    // DS: Learning. check database (language_id, check if language_id initialized)
 
     charset_id = rccIConvAuto(ctx, class_id, buf, len);
     if (charset_id != (rcc_charset_id)-1) icnv = ctx->iconv_auto[charset_id];
+    else icnv = ctx->iconv_from[class_id];
 
-    if (icnv == (iconv_t)-1) {
-	icnv = ctx->iconv_from[class_id];
-	if (icnv == (iconv_t)-1) return NULL;
-    }
-    
-    if (icnv == (iconv_t)-2) {
-	result = rccCreateString(language_id, buf, len, rlen);
-    } else { 
+    if (icnv) {
 	ret = rccIConv(ctx, icnv, buf, len);
 	if (ret == (size_t)-1) return NULL;
 	result = rccCreateString(language_id, ctx->tmpbuffer, ret, rlen);
+    } else {
+	result = rccCreateString(language_id, buf, len, rlen);
     }
 
-    // DS: Learning. write database
+    if ((result)&&(usedb4&RCC_OPTION_LEARNING_FLAG_LEARN)) {
+	if (!rccStringSetLang(result, ctx->languages[language_id]->sn)) {
+	    rccDb4SetKey(ctx->db4ctx, buf, len, result);
+	}
+    }
     
     return result;
 }
@@ -89,10 +90,11 @@ char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t
     char *result;
     char *prefix, *name;
     const char *utfstring;
+    rcc_language_config config;
     rcc_language_id language_id;
     rcc_charset_id charset_id;
     rcc_class_type class_type;
-    iconv_t icnv;
+    rcc_iconv icnv;
 
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
@@ -105,22 +107,22 @@ char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t
 
     language_id = rccStringGetLanguage(buf);
     utfstring = rccStringGetString(buf);
+    if ((!language_id)||(!utfstring)) return NULL;
 
-    /* COnfigure is only required in case of current language */
-    err = rccConfigure(ctx);
+    config = rccGetConfig(ctx, language_id);
+    if (!config) return NULL;
+
+    err = rccConfigConfigure(config);
     if (err) return NULL;
-    /* Do something even in case of error (Language can be changed) */
-
-    icnv =  ctx->iconv_to[class_id];
 
     class_type = rccGetClassType(ctx, class_id);
-    if ((language_id)&&(class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES))) {
+    if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_NAMES))) {
 	    name = (char*)utfstring;
 	    prefix = NULL;
 	    
-	    err = rccFS0(ctx, NULL, buf, &prefix, &name);
+	    err = rccFS0(config, NULL, buf, &prefix, &name);
 	    if (err>=0) {
-		result = rccFS3(ctx, language_id, class_id, prefix, name);
+		result = rccFS3(config, class_id, prefix, name);
 		if (!err) {
 		    if (prefix) free(prefix);
 		    free(name);
@@ -129,17 +131,17 @@ char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t
 		return result;
 	    }
     }
-    
-    if (icnv == (iconv_t)-1) return NULL;
-    if (icnv == (iconv_t)-2) {
-	result = rccStringExtractString(buf);
-	if (rlen) *rlen = newlen;
-    } else {
+
+    icnv =  config->iconv_to[class_id];
+    if (icnv) {
 	newlen = rccIConv(ctx, icnv, rccStringGetString(buf), len?newlen:0);
 	if (newlen == (size_t)-1) return NULL;
 
 	result = rccCreateResult(ctx, newlen, rlen);
-    }
+    } else {
+	result = rccStringExtractString(buf);
+	if (rlen) *rlen = newlen;
+    }    
     
     return result;
 }
@@ -159,7 +161,8 @@ char *rccRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char 
     if ((from<0)||(from>=ctx->n_classes)||(to<0)||(to>=ctx->n_classes)||(!buf)) return NULL;
 
     class_type = rccGetClassType(ctx, to);
-    if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES))) goto recoding;
+    if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_NAMES))) goto recoding;
+    if (rccGetOption(ctx, RCC_OPTION_LEARNING_MODE)&RCC_OPTION_LEARNING_FLAG_LEARN) goto recoding;
     
     from_charset_id = rccIConvAuto(ctx, from, buf, len);
     if (from_charset_id != (rcc_charset_id)-1) {
@@ -180,13 +183,12 @@ recoding:
 	return result;
     } 
     
-    /*return rccTo(ctx, to, buf, len, rlen);*/
     return NULL;
 }
 
 char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fspath, const char *path, const char *filename) {
     int err;
-    rcc_language_id language_id;
+    rcc_language_config config;
     char *prefix = (char*)path, *name = (char*)filename; /*DS*/
     rcc_string string;
 
@@ -199,27 +201,35 @@ char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fsp
     }
     if ((from<0)||(from>=ctx->n_classes)||(to<0)||(to>=ctx->n_classes)||(!filename)) return NULL;
     
-    err = rccFS1(ctx, fspath, &prefix, &name);
+    config = rccGetCurrentConfig(ctx);
+    if (!config) return NULL;
+    
+    err = rccFS1(config, fspath, &prefix, &name);
     if (err) {
 	if (err < 0) return NULL;
 	
 	if (err&1) {
 	    if (err&2) return NULL;
+	    if (rccGetOption(ctx, RCC_OPTION_LEARNING_MODE)&RCC_OPTION_LEARNING_FLAG_LEARN) {
+	        string = rccFrom(ctx, from, name, 0, NULL);
+		if (string) free(string);
+	    }
 	    return name;
 	}
     }
 
     string = rccFrom(ctx, from, name, 0, NULL);
     if (string) {
-	language_id = rccGetCurrentLanguage(ctx);
-	result = rccFS3(ctx, language_id, to, prefix, rccStringGetString(string));
+	config = rccGetConfig(ctx, rccStringGetLanguage(string));
+	if (config) result = rccFS3(config, to, prefix, rccStringGetString(string));
+	else result = NULL;
 	free(string);
     } else result = NULL;
     
+
     if (!(err&2)) {
 	if (prefix) free(prefix);
 	free(name);
     }
-
     return result;
 }

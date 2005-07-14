@@ -1,8 +1,6 @@
 #ifndef _RCC_INTERNAL_H
 #define _RCC_INTERNAL_H
 
-#include <iconv.h>
-
 #ifndef LIBRCC_DATA_DIR
 # define LIBRCC_DATA_DIR "/usr/lib/rcc"
 #endif /* LIBRCC_DATA_DIR */
@@ -13,6 +11,7 @@
 #include "lngconfig.h"
 #include "rccstring.h"
 #include "rccdb4.h"
+#include "rcciconv.h"
 
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
 
@@ -39,13 +38,13 @@ struct rcc_context_t {
 
     rcc_engine_context_s engine_ctx;
 
-    iconv_t *iconv_from;
-    iconv_t *iconv_to;
-    iconv_t iconv_auto[RCC_MAX_CHARSETS];
+    rcc_iconv *iconv_from;
+    rcc_iconv iconv_auto[RCC_MAX_CHARSETS];
+
+    rcc_iconv fsiconv;
 
     char tmpbuffer[RCC_MAX_STRING_CHARS+sizeof(rcc_string_header)+1];
     char lastprefix[RCC_MAX_PREFIX_CHARS+1];
-    iconv_t fsiconv;
     
     unsigned char configure;
     rcc_language_config current_config;

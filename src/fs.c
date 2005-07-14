@@ -48,8 +48,7 @@ static char *rccCreateFullName(const char *path, const char *filename) {
 static int rccIsFile(const char *filename) {
     struct stat st;
 
-    stat(filename,&st);
-    if (S_ISREG(st.st_mode)) return 1;
+    if ((!stat(filename,&st))&&(S_ISREG(st.st_mode))) return 1;
     return 0;
 }
 
@@ -64,11 +63,12 @@ static char *rccCheckFile(const char *prefix, const char *name) {
 }
 
 /* Converts: 'filename' to 'prefix/name' using 'fspath' */
-int rccFS0(rcc_context ctx, const char *fspath, const char *filename, char **prefix, char **name) {
+int rccFS0(rcc_language_config config, const char *fspath, const char *filename, char **prefix, char **name) {
     FILE *mtab;
     struct mntent *fsentry;
     const char *tmp = NULL;
     size_t len;
+    char *lastprefix;
 
     if (fspath) {
 	len = strlen(fspath);
@@ -76,9 +76,11 @@ int rccFS0(rcc_context ctx, const char *fspath, const char *filename, char **pre
 	
 	if (!strncmp(filename, fspath, len)) tmp = filename + strlen(fspath);
     } else {
+	lastprefix = config->ctx->lastprefix;
+	
 	/* only required with non-english mount directories */
-	len = strlen(ctx->lastprefix);
-	if ((len)&&(!strncmp(filename, ctx->lastprefix, len))) {
+	len = strlen(lastprefix);
+	if ((len)&&(!strncmp(filename, lastprefix, len))) {
 	    tmp = filename + len;
 	}
 	
@@ -89,10 +91,10 @@ int rccFS0(rcc_context ctx, const char *fspath, const char *filename, char **pre
 		fsentry = getmntent(mtab);
 		if ((fsentry)&&(fsentry->mnt_dir)) {
 		    len = strlen(fsentry->mnt_dir);
-		    if (len) {
+		    if (len > 1) {
 			if (!strncmp(filename, fsentry->mnt_dir, len)) {
 			    tmp = filename + len;
-			    if (len<RCC_MAX_PREFIX_CHARS) strcpy(ctx->lastprefix, fsentry->mnt_dir);
+			    if (len<RCC_MAX_PREFIX_CHARS) strcpy(lastprefix, fsentry->mnt_dir);
 			    break;
 			}
 		    }
@@ -103,7 +105,7 @@ int rccFS0(rcc_context ctx, const char *fspath, const char *filename, char **pre
     }
 
     if (!tmp) return 1;
-
+    
     *name = strdup(tmp);
     *prefix = strndup(filename, (tmp-filename));
 
@@ -123,7 +125,7 @@ returns:
      bit 1	Exact Match
      bit 2	Memory cleanup isn't required
 */
-int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
+int rccFS1(rcc_language_config config, const char *fspath, char **prefix, char **name) {
     int err;
     int prefix_size;
     char *result, *tmp;
@@ -142,7 +144,7 @@ int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
     
     
 	// Checking without recoding in case of autodetection
-    if (rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES)) {
+    if (rccGetOption(config->ctx, RCC_OPTION_AUTODETECT_FS_NAMES)) {
 	if (rccIsFile(result)) {
 	    *prefix = NULL;
 	    *name = result;
@@ -152,7 +154,7 @@ int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
 	}
     }
     
-    if (rccFS0(ctx, fspath, result, prefix, name)) {
+    if (rccFS0(config, fspath, result, prefix, name)) {
 	*prefix = NULL;
 	*name = result;
 	
@@ -167,61 +169,63 @@ int rccFS1(rcc_context ctx, const char *fspath, char **prefix, char **name) {
 
 /* Checks if 'prefix/name' is accessible using 'icnv' recoding. In case of 
 sucess returns pointer on statically allocated memory, and NULL overwise */
-const char *rccFS2(rcc_context ctx, iconv_t icnv, const char *prefix, const char *name) {
-    int err;
-    
-    if (icnv == (iconv_t)-1) return NULL;
-    if (icnv == (iconv_t)-2) {
-	strncpy(ctx->tmpbuffer, name, RCC_MAX_STRING_CHARS);
-	ctx->tmpbuffer[RCC_MAX_STRING_CHARS] = 0;
+const char *rccFS2(rcc_language_config config, iconv_t icnv, const char *prefix, const char *name) {
+    size_t size;
+    char *tmpbuffer = config->ctx->tmpbuffer;
+
+    if (icnv) {    
+	size = rccIConv(config->ctx, icnv, name, 0);
+	if (size == (size_t)-1) return NULL;
     } else {
-	err = rccIConv(ctx, icnv, name, 0);
-	if (err<=0) return NULL;
+	strncpy(tmpbuffer, name, RCC_MAX_STRING_CHARS);
+	tmpbuffer[RCC_MAX_STRING_CHARS] = 0;
     }
-    return rccCheckFile(prefix, ctx->tmpbuffer);
+
+    return rccCheckFile(prefix, tmpbuffer);
 }
 
 /* Tries to find 'name' encoding in 'prefix/name' file. Returns pointer on
 statically allocated string with correct filename or NULL. */
-const char *rccFS3(rcc_context ctx, rcc_language_id language_id, rcc_class_id class_id, const char *prefix, const char *name) {
+const char *rccFS3(rcc_language_config config, rcc_class_id class_id, const char *prefix, const char *name) {
     unsigned int i;
     const char *result;
     rcc_charset charset; 
     rcc_language *language;
-    iconv_t icnv = ctx->fsiconv;
+    iconv_t icnv = config->fsiconv;
 
-    if ((rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES))&&(icnv != (iconv_t)-1)) {
-	result = rccFS2(ctx, icnv, prefix, name);
+    if ((rccGetOption(config->ctx, RCC_OPTION_AUTODETECT_FS_NAMES))&&(icnv)) {
+	result = rccFS2(config, icnv, prefix, name);
 	if (result) return result;
     }
     
-    result = rccFS2(ctx, ctx->iconv_to[class_id], prefix, name);
+    result = rccFS2(config, config->iconv_to[class_id], prefix, name);
     if (result) {
-	if ((icnv != (iconv_t)-1)&&(icnv != (iconv_t)-2))  iconv_close(icnv);
-	ctx->fsiconv = (iconv_t)-1;
+	if (icnv) rccIConvClose(icnv);
+	config->fsiconv = NULL;
 	return result;
     }
 
-    if (rccGetOption(ctx, RCC_AUTODETECT_FS_NAMES)) {
-	language = ctx->languages[language_id];
+    if (rccGetOption(config->ctx, RCC_OPTION_AUTODETECT_FS_NAMES)) {
+	language = config->language;
 	if (language->charsets[0]) {
 	    for (i=1;(!result);i++) {
 		charset = language->charsets[i];
 		if (!charset) break;
 		
-		if ((icnv != (iconv_t)-1)&&(icnv != (iconv_t)-2)) iconv_close(icnv);
+		if (icnv) rccIConvClose(icnv);
+		if (rccIsUTF8(charset)) icnv = NULL;
+		else {
+		    icnv = rccIConvOpen(charset, "UTF-8");
+		}
 
-		if ((!strcmp(charset, "UTF-8"))||(!strcmp(charset, "UTF8"))) icnv = (iconv_t)-2;
-		else icnv = iconv_open(charset, "UTF-8");
-		
-		result = rccFS2(ctx, icnv, prefix, name);
+		result = rccFS2(config, icnv, prefix, name);
 	    }
 	}
     }
-    if (result) ctx->fsiconv = icnv;
+    if (result) config->fsiconv = icnv;
     else {
-	if ((icnv != (iconv_t)-1)&&(icnv != (iconv_t)-2)) iconv_close(icnv);
-	ctx->fsiconv = (iconv_t)-1;
+	if (icnv) rccIConvClose(icnv);
+	config->fsiconv = NULL;
     }
     
     return result;
