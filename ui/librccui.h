@@ -72,14 +72,49 @@ typedef void *rcc_ui_box;
 typedef void *rcc_ui_frame;
 typedef void *rcc_ui_page;
 
+/**
+  * Init RCC User Interface Library. This function should be called prior to any other UI functions 
+  */
 int rccUiInit();
+/**
+  * Free resources used by UI library. 
+  *
+  * @return non-zero value in the case of error.
+  */
 void rccUiFree();
 
+/**
+  * Create UI context and attach it to RCC working context. It isn't permited to attach to single
+  * working context several UI's.
+  * 
+  * @param rccctx is pointer on the RCC working context.
+  * @return pointer on newly created UI context or NULL in the case of errors.
+  */
 rcc_ui_context rccUiCreateContext(rcc_context rccctx);
+/**
+  * Destroy UI context and free all memory used. 
+  *
+  * @param ctx is UI context to be destroyed.
+  */
 void rccUiFreeContext(rcc_ui_context ctx);
 
+/**
+  * Restores current language UI menu values from #rcc_context.
+  *
+  * @param ctx is UI context.
+  */
 int rccUiRestoreLanguage(rcc_ui_context ctx);
+/**
+  * Restores complete UI configuration from #rcc_context.
+  *
+  * @param ctx is UI context.
+  */
 int rccUiRestore(rcc_ui_context ctx);
+/**
+  * Updates #rcc_context with user adjusted options from UI configuration.
+  *
+  * @param ctx is UI context.
+  */
 int rccUiUpdate(rcc_ui_context ctx);
 
 rcc_ui_widget rccUiGetLanguageMenu(rcc_ui_context ctx);
@@ -96,6 +131,14 @@ rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, rcc_ui_language_frame_nam
 rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, rcc_ui_charset_frame_name *name);
 rcc_ui_frame rccUiGetEngineFrame(rcc_ui_context ctx, rcc_ui_engine_frame_name *name);
 
+/**
+  * Get UI option page which can be integrated in application GUI. It is up on the caller
+  * to use and destroy returned page.
+  *
+  * @param ctx is UI context.
+  * @param name provides titles which should be used on the page or NULL to use defaults.
+  * @result is created UI page or NULL in the case of errors.
+  */
 rcc_ui_page rccUiGetPage(rcc_ui_context ctx, rcc_ui_page_name *name);
 
 #ifdef __cplusplus

@@ -117,7 +117,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     if (!initialized) return NULL;
     
     if (!max_languages) {
-	if (flags&RCC_NO_DEFAULT_CONFIGURATION) max_languages = RCC_MAX_LANGUAGES;
+	if (flags&RCC_FLAG_NO_DEFAULT_CONFIGURATION) max_languages = RCC_MAX_LANGUAGES;
 	else {
 	    for (i=0;rcc_default_languages[i].sn;i++);
 	    max_languages = i;
@@ -196,7 +196,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 
     for (i=0;i<RCC_MAX_OPTIONS;i++) rccOptionSetDefault(ctx, (rcc_option)i);
     
-    if (flags&RCC_NO_DEFAULT_CONFIGURATION) {
+    if (flags&RCC_FLAG_NO_DEFAULT_CONFIGURATION) {
 	rccRegisterLanguage(ctx, rcc_default_languages);
 	ctx->current_config = NULL;
     } else {

@@ -33,4 +33,10 @@ int rccConfigConfigure(rcc_language_config config);
 
 rcc_charset_id rccConfigGetLocaleUnicodeCharset(rcc_language_config config, const char *locale_variable);
 
+const char *rccConfigGetAutoCharsetName(rcc_language_config config, rcc_autocharset_id charset_id);
+rcc_autocharset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const char *name);
+
+const char *rccGetAutoCharsetName(rcc_context ctx, rcc_autocharset_id charset_id);
+rcc_autocharset_id rccGetAutoCharsetByName(rcc_context ctx, const char *name);
+
 #endif /* _RCC_LNGCONFIG_H */
