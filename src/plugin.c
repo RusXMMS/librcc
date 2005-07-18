@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "internal.h"
@@ -102,7 +103,6 @@ rcc_plugin_handle rccPluginGetFreeHandle(rcc_plugin_type type) {
 }
 
 rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
-    FILE *f;
     void *res;
     void *infofunc;
     char *pluginfn;
@@ -142,6 +142,8 @@ rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
 		} else rccLibraryClose(res);
 	    }
 	break;
+	default:
+	    return NULL;
     }
     
     return NULL;
@@ -149,7 +151,6 @@ rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
 
 
 rcc_engine *rccPluginEngineGetInfo(const char *name, const char *language) {
-    int err;
     rcc_plugin_handle handle;
     rcc_plugin_engine_info_function infofunc;
     

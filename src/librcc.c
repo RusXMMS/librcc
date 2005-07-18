@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "../config.h"
 
@@ -20,12 +20,32 @@
 #include "rccconfig.h"
 #include "rccenca.h"
 #include "rcclist.h"
+#include "plugin.h"
 #include "engine.h"
 #include "rccxml.h"
 
 static int initialized = 0;
 char *rcc_home_dir = NULL;
 rcc_context rcc_default_ctx = NULL;
+static rcc_compiled_configuration_s compiled_configuration;
+
+rcc_compiled_configuration rccGetCompiledConfiguration() {
+    compiled_configuration.flags = 0;
+#ifdef HAVE_RCD
+    compiled_configuration.flags|=RCC_CC_FLAG_HAVE_RCD;
+#endif /* HAVE_RCD */
+#ifdef HAVE_ENCA
+    compiled_configuration.flags|=RCC_CC_FLAG_HAVE_ENCA;
+#endif /* HAVE_ENCA */
+#ifdef HAVE_DLOPEN
+    compiled_configuration.flags|=RCC_CC_FLAG_HAVE_DYNAMIC_ENGINES;
+#endif /* HAVE_DLOPEN */
+#ifdef HAVE_DB_H
+    compiled_configuration.flags|=RCC_CC_FLAG_HAVE_BERKLEY_DB;
+#endif /* HAVE_DB_H */
+
+    return &compiled_configuration;
+}
 
 int rccInit() {
     int err;
@@ -398,7 +418,7 @@ int rccConfigure(rcc_context ctx) {
     return 0;
 }
 
-char *rccCreateResult(rcc_context ctx, size_t len, size_t *rlen) {
+char *rccCreateResult(rcc_context ctx, size_t len) {
     char *res;
 
     if (!len) len = strlen(ctx->tmpbuffer);
@@ -408,8 +428,6 @@ char *rccCreateResult(rcc_context ctx, size_t len, size_t *rlen) {
 
     memcpy(res, ctx->tmpbuffer, len);
     res[len] = 0;
-    
-    if (rlen) *rlen = len;
     
     return res;    
 }

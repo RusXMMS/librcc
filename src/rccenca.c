@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "internal.h"
 #include "plugin.h"
@@ -14,7 +15,9 @@
 # endif /* RCC_ENCA_DYNAMIC */
 #endif /* RCC_ENCA_SUPPORT */
 
+#ifdef RCC_ENCA_DYNAMIC
 static rcc_library_handle enca_handle = NULL;
+#endif /* RCC_ENCA_DYNAMIC */
 static rcc_engine *enca_engines = NULL;
 
 rcc_engine_internal rccEncaInitContext(rcc_engine_context ctx) {
@@ -49,7 +52,7 @@ void rccEncaFreeContext(rcc_engine_context ctx) {
 #endif /* RCC_ENCA_SUPPORT */
 }
 
-rcc_charset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
+rcc_autocharset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
 #ifdef RCC_ENCA_SUPPORT
     rcc_engine_internal internal;
     const char *charset;
@@ -58,9 +61,7 @@ rcc_charset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
     internal = rccEngineGetInternal(ctx);
     if ((!internal)||(!buf)) return (rcc_charset_id)-1;
     
-    len = STRNLEN(buf, len);
-
-    ee = enca_analyse_const((EncaAnalyser)ctx->internal,buf,len);
+    ee = enca_analyse_const((EncaAnalyser)ctx->internal,buf,len?len:strlen(buf));
     if (ee.charset<0) return (rcc_charset_id)-1;
 
     charset = enca_charset_name(ee.charset, ENCA_NAME_STYLE_ICONV);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
@@ -22,6 +23,7 @@
 
 #include "internal.h"
 #include "rcciconv.h"
+#include "rccconfig.h"
 
 #ifndef strndup
 static char *rccStrndup(const char *str, size_t n) {
@@ -142,9 +144,7 @@ returns:
      bit 2	Memory cleanup isn't required
 */
 int rccFS1(rcc_language_config config, const char *fspath, char **prefix, char **name) {
-    int err;
-    int prefix_size;
-    char *result, *tmp;
+    char *result;
     char *path, *filename;
     
     path = *prefix;
@@ -158,7 +158,12 @@ int rccFS1(rcc_language_config config, const char *fspath, char **prefix, char *
     else if (path) result = path;
     else return -1;
     
-    
+    if (rccIsASCII(result)) {
+	*name = result;
+	if ((path)&&(filename)) return 1;
+	return 3;
+    }
+
 	// Checking without recoding in case of autodetection
     if (rccGetOption(config->ctx, RCC_OPTION_AUTODETECT_FS_NAMES)) {
 	if (rccIsFile(result)) {

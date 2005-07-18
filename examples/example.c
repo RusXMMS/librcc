@@ -1,19 +1,20 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <locale.h>
 
 #include <librcc.h>
 
 static rcc_class classes[] = {
-    { "input", RCC_CLASS_STANDARD, NULL, NULL, "Input Encoding" },
-    { "output", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, "Output Encoding" },
+    { "input", RCC_CLASS_STANDARD, NULL, NULL, "Input Encoding", 0 },
+    { "output", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, "Output Encoding", 0 },
     { NULL }
 };
 
-main() {
+int main() {
     const char *language;
     char buf[255];
     char *recoded;
-    int l;
 
     setlocale(LC_ALL, "");
     
@@ -26,7 +27,7 @@ main() {
     
     while (fgets(buf,255,stdin)) {
 	if (strlen(buf)<2) break;
-	recoded = rccRecode(NULL, 0, 1, buf, 0, NULL);
+	recoded = rccRecode(NULL, 0, 1, buf);
 	if (recoded) {
 	    printf(recoded);
 	    free(recoded);
@@ -34,4 +35,5 @@ main() {
     }
 
     rccFree();
+    return 0;
 }

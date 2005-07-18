@@ -64,7 +64,7 @@ int rccUiMenuSet(rcc_ui_menu_context ctx, rcc_ui_id id) {
 }
 
 
-static int rccGtkMenuLanguageCB(GtkWidget * w, gpointer item) {
+static void rccGtkMenuLanguageCB(GtkWidget * w, gpointer item) {
     rccUiRestoreLanguage(((rcc_ui_menu_context)item)->uictx);
 }
 
@@ -108,7 +108,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    }
 
 	    language_id = rccGetSelectedLanguage(rccctx);
-	    if (language_id < 0) language_id = 0;
+	    if (language_id == (rcc_language_id)-1) language_id = 0;
 
 	    if (ctx->widget) menu = ctx->widget;
 	    else {

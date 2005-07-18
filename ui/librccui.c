@@ -54,6 +54,7 @@
 
 static const char *rccUiXmlGetText(xmlNodePtr node) {
     if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
+    return NULL;
 }
 
 static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request, ...) {
@@ -178,7 +179,7 @@ int rccUiInit() {
     xmlDocPtr xmlctx;
     xmlXPathContextPtr xpathctx = NULL;    
     xmlXPathObjectPtr obj;
-    xmlNodeSetPtr node_set;
+    xmlNodeSetPtr node_set = NULL;
 
     xmlNodePtr node, cnode;
     xmlAttrPtr attr;
@@ -189,7 +190,7 @@ int rccUiInit() {
     char *search[4];
 
     rcc_option option;
-    const char *opt, *val;
+    const char *opt;
     rcc_option_name *option_name;
     const char *value_name;
     const char *class_name;
@@ -551,6 +552,7 @@ int rccUiSetOptionNames(rcc_ui_context ctx, rcc_option_name *names) {
 int rccUiSetClassNames(rcc_ui_context ctx) {
     if (!ctx) return -1;
     ctx->class_names = 1;
+    return 0;
 }
 
 int rccUiRestoreLanguage(rcc_ui_context ctx) {

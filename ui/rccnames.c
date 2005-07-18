@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <librcc.h>
 
@@ -62,7 +63,6 @@ typedef enum rcc_name_type_t {
 } rcc_name_type;
 
 rcc_name *rccUiGetRccName(rcc_ui_context ctx, const char *findname, unsigned char type) {
-    const char *res;
     unsigned int i,j;
     rcc_name *names[2], *nm;
     
@@ -108,8 +108,6 @@ rcc_name *rccUiGetLanguageRccName(rcc_ui_context ctx, const char *lang) {
 }
 
 const char *rccUiGetLanguageName(rcc_ui_context ctx, const char *lang) {
-    const char *res;
-    unsigned int i,j;
     rcc_name *names;
     
     names = rccUiGetLanguageRccName(ctx, lang);
@@ -123,8 +121,6 @@ rcc_name *rccUiGetCharsetRccName(rcc_ui_context ctx, const char *charset) {
 }
 
 const char *rccUiGetCharsetName(rcc_ui_context ctx, const char *charset) {
-    const char *res;
-    unsigned int i,j;
     rcc_name *names;
     
     names = rccUiGetCharsetRccName(ctx, charset);
@@ -138,8 +134,6 @@ rcc_name *rccUiGetEngineRccName(rcc_ui_context ctx, const char *engine) {
 }
 
 const char *rccUiGetEngineName(rcc_ui_context ctx, const char *engine) {
-    const char *res;
-    unsigned int i,j;
     rcc_name *names;
     
     names = rccUiGetEngineRccName(ctx, engine);
@@ -153,8 +147,6 @@ rcc_name *rccUiGetClassRccName(rcc_ui_context ctx, const char *cl) {
 }
 
 const char *rccUiGetClassName(rcc_ui_context ctx, const char *cl) {
-    const char *res;
-    unsigned int i,j;
     rcc_name *names;
     
     names = rccUiGetClassRccName(ctx, cl);
@@ -185,7 +177,6 @@ rcc_option_name *rccUiGetOptionRccName(rcc_ui_context ctx, rcc_option option) {
 }
 
 const char *rccUiGetOptionName(rcc_ui_context ctx, rcc_option option) {
-    unsigned int i;
     rcc_option_name *name;
     
     name = rccUiGetOptionRccName(ctx, option);

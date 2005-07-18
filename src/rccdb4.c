@@ -1,4 +1,16 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../config.h"
+
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
 
 #include "internal.h"
 #include "rccdb4.h"
@@ -91,6 +103,27 @@ void rccDb4FreeContext(db4_context ctx) {
     }
 }
 
+#ifdef HAVE_DB_H
+static void rccDb4Strip(DBT *key) {
+    size_t size;
+    char *str;
+    
+    str = (char*)key->data;
+    size = key->size;
+    
+    while ((size > 0)&&((*str==' ')||(*str=='\n')||(*str==0))) {
+	str++;
+	size--;
+    }
+    while ((size > 0)&&((str[size-1]==' ')||(str[size-1]=='\n')||(str[size-1]==0))) {
+	size--;
+    }
+    
+    key->size = size;
+    key->data = str;
+}
+#endif /* HAVE_DB_H */
+
 int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_string string) {
 #ifdef HAVE_DB_H
     DBT key, data;
@@ -103,10 +136,11 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_strin
     memset(&data, 0, sizeof(data));
     
     key.data = (char*)orig;
-    key.size = STRNLEN(orig, olen); /* No ending zero */
+    key.size = olen?olen:strlen(orig); /* No ending zero */
     data.data = (char*)string;
     data.size = strlen(string)+1;
-    
+
+    rccDb4Strip(&key);
     if (key.size < RCC_MIN_DB4_CHARS) return -1;
     
     if (!ctx->db->put(ctx->db, NULL, &key, &data, 0)) return 0;
@@ -127,12 +161,13 @@ rcc_string rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
     memset(&data, 0, sizeof(data));
 
     key.data = (char*)orig;
-    key.size = STRNLEN(orig, olen); /* No ending zero */
+    key.size = olen?olen:strlen(orig); /* No ending zero */
 
     data.flags = DB_DBT_REALLOC;
 
+    rccDb4Strip(&key);
     if (key.size < RCC_MIN_DB4_CHARS) return NULL;
-    
+
     if (!ctx->db->get(ctx->db, NULL, &key, &data, 0)) return data.data;
 #endif /* HAVE_DB_H */
 

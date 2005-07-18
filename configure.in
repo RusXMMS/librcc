@@ -40,6 +40,8 @@ AM_PROG_LIBTOOL
 pkgdatadir=${libdir}/rcc/
 AC_SUBST(pkgdatadir)
 
+CFLAGS="$CFLAGS -Wall -Wpointer-arith"
+
 dnl Checks for programs.
 AC_PATH_PROG(RM, rm, /bin/rm)
 AC_PATH_PROG(MV, mv, /bin/mv)
@@ -165,7 +167,7 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(strcasecmp strncasecmp strdup)
+AC_CHECK_FUNCS(strcasecmp strncasecmp strdup strnlen)
 
 AC_OUTPUT(src/Makefile engines/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
 

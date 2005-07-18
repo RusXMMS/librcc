@@ -21,7 +21,7 @@ typedef enum rcc_plugin_type_t {
 } rcc_plugin_type;
 
 struct rcc_plugin_handle_t {
-    const char *sn;
+    char *sn;
     rcc_library_handle handle;
     void *info_function;
 //    rcc_library_type type;

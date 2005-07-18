@@ -12,8 +12,13 @@
 #include "rccstring.h"
 #include "rccdb4.h"
 #include "rcciconv.h"
+#include "rccstring.h"
 
+#ifdef HAVE_STRNLEN
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
+#else
+#define STRNLEN(str,n) (n?rccStrnlen(str,n):strlen(str))
+#endif /* !strnlen */
 
 #define RCC_MAX_PLUGINS 32
 #define RCC_MAX_STRING_CHARS 1024
@@ -44,7 +49,7 @@ struct rcc_context_t {
 
     rcc_iconv fsiconv;
 
-    char tmpbuffer[RCC_MAX_STRING_CHARS+sizeof(rcc_string_header)+1];
+    char tmpbuffer[RCC_MAX_STRING_CHARS+sizeof(rcc_string_header)+9];
     char lastprefix[RCC_MAX_PREFIX_CHARS+1];
     
     unsigned char configure;
@@ -60,7 +65,7 @@ struct rcc_context_t {
 typedef struct rcc_context_t rcc_context_s;
 
 int rccConfigure(rcc_context ctx);
-char *rccCreateResult(rcc_context ctx, size_t len, size_t *rlen);
+char *rccCreateResult(rcc_context ctx, size_t len);
 
 extern rcc_context rcc_default_ctx;
 extern char *rcc_home_dir;

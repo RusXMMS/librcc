@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <librcd.h>
 #include <librcc.h>
 
-static rcc_charset_id AutoengineRussian(rcc_engine_context ctx, const char *buf, int len) {
+static rcc_autocharset_id AutoengineRussian(rcc_engine_context ctx, const char *buf, int len) {
     return (rcc_charset_id)rcdGetRussianCharset(buf,len);
 }
 

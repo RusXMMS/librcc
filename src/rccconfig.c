@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <strings.h>
 
 #include "internal.h"
 #include "rccconfig.h"

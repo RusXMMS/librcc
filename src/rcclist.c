@@ -16,7 +16,7 @@ rcc_charset *rccGetCharsetList(rcc_context ctx, rcc_language_id language_id) {
 	else return NULL;
     }
 
-    if ((language_id<0)||(language_id>=ctx->n_languages)) return NULL;
+    if (language_id>=ctx->n_languages) return NULL;
     if (!language_id) language_id = rccGetCurrentLanguage(ctx);
 
     return ctx->languages[language_id]->charsets;
@@ -28,7 +28,7 @@ rcc_engine_ptr *rccGetEngineList(rcc_context ctx, rcc_language_id language_id) {
 	else return NULL;
     }
 
-    if ((language_id<0)||(language_id>=ctx->n_languages)) return NULL;
+    if (language_id>=ctx->n_languages) return NULL;
     if (!language_id) language_id = rccGetCurrentLanguage(ctx);
 
     return ctx->languages[language_id]->engines;

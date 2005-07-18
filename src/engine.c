@@ -4,6 +4,7 @@
 #include "internal.h"
 #include "plugin.h"
 #include "rccconfig.h"
+#include "rccenca.h"
 
 #include "engine.h"
 
@@ -15,11 +16,12 @@
 # endif /* RCC_RCD_DYNAMIC */
 #endif /* RCC_RCD_SUPPORT */
 
+#ifdef RCC_RCD_DYNAMIC
 static rcc_library_handle rcd_handle = NULL;
+#endif /* RCC_RCD_DYNAMIC */
 
-rcc_charset_id rccAutoengineRussian(rcc_engine_context ctx, const char *buf, int len) {
+rcc_autocharset_id rccAutoengineRussian(rcc_engine_context ctx, const char *buf, int len) {
 #ifdef RCC_RCD_SUPPORT
-    rcc_charset_id id;
 # ifdef RCC_RCD_DYNAMIC
     if (!rcdGetRussianCharset) return (rcc_charset_id)-1;
 # endif /* RCC_RCD_DYNAMIC */
@@ -30,8 +32,8 @@ rcc_charset_id rccAutoengineRussian(rcc_engine_context ctx, const char *buf, int
 }
 
 
-static int rccRCDLibraryLoad() {
 #ifdef RCC_RCD_DYNAMIC
+static int rccRCDLibraryLoad() {
     if (rcd_handle) return 0;
     
     rcd_handle = rccLibraryOpen(RCC_RCD_LIB);
@@ -46,19 +48,19 @@ static int rccRCDLibraryLoad() {
 # endif /* RCC_DEBUG */
 	return -1;
     }
-#endif /* RCC_RCD_DYNAMIC */
 
     return 0;
 }
+#endif /* RCC_RCD_DYNAMIC */
 
-static void rccRCDLibraryUnload() {
 #ifdef RCC_RCD_DYNAMIC
+static void rccRCDLibraryUnload() {
     if (rcd_handle) {
 	rccLibraryClose(rcd_handle);
 	rcd_handle = NULL;
     }
-#endif /* RCC_RCD_DYNAMIC */
 }
+#endif /* RCC_RCD_DYNAMIC */
 
 int rccEngineInit() {
 #ifdef RCC_RCD_DYNAMIC

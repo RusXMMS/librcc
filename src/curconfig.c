@@ -19,7 +19,7 @@ const char *rccGetCharsetName(rcc_context ctx, rcc_charset_id charset_id) {
     return rccConfigGetCharsetName(ctx->current_config, charset_id);
 }
 
-const char *rccGetAutoCharsetName(rcc_context ctx, rcc_charset_id charset_id) {
+const char *rccGetAutoCharsetName(rcc_context ctx, rcc_autocharset_id charset_id) {
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
 	else return NULL;
@@ -46,10 +46,10 @@ rcc_charset_id rccGetCharsetByName(rcc_context ctx, const char *name) {
     return rccConfigGetCharsetByName(ctx->current_config, name);
 }
 
-rcc_charset_id rccGetAutoCharsetByName(rcc_context ctx, const char *name) {
+rcc_autocharset_id rccGetAutoCharsetByName(rcc_context ctx, const char *name) {
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
-	else return (rcc_charset_id)-1;
+	else return (rcc_autocharset_id)-1;
     }
 
     return rccConfigGetAutoCharsetByName(ctx->current_config, name);

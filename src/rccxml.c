@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 
 #include "../config.h"
@@ -42,6 +43,7 @@ rcc_config rccGetConfiguration() {
 
 static const char *rccXmlGetText(xmlNodePtr node) {
     if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
+    return NULL;
 }
 
 int rccXmlInit(int LoadConfiguration) {
@@ -49,12 +51,12 @@ int rccXmlInit(int LoadConfiguration) {
     char config[MAX_HOME_CHARS + 32];
 
     xmlXPathContextPtr xpathctx;    
-    xmlXPathObjectPtr obj;
+    xmlXPathObjectPtr obj = NULL;
     xmlNodeSetPtr node_set;
     unsigned long i, nnodes;
     xmlNodePtr enode, cnode, pnode, node;
     xmlAttrPtr attr;
-    const char *lang, *fullname, *engine_name;
+    const char *lang, *engine_name;
     unsigned int pos, lpos, epos, cpos;
     
     rcc_engine *engine;
@@ -159,6 +161,7 @@ clear:
 	    }
 	}
     }
+    return 0;
 }
 
 void rccXmlFree() {
@@ -240,7 +243,7 @@ int rccSave(rcc_context ctx, const char *name) {
     rcc_class_ptr *classes;
     rcc_class_ptr cl;
     
-    xmlXPathContextPtr xpathctx;    
+    xmlXPathContextPtr xpathctx = NULL;    
     xmlDocPtr doc = NULL;
     xmlNodePtr pnode, lnode, onode, llnode, cnode, enode, node;
     unsigned char oflag = 0, llflag = 0, cflag;
@@ -361,6 +364,7 @@ int rccSave(rcc_context ctx, const char *name) {
 	
 	for (j=0;classes[j];j++) {
 	    cl = classes[j];
+	    if (cl->flags&RCC_CLASS_FLAG_SKIP_SAVELOAD) continue;
 	    
 	    if (cflag) node = rccNodeFind(xpathctx, XPATH_SELECTED_CLASS, language->sn, cl->name);
 	    else node = NULL;
@@ -538,6 +542,7 @@ int rccLoad(rcc_context ctx, const char *name) {
 	
 	for (j=0;classes[j];j++) {
 	    cl = classes[j];
+	    if (cl->flags&RCC_CLASS_FLAG_SKIP_SAVELOAD) continue;
 	    
 	    node = rccNodeFind(curxpathctx, XPATH_SELECTED_CLASS, language->sn, cl->name);
 	    if (node) {

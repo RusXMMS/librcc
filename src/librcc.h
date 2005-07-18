@@ -19,10 +19,11 @@
 
 
 /* ID's */
-typedef char rcc_language_id;
-typedef char rcc_alias_id;
-typedef char rcc_charset_id;
-typedef char rcc_engine_id;
+typedef unsigned char rcc_language_id;
+typedef unsigned char rcc_alias_id;
+typedef unsigned char rcc_charset_id;
+typedef unsigned char rcc_autocharset_id;
+typedef unsigned char rcc_engine_id;
 
 typedef int rcc_class_id;
 
@@ -63,7 +64,7 @@ typedef rcc_charset rcc_charset_list[RCC_MAX_CHARSETS+1];
 /* Engines */
 typedef void *rcc_engine_internal;
 typedef rcc_engine_internal (*rcc_engine_init_function)(rcc_engine_context ctx);
-typedef rcc_charset_id (*rcc_engine_function)(rcc_engine_context ctx, const char *buf, int len);
+typedef rcc_autocharset_id (*rcc_engine_function)(rcc_engine_context ctx, const char *buf, int len);
 typedef void (*rcc_engine_free_function)(rcc_engine_context ctx);
 
 struct rcc_engine_t {
@@ -117,12 +118,16 @@ struct rcc_class_default_charset_t {
 };
 typedef const struct rcc_class_default_charset_t rcc_class_default_charset;
 
+#define RCC_CLASS_FLAG_CONST			0x01
+#define RCC_CLASS_FLAG_SKIP_SAVELOAD		0x02	
+
 struct rcc_class_t {
     const char *name;
     const rcc_class_type class_type;
     const char *defvalue; /* locale variable name or parrent name or multibyte charset */
     rcc_class_default_charset *defcharset;
     const char *fullname;
+    const unsigned long flags;
 };
 typedef const struct rcc_class_t rcc_class;
 typedef rcc_class_ptr rcc_class_list[RCC_MAX_CLASSES+1];
@@ -197,10 +202,10 @@ rcc_option_value rccGetOptionValueByName(rcc_option option, const char *name);
 
 const char *rccConfigGetEngineName(rcc_language_config config, rcc_engine_id engine_id);
 const char *rccConfigGetCharsetName(rcc_language_config config, rcc_charset_id charset_id);
-const char *rccConfigGetAutoCharsetName(rcc_language_config config, rcc_charset_id charset_id);
+const char *rccConfigGetAutoCharsetName(rcc_language_config config, rcc_autocharset_id charset_id);
 rcc_engine_id rccConfigGetEngineByName(rcc_language_config config, const char *name);
 rcc_charset_id rccConfigGetCharsetByName(rcc_language_config config, const char *name);
-rcc_charset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const char *name);
+rcc_autocharset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const char *name);
 
 rcc_language_config rccCheckConfig(rcc_context ctx, rcc_language_id language_id);
 rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id);
@@ -226,11 +231,11 @@ rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char 
 /* curconfig.c */
 const char *rccGetEngineName(rcc_context ctx, rcc_engine_id engine_id);
 const char *rccGetCharsetName(rcc_context ctx, rcc_charset_id charset_id);
-const char *rccGetAutoCharsetName(rcc_context ctx, rcc_charset_id charset_id);
+const char *rccGetAutoCharsetName(rcc_context ctx, rcc_autocharset_id charset_id);
 
 rcc_engine_id rccGetEngineByName(rcc_context ctx, const char *name);
 rcc_charset_id rccGetCharsetByName(rcc_context ctx, const char *name);
-rcc_charset_id rccGetAutoCharsetByName(rcc_context ctx, const char *name);
+rcc_autocharset_id rccGetAutoCharsetByName(rcc_context ctx, const char *name);
 
 rcc_engine_id rccGetSelectedEngine(rcc_context ctx);
 const char *rccGetSelectedEngineName(rcc_context ctx);
@@ -265,16 +270,17 @@ rcc_class_ptr *rccGetClassList(rcc_context ctx);
 *******************************************************************************/
 /* string.c */
 typedef char *rcc_string;
+typedef const char *rcc_const_string;
 
 size_t rccStringCheck(const char *str);
 size_t rccStringSizedCheck(const char *str, size_t len);
 
-rcc_language_id rccStringGetLanguage(const rcc_string str);
-const char *rccStringGetString(const rcc_string str);
-char *rccStringExtractString(const rcc_string str);
+rcc_language_id rccStringGetLanguage(rcc_const_string str);
+const char *rccStringGetString(rcc_const_string str);
+char *rccStringExtractString(rcc_const_string str);
 
 const char *rccGetString(const char *str);
-const char *rccSizedGetString(const char *str, size_t len, size_t *rlen);
+const char *rccSizedGetString(const char *str, size_t len);
 
 int rccStringCmp(const char *str1, const char *str2);
 int rccStringNCmp(const char *str1, const char *str2, size_t n);
@@ -292,10 +298,27 @@ void rccIConvClose(rcc_iconv icnv);
 size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size);
 
 /* recode.c */
-rcc_string rccFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len, size_t *rlen);
-char *rccTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t len, size_t *rlen);
-char *rccRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen);
+rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
+char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t *rlen);
+char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen);
 char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fspath, const char *path, const char *filename);
+
+rcc_string rccSizedFromCharset(rcc_context ctx, const char *charset, const char *buf, size_t len);
+char *rccSizedToCharset(rcc_context ctx, const char *charset, const rcc_string buf, size_t *rlen);
+char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, const rcc_string buf, size_t len, size_t *rlen);
+char *rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, const char *buf, size_t len, size_t *rlen);
+char *rccSizedRecodeCharsets(rcc_context ctx, const char *from, const char *to, const char *buf, size_t len, size_t *rlen);
+
+
+#define rccFrom(ctx, class_id, buf) rccSizedFrom(ctx, class_id, buf, 0)
+#define rccTo(ctx, class_id, buf) rccSizedTo(ctx, class_id, buf, NULL)
+#define rccRecode(ctx, from, to, buf) rccSizedRecode(ctx, from, to, buf, 0, NULL)
+
+#define rccFromCharset(ctx, charset, buf) rccSizedFromCharset(ctx, charset, buf, 0)
+#define rccToCharset(ctx, charset, buf) rccSizedToCharset(ctx, charset, buf, NULL)
+#define rccRecodeToCharset(ctx, class_id, charset, buf) rccSizedRecodeToCharset(ctx, class_id, charset, buf, 0, NULL)
+#define rccRecodeFromCharset(ctx, class_id, charset, buf) rccSizedRecodeFromCharset(ctx, class_id, charset, buf, 0, NULL)
+#define rccRecodeCharsets(ctx, from, to, buf) rccSizedRecodeCharsets(ctx, from, to, buf, 0, NULL)
 
 /*******************************************************************************
 ******************************** Options ***************************************
@@ -317,6 +340,26 @@ typedef rcc_engine *(*rcc_plugin_engine_info_function)(const char *lang);
 rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx);
 rcc_language *rccEngineGetLanguage(rcc_engine_context ctx);
 rcc_context rccEngineGetRccContext(rcc_engine_context ctx);
+
+/*******************************************************************************
+**************************** Configuration *************************************
+*******************************************************************************/
+
+#define RCC_CC_FLAG_HAVE_BERKLEY_DB 			0x01
+#define RCC_CC_FLAG_HAVE_DYNAMIC_ENGINES		0x02
+#define RCC_CC_FLAG_HAVE_ENCA				0x04
+#define RCC_CC_FLAG_HAVE_RCD				0x08
+struct rcc_compiled_configuration_t {
+    unsigned long flags;
+};
+typedef struct rcc_compiled_configuration_t rcc_compiled_configuration_s;
+typedef const struct rcc_compiled_configuration_t *rcc_compiled_configuration;
+
+rcc_compiled_configuration rccGetCompiledConfiguration();
+
+int rccLocaleGetClassByName(const char *locale);
+int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n);
+int rccLocaleGetCharset(char *result, const char *lv, unsigned int n);
 
 #ifdef __cplusplus
 }
