@@ -51,7 +51,7 @@ SUBGROUPING            = YES
 #---------------------------------------------------------------------------
 QUIET                  = NO
 WARNINGS               = YES
-WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 WARN_FORMAT            = "$file:$line: $text"
 WARN_LOGFILE           = 
@@ -59,9 +59,11 @@ WARN_LOGFILE           =
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT                  = /root/xmms/librcc--main--0.1--patch-9/src/ \
-                         /root/xmms/librcc--main--0.1--patch-9/ui/
+                         /root/xmms/librcc--main--0.1--patch-9/ui/ \
+                         /root/xmms/librcc--main--0.1--patch-9/examples/
 FILE_PATTERNS          = librcc.h \
-                         librccui.h
+                         librccui.h \
+                         example.c
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
@@ -76,7 +78,7 @@ FILTER_SOURCE_FILES    = NO
 # configuration options related to source browsing
 #---------------------------------------------------------------------------
 SOURCE_BROWSER         = NO
-INLINE_SOURCES         = NO
+INLINE_SOURCES         = YES
 STRIP_CODE_COMMENTS    = YES
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = YES

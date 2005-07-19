@@ -153,6 +153,7 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, s
 }
 
 char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen) {
+    int err;
     rcc_string stmp;
     char *result;
     const char *from_charset, *to_charset;
@@ -183,6 +184,8 @@ char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const 
 	}
     }
 
+    err = rccConfigure(ctx);
+    if (err) return NULL;
     
     from_charset_id = rccIConvAuto(ctx, from, buf, len);
     if (from_charset_id != (rcc_charset_id)-1) {

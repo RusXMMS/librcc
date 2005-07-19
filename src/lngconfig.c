@@ -229,7 +229,7 @@ rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id) {
     language_id = rccGetRealLanguage(ctx, language_id);
     if (language_id == (rcc_language_id)-1) return NULL;
     if (!strcasecmp(ctx->languages[language_id]->sn, "off")) return NULL;
-
+    
     if (!ctx->configs[language_id].charset) {
 	if (rccConfigInit(ctx->configs+language_id, ctx)) return NULL;
     }    

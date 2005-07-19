@@ -236,28 +236,28 @@ typedef rcc_language_alias_ptr rcc_language_alias_list[RCC_MAX_ALIASES+1];
 /**
   * Register new language in supplied working context
   * @param ctx is working context ( or default one if NULL supplied )
-  * @language is pointer on language description (shouldn't be freed before library deinitialization).
+  * @param language is pointer on language description (shouldn't be freed before library deinitialization).
   * @return registered language id  or -1 in case of a error.
   */
 rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language);
 /**
   * Register new encoding belonging to language in supplied working context
-  * @param ctx is working context ( or default one if NULL supplied )
-  * @charset is pointer on charset name (shouldn't be freed before library deinitialization).
+  * @param language is language charset should be added to ( or default one if NULL supplied )
+  * @param charset is pointer on charset name (shouldn't be freed before library deinitialization).
   * @return registered charset id  or -1 in case of a error.
   */
 rcc_charset_id rccLanguageRegisterCharset(rcc_language *language, rcc_charset charset);
 /**
   * Register new Engine in supplied working context
-  * @param ctx is working context ( or default one if NULL supplied )
-  * @engine is pointer on engine description (shouldn't be freed before library deinitialization).
+  * @param language is language charset should be added to ( or default one if NULL supplied )
+  * @param engine is pointer on engine description (shouldn't be freed before library deinitialization).
   * @return registered engine id  or -1 in case of a error.
   */
 rcc_engine_id rccLanguageRegisterEngine(rcc_language *language, rcc_engine *engine);
 /**
   * Register new language alias in supplied working context
   * @param ctx is working context ( or default one if NULL supplied )
-  * @alias is pointer on alias description (shouldn't be freed before library deinitialization).
+  * @param alias is pointer on alias description (shouldn't be freed before library deinitialization).
   * @return registered alias id  or -1 in case of a error.
   */
 rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias);
@@ -335,14 +335,14 @@ typedef rcc_class_ptr rcc_class_list[RCC_MAX_CLASSES+1];
 /**
   * Register additional class
   * @param ctx is working context ( or default one if NULL supplied )
-  * @cl is pointer on the class description (shouldn't be freed before library deinitialization).
+  * @param cl is pointer on the class description (shouldn't be freed before library deinitialization).
   * @return registered class id  or -1 in case of a error.
   */
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl);
 /**
   * Determines 'class type' of supplied class.
   * @param ctx is working context ( or default one if NULL supplied )
-  * @class_id is class id
+  * @param class_id is class id
   * @return class type  or -1 in case of a error.
   */
 rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id);
@@ -407,7 +407,7 @@ typedef struct rcc_option_range_t {
   * Determines name of the supplied language.
   *
   * @param ctx is working context ( or default one if NULL supplied )
-  * @language_id is 'language id' of desired language. For default language the 'default' value will be returned.
+  * @param language_id is 'language id' of desired language. For default language the 'default' value will be returned.
   * @return language name  or NULL in case of a error.
   */
 const char *rccGetLanguageName(rcc_context ctx, rcc_language_id language_id);
@@ -415,7 +415,7 @@ const char *rccGetLanguageName(rcc_context ctx, rcc_language_id language_id);
   * Finds language id by the supplied name.
   *
   * @param ctx is working context ( or default one if NULL supplied )
-  * @parm is language name
+  * @param name is language name
   * @return language id [0-n] or -1 if not found.
   */
 rcc_language_id rccGetLanguageByName(rcc_context ctx, const char *name);
@@ -429,7 +429,7 @@ rcc_language_id rccGetLanguageByName(rcc_context ctx, const char *name);
   *	- 3. If one of the previous steps is failed, select first available language (id=1). Usually it should be 'LibRCC off'.
   *
   * @param ctx is working context ( or default one if NULL supplied )
-  * @language_id is language id
+  * @param language_id is language id
   * @return resolved language id [1-n] or -1 in case of error.
   */
 rcc_language_id rccGetRealLanguage(rcc_context ctx, rcc_language_id language_id);
@@ -438,7 +438,7 @@ rcc_language_id rccGetRealLanguage(rcc_context ctx, rcc_language_id language_id)
   * @see rccGetRealLanguage
   *
   * @param ctx is working context ( or default one if NULL supplied )
-  * @language_id is language id
+  * @param language_id is language id
   * @return resolved language name or NULL in case of error.
   */
 const char *rccGetRealLanguageName(rcc_context ctx, rcc_language_id language_id);
@@ -522,7 +522,7 @@ int rccOptionSetDefault(rcc_context ctx, rcc_option option);
   *
   * @param ctx is working context ( or default one if NULL supplied )
   * @param option is option
-  * @param is option value
+  * @param value is option value
   * @return non-zero value in case of erros
   */
 int rccSetOption(rcc_context ctx, rcc_option option, rcc_option_value value);
@@ -546,7 +546,6 @@ rcc_option_range *rccOptionGetRange(rcc_context ctx, rcc_option option);
 /**
   * Get short name of supplied option.
   *
-  * @param ctx is working context ( or default one if NULL supplied )
   * @param option is option
   * @return option range or NULL in case of error
   */
@@ -555,7 +554,6 @@ const char *rccGetOptionName(rcc_option option);
 /**
   * Get short name of supplied option value.
   *
-  * @param ctx is working context ( or default one if NULL supplied )
   * @param option is option 
   * @param value is value of #option
   * @return option value name or NULL in case of error
@@ -564,15 +562,13 @@ const char *rccGetOptionValueName(rcc_option option, rcc_option_value value);
 /**
   * Get option by short name.
   *
-  * @param ctx is working context ( or default one if NULL supplied )
-  * @parm is option name
+  * @param name is option name
   * @return option or -1 in case of error
   */
 rcc_option rccGetOptionByName(const char *name);
 /**
   * Get option value by short name.
   *
-  * @param ctx is working context ( or default one if NULL supplied )
   * @param option is option 
   * @param name is value name
   * @return option value or -1 in case of error
@@ -643,7 +639,7 @@ const char *rccConfigGetCharsetName(rcc_language_config config, rcc_charset_id c
   * Function finds engine id by the supplied name.
   *
   * @param config is language configuration
-  * @parm is engine name
+  * @param name is engine name
   * @return engine id [0-n] or -1 if not found 
   */
 rcc_engine_id rccConfigGetEngineByName(rcc_language_config config, const char *name);
@@ -651,7 +647,7 @@ rcc_engine_id rccConfigGetEngineByName(rcc_language_config config, const char *n
   * Function finds encoding id by the supplied name.
   *
   * @param config is language configuration
-  * @parm is encoding name
+  * @param name is encoding name
   * @return encoding id [0-n] or -1 if not found.
   */
 rcc_charset_id rccConfigGetCharsetByName(rcc_language_config config, const char *name);
@@ -925,7 +921,7 @@ void rccIConvClose(rcc_iconv icnv);
   * @param outbuf is preallocated output buffer
   * @param outsize is size of output buffer (striped string will be returned if buffer to small) 
   * @param buf is data for recoding
-  * @param len is size of data
+  * @param size is size of the data
   * @return number of recoded bytes in output buffer or -1 in the case of error
   */
 size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size);
@@ -984,7 +980,9 @@ char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const 
   * @param ctx is working context ( or default one if NULL supplied )
   * @param from is source encoding class
   * @param to is destination encoding class
-  * @param buf is original file name
+  * @param fspath is path to the filesystem where file are located. 
+  * @param path is file path
+  * @param filename is file name
   * @result is recoded file name or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */
 char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fspath, const char *path, const char *filename);
