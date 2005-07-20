@@ -108,7 +108,7 @@ int rccLocaleGetCharset(char *result, const char *lv, unsigned int n) {
     for (i=0;((l[i])&&(l[i]!='@'));i++);
     if (i>=n) return -1;
 
-    strncpy(result,l,i);
+    strncpy(result,l+1,i-1);
     result[i]=0;
 
     return 0;

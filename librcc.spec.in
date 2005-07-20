@@ -6,7 +6,7 @@
 %define release 0.%{buildname}.%{realrelease}csa
 %else
 %define buildname @VERSION@
-%define release %{realrelease}
+%define release %{realrelease}csa
 %endif
 
 
@@ -52,12 +52,16 @@ is part of rusxmms patch.
 %install
 rm -rf $RPM_BUILD_ROOT
 
-mkdir -p $RPM_BUILD_ROOT/etc
+mkdir -p $RPM_BUILD_ROOT/etc/rcc
 mkdir -p $RPM_BUILD_ROOT/%{prefix}/lib/rcc/engines/
+mkdir -p $RPM_BUILD_ROOT/%{prefix}/bin
 make install DESTDIR=$RPM_BUILD_ROOT
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.a
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.la
+make -C examples
+install -m 755 examples/rcc-gtk-config $RPM_BUILD_ROOT/%{prefix}/bin 
+
 
 install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc
 
@@ -72,9 +76,11 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-, root, root)
 %doc AUTHORS ChangeLog NEWS README COPYING
 %doc examples/rcc-example.xml
+%dir /etc/rcc
 /etc/rcc.xml
 %{prefix}/lib/lib*.so.*
 %{prefix}/lib/rcc/
+%{prefix}/bin/rcc-gtk-config
 
 %files devel
 %defattr(-, root, root)  

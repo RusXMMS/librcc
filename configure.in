@@ -92,38 +92,30 @@ AC_CHECK_HEADER(dlfcn.h, [AC_CHECK_LIB(dl, dlopen, [
     HAVE_DLOPEN=no
 ])])
 
-if test $enable_force_dynamic_engines = yes; then
-    RCD_LIBS=""
-    RCD_INCLUDES=""
-    HAVE_RCD=no
-    ENCA_LIBS=""
-    ENCA_INCLUDES=""
-    HAVE_ENCA=no
-else
+RCD_LIBS=""
+RCD_INCLUDES=""
+HAVE_RCD=no
+ENCA_LIBS=""
+ENCA_INCLUDES=""
+HAVE_ENCA=no
+
+if test "x$enable_force_dynamic_engines" != "xyes"; then
 AC_CHECK_HEADER(librcd.h, [AC_CHECK_LIB(rcd, rcdGetRussianCharset, [
 	AC_DEFINE(HAVE_RCD,1,[Defines if libRCD is available])
 	RCD_LIBS="-lrcd"
 	RCD_INCLUDES=""
 	HAVE_RCD=yes
-],[
-	RCD_LIBS=""
-	RCD_INCLUDES=""
-	HAVE_RCD=no
 ])])
 AC_CHECK_HEADER(enca.h, [AC_CHECK_LIB(enca, enca_analyse, [ 
 	AC_DEFINE(HAVE_ENCA,1,[Defines if enca is available])
 	ENCA_LIBS="-lenca"
 	ENCA_INCLUDES=""
 	HAVE_ENCA=yes
-],[
-	ENCA_LIBS=""
-	ENCA_INCLUDES=""
-        HAVE_ENCA=no
 ])])
 fi
 
-AM_CONDITIONAL(HAVE_RCD, [ test $HAVE_RCD = yes ])
-AM_CONDITIONAL(HAVE_ENCA, [ test $HAVE_ENCA = yes ])
+AM_CONDITIONAL(HAVE_RCD, [ test "x$HAVE_RCD" = "xyes" ])
+AM_CONDITIONAL(HAVE_ENCA, [ test "x$HAVE_ENCA" = "xyes" ])
 
 AC_SUBST(RCD_LIBS)
 AC_SUBST(RCD_INCLUDES)
@@ -131,17 +123,17 @@ AC_SUBST(ENCA_LIBS)
 AC_SUBST(ENCA_INCLUDES)
 
 USE_DLOPEN=no
-if test $HAVE_DLOPEN = yes; then
-    if test $HAVE_ENCA = no; then
+if test "x$HAVE_DLOPEN" = "xyes"; then
+    if test "x$HAVE_ENCA" = "xno"; then
 	HAVE_ENCA=dynamic
 	USE_DLOPEN=yes
     fi
-    if test $HAVE_RCD = no; then
+    if test "x$HAVE_RCD" = "xno"; then
 	HAVE_RCD=dynamic
 	USE_DLOPEN=yes
     fi
     
-    if test $USE_DLOPEN = no; then
+    if test "x$USE_DLOPEN" = "xno"; then
 	DLOPEN_LIBS=""
 	DLOPEN_INCLUDES=""
     fi

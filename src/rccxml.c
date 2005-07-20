@@ -281,12 +281,12 @@ int rccSave(rcc_context ctx, const char *name) {
     if (!doc) {
 	doc = xmlNewDoc("1.0");
 	if (!doc) goto clear;
+	pnode = NULL;
+    } else {
+	xpathctx = xmlXPathNewContext(doc);
+	pnode = rccNodeFind(xpathctx, XPATH_SELECTED);
     }
 
-    xpathctx = xmlXPathNewContext(doc);
-    if (!xpathctx) goto clear;
-
-    pnode = rccNodeFind(xpathctx, XPATH_SELECTED);
     if (pnode) {
 	lnode = rccNodeFind(xpathctx, XPATH_SELECTED_LANGUAGE);
 	onode = rccNodeFind(xpathctx, XPATH_SELECTED_OPTIONS);
@@ -482,8 +482,6 @@ int rccLoad(rcc_context ctx, const char *name) {
     }
     
     if ((!doc)&&(!sysdoc)) goto clear;
-
-
 
     node = rccNodeFind(xpathctx, XPATH_SELECTED_LANGUAGE);
     if (!node) node = rccNodeFind(sysxpathctx, XPATH_SELECTED_LANGUAGE);
