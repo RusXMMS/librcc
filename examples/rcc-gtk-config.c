@@ -45,7 +45,7 @@ int main (int argc, char *argv[])
     uictx = rccUiCreateContext(ctx);
 
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, FALSE);
+    gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);
     gtk_window_set_title (GTK_WINDOW (window1), "LibRCC Config");
     gtk_widget_show(window1);
     
