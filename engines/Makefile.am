@@ -8,4 +8,4 @@ librussian_la_SOURCES = russian.c
 librussian_la_LDFLAGS = -module -avoid-version -export-symbols-regex "rccGetInfo"
 endif
 
-INCLUDES = -I../src @RCD_INCLUDES@
+AM_CPPFLAGS = -I../src @RCD_INCLUDES@

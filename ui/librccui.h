@@ -62,6 +62,12 @@ typedef struct rcc_ui_page_name_t rcc_ui_page_name;
 
 rcc_ui_page_name *rccUiGetDefaultPageName();
 
+const char *rccUiGetLanguageName(rcc_ui_context ctx, const char *lang);
+const char *rccUiGetCharsetName(rcc_ui_context ctx, const char *charset);
+const char *rccUiGetEngineName(rcc_ui_context ctx, const char *engine);
+const char *rccUiGetClassName(rcc_ui_context ctx, const char *cl);
+const char *rccUiGetOptionName(rcc_ui_context ctx, rcc_option option);
+const char *rccUiGetOptionValueName(rcc_ui_context ctx, rcc_option option, rcc_option_value value);
 
 /*******************************************************************************
 ************************************ API ***************************************

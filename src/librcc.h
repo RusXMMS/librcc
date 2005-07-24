@@ -952,7 +952,7 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
   * @param rlen in rlen the size of recoded string will be returned.
   * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */
-char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t *rlen);
+char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, size_t *rlen);
 /**
   * Recode string between different encoding classes. The conversion is relays on rccSizedFrom
   * and rccSizedTo functions.
@@ -1008,7 +1008,7 @@ rcc_string rccSizedFromCharset(rcc_context ctx, const char *charset, const char 
   * @param rlen in rlen the size of recoded string will be returned.
   * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */
-char *rccSizedToCharset(rcc_context ctx, const char *charset, const rcc_string buf, size_t *rlen);
+char *rccSizedToCharset(rcc_context ctx, const char *charset, rcc_const_string buf, size_t *rlen);
 /**
   * Recode string between specified encoding class and encoding. 
   *
@@ -1023,7 +1023,7 @@ char *rccSizedToCharset(rcc_context ctx, const char *charset, const rcc_string b
   * @param rlen in rlen the size of recoded string will be returned.
   * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */
-char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, const rcc_string buf, size_t len, size_t *rlen);
+char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, rcc_const_string buf, size_t len, size_t *rlen);
 /**
   * Recode string between specified encoding and encoding class. 
   *

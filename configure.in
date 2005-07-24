@@ -70,16 +70,19 @@ AC_SUBST(XML_INCLUDES)
 AC_PATH_PROG(GTK_CONFIG, gtk-config, no)
 AM_CONDITIONAL(HAVE_GTK, [ test $GTK_CONFIG != no ])
 if test $GTK_CONFIG = no; then
-    GTK_LIBS=""
-    GTK_INCLUDES=""
+    GTK1_LIBS=""
+    GTK1_INCLUDES=""
     HAVE_GTK=no
 else
-    GTK_LIBS="\`gtk-config --libs\`"
-    GTK_INCLUDES="\`gtk-config --cflags\`"
+    GTK1_LIBS="\`gtk-config --libs\`"
+    GTK1_INCLUDES="\`gtk-config --cflags\`"
     HAVE_GTK=yes
 fi
-AC_SUBST(GTK_LIBS)
-AC_SUBST(GTK_INCLUDES)
+AC_SUBST(GTK1_LIBS)
+AC_SUBST(GTK1_INCLUDES)
+
+PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, HAVE_GTK2=yes, HAVE_GTK2=no)
+AM_CONDITIONAL(HAVE_GTK2, [ test $HAVE_GTK2 = yes ])
 
 AC_CHECK_HEADER(dlfcn.h, [AC_CHECK_LIB(dl, dlopen, [
     AC_DEFINE(HAVE_DLOPEN,1,[Defines if dlopen is available])
@@ -173,6 +176,7 @@ echo "  Multilanguage support with DB4:        $HAVE_BDB"
 echo ""
 echo "User Interfaces:"
 echo "  GTK User Interface:                    $HAVE_GTK"
+echo "  GTK2 User Interface:                   $HAVE_GTK2"
 echo ""
 echo ""
 echo ""

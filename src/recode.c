@@ -48,6 +48,10 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     ret = rccStringSizedCheck(buf, len);
     if (ret) return NULL;
     
+    language_id = rccGetCurrentLanguage(ctx);
+    if (language_id == (rcc_language_id)-1) return NULL;
+    if (!strcasecmp(ctx->languages[language_id]->sn, "off")) return NULL;
+
     usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
 
     if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
@@ -61,8 +65,6 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     err = rccConfigure(ctx);
     if (err) return NULL;
     
-    language_id = rccGetCurrentLanguage(ctx);
-
     charset_id = rccIConvAuto(ctx, class_id, buf, len);
     if (charset_id != (rcc_autocharset_id)-1) icnv = ctx->iconv_auto[charset_id];
     else icnv = ctx->iconv_from[class_id];
@@ -84,7 +86,7 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     return result;
 }
 
-char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, const rcc_string buf, size_t *rlen) {
+char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, size_t *rlen) {
     int err;
     size_t newlen;
     char *result;
@@ -280,7 +282,7 @@ rcc_string rccSizedFromCharset(rcc_context ctx, const char *charset, const char 
     return rccCreateString(language_id, buf, len);
 }
 
-char *rccSizedToCharset(rcc_context ctx, const char *charset, const rcc_string buf, size_t *rlen) {
+char *rccSizedToCharset(rcc_context ctx, const char *charset, rcc_const_string buf, size_t *rlen) {
     rcc_iconv icnv;
     size_t res;
     
@@ -304,7 +306,7 @@ char *rccSizedToCharset(rcc_context ctx, const char *charset, const rcc_string b
 }
 
 /* Convert from class_id to Charset */
-char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, const rcc_string buf, size_t len, size_t *rlen) {
+char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, rcc_const_string buf, size_t len, size_t *rlen) {
     size_t res;
     rcc_iconv icnv;
     const char *str;

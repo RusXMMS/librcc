@@ -1,3 +1,4 @@
 * Provide way to add to all languages several default Unicode encodings (UTF8, UTF16, UTF16BE)
 * Special type of classes to select only from Unicode encodings (or even just specified subset of encodings)
 * Multibyte(not-UTF8) support for FS classes
+* SetBufferSize ( 0 - autogrow )

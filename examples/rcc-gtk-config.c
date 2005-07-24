@@ -10,6 +10,9 @@ static rcc_class classes[] = {
     { "fs", RCC_CLASS_FS, "LC_CTYPE", NULL, "FileSystem Encoding", 0 },
     { "oem", RCC_CLASS_STANDARD, NULL, NULL, "Zip OEM Encoding", 0 },
     { "iso", RCC_CLASS_STANDARD, NULL, NULL, "Zip ISO Encoding", 0 },
+    { "ftp", RCC_CLASS_STANDARD, NULL, NULL, "FTP Encoding", 0 },
+    { "http", RCC_CLASS_STANDARD, NULL, NULL, "HTTP Encoding", 0 },
+    { "ssh", RCC_CLASS_STANDARD, NULL, NULL, "SSH Encoding", 0 },
     { "out", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, NULL, 0 },
     { NULL }
 };
@@ -47,6 +50,7 @@ int main (int argc, char *argv[])
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);
     gtk_window_set_title (GTK_WINDOW (window1), "LibRCC Config");
+    gtk_window_set_wmclass (GTK_WINDOW(window1), "librcc", "libRCC");
     gtk_widget_show(window1);
     
     box = rccUiGetPage(uictx, NULL);

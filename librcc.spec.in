@@ -60,7 +60,7 @@ rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.a
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.la
 make -C examples
-install -m 755 examples/rcc-gtk-config $RPM_BUILD_ROOT/%{prefix}/bin 
+install -m 755 examples/rcc-gtk*-config $RPM_BUILD_ROOT/%{prefix}/bin 
 
 
 install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc
@@ -80,7 +80,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/rcc.xml
 %{prefix}/lib/lib*.so.*
 %{prefix}/lib/rcc/
-%{prefix}/bin/rcc-gtk-config
+%{prefix}/bin/rcc-gtk*-config
 
 %files devel
 %defattr(-, root, root)  
