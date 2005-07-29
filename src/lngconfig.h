@@ -2,6 +2,7 @@
 #define _RCC_LNGCONFIG_H
 
 #include "rcciconv.h"
+#include "rcctranslate.h"
 
 struct rcc_language_config_t {
     rcc_context ctx;
@@ -16,6 +17,9 @@ struct rcc_language_config_t {
     
     unsigned char configured;
 
+    rcc_translate trans;
+    rcc_language_id translang;
+    
     rcc_iconv fsiconv;
 };
 typedef struct rcc_language_config_t rcc_language_config_s;

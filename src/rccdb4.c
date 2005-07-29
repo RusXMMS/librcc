@@ -4,47 +4,10 @@
 
 #include "../config.h"
 
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif /* HAVE_SYS_TYPES_H */
-
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif /* HAVE_SYS_STAT_H */
-
 #include "internal.h"
 #include "rccdb4.h"
 
 #define DATABASE "autolearn.db"
-
-int rccInitDb4(rcc_context ctx, const char *name, rcc_db4_flags flags) {
-    size_t size;
-    char *dbname;
-    
-    if (!ctx) {
-	if (rcc_default_ctx) ctx = rcc_default_ctx;
-	else return -1;
-    }
-
-    if (!name) name = "default";
-
-    size = strlen(rcc_home_dir) + strlen(name) + 32;
-    dbname = (char*)malloc(size*sizeof(char));
-    if (!dbname) return -1;
-
-    sprintf(dbname,"%s/.rcc/",rcc_home_dir);
-    mkdir(dbname, 00644);
-    
-    sprintf(dbname,"%s/.rcc/%s.db/",rcc_home_dir,name);
-    mkdir(dbname, 00644);
-
-    ctx->db4ctx = rccDb4CreateContext(dbname, flags);
-    free(dbname);	
-    
-    if (!ctx->db4ctx) return -1;
-
-    return 0;
-}
 
 db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     int err;
@@ -124,7 +87,7 @@ static void rccDb4Strip(DBT *key) {
 }
 #endif /* HAVE_DB_H */
 
-int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_string string) {
+int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const char *string) {
 #ifdef HAVE_DB_H
     DBT key, data;
 #endif /* HAVE_DB_H */
@@ -149,7 +112,7 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const rcc_strin
     return 1;
 }
 
-rcc_string rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
+char *rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
 #ifdef HAVE_DB_H
     DBT key, data;
 #endif /* HAVE_DB_H */

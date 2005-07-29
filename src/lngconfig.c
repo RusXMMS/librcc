@@ -164,6 +164,7 @@ int rccConfigInit(rcc_language_config config, rcc_context ctx) {
     }
 
     config->fsiconv = NULL;
+    config->trans = NULL;
 
     config->ctx = ctx;
     config->language = NULL;
@@ -199,6 +200,10 @@ void rccConfigFreeIConv(rcc_language_config config) {
 void rccConfigClear(rcc_language_config config) {
     if ((config)&&(config->charset)) {
 	rccConfigFreeIConv(config);
+	if (config->trans) {
+	    rccTranslateClose(config->trans);
+	    config->trans = NULL;
+	}
 	if (config->iconv_to) {
 	    free(config->iconv_to);
 	    config->iconv_to = NULL;
@@ -521,7 +526,7 @@ int rccConfigConfigure(rcc_language_config config) {
 	if ((!charset)||(rccIsUTF8(charset))) continue;
 	config->iconv_to[i] = rccIConvOpen(charset, "UTF-8");
     }
-    
+
     config->configure = 0;
 
     return 0;

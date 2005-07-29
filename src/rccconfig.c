@@ -40,6 +40,10 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
     &rcc_default_engine,
     NULL
 }},
+{"en", {rcc_default_charset, rcc_utf8_charset, NULL}, {
+    &rcc_default_engine,
+    NULL
+}},
 {"ru", {rcc_default_charset,"KOI8-R","CP1251",rcc_utf8_charset,"IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
     &rcc_default_engine,
 #ifdef RCC_RCD_SUPPORT
@@ -115,6 +119,8 @@ rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
     {RCC_OPTION_AUTODETECT_FS_NAMES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD,  "AUTODETECT_FS_NAMES", rcc_sn_boolean},
     {RCC_OPTION_AUTODETECT_FS_TITLES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_INVISIBLE, "AUTODETECT_FS_TITLES", rcc_sn_boolean},
     {RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 2, 1}, RCC_OPTION_TYPE_INVISIBLE, "CONFIGURED_LANGUAGES_ONLY", rcc_sn_clo},
+    {RCC_OPTION_TRANSLATE, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD, "TRANSLATE", rcc_sn_boolean },
+    {RCC_OPTION_AUTOENGINE_SET_CURRENT, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD, "AUTOENGINE_SET_CURRENT", rcc_sn_boolean },
     {RCC_MAX_OPTIONS}
 };
 

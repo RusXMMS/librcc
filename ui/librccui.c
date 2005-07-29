@@ -112,11 +112,12 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 	    fullname = rccUiXmlGetText(node); \
 	    if (fullname) { \
 		if (icnv) { \
-		    newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0); \
-		    if (newsize != (size_t)-1) { \
+		    tmpbuf = rccIConv(icnv, fullname, 0, NULL); \
+		    if (tmpbuf) { \
 			cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf); \
 			fullname = rccUiXmlGetText(cnode); \
 			if (!fullname) fullname = rccUiXmlGetText(node); \
+			free(tmpbuf); \
 		    } \
 		} \
 		var = fullname; \
@@ -154,11 +155,12 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 		fullname = rccUiXmlGetText(node); \
 		if (fullname) { \
 		    if (icnv) { \
-			newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0); \
-			if (newsize != (size_t)-1) { \
+			tmpbuf = rccIConv(icnv, fullname, 0, NULL); \
+			if (tmpbuf) { \
 			    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf); \
 			    fullname = rccUiXmlGetText(cnode); \
 			    if (!fullname) fullname = rccUiXmlGetText(node); \
+			    free(tmpbuf); \
 			} \
 		    } \
 		    \
@@ -197,8 +199,7 @@ int rccUiInit() {
     
     unsigned int npos;
 
-    size_t newsize;    
-    char tmpbuf[RCC_UI_MAX_STRING_CHARS+1];
+    char *tmpbuf;
     char ctype_charset[32];
     char locale[32];
     rcc_iconv icnv;
@@ -271,11 +272,12 @@ int rccUiInit() {
 	    if (!fullname) continue;
 
 	    if (icnv) {
-		newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0);
-		if (newsize != (size_t)-1) {
+		tmpbuf = rccIConv(icnv, fullname, 0, NULL);
+		if (tmpbuf) {
 		    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
 		    fullname = rccUiXmlGetText(cnode);
 		    if (!fullname) fullname = rccUiXmlGetText(node);
+		    free(tmpbuf);
 		}
 	    }
 	    
@@ -319,11 +321,12 @@ int rccUiInit() {
 		fullname = rccUiXmlGetText(node);
 		if (fullname) {
 		    if (icnv) {
-			newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0);
-			if (newsize != (size_t)-1) {
+			tmpbuf = rccIConv(icnv, fullname, 0, NULL);
+			if (tmpbuf) {
 			    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
 			    fullname = rccUiXmlGetText(cnode);
 			    if (!fullname) fullname = rccUiXmlGetText(node);
+			    free(tmpbuf);
 			}
 		    }
 		    option_name->name = fullname;
@@ -346,11 +349,12 @@ int rccUiInit() {
 		    fullname = rccUiXmlGetText(node);
 		    if (fullname) {
 			if (icnv) {
-			    newsize = rccIConvRecode(icnv, tmpbuf, RCC_UI_MAX_STRING_CHARS, fullname, 0);
-			    if (newsize != (size_t)-1) {
+			    tmpbuf = rccIConv(icnv, fullname, 0, NULL);
+			    if (tmpbuf) {
 				cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
 				fullname = rccUiXmlGetText(cnode);
 				if (!fullname) fullname = rccUiXmlGetText(node);
+				free(tmpbuf);
 			    }
 			}
 			option_name->value_names[k] = fullname;

@@ -9,6 +9,7 @@
 #include "rccstring.h"
 #include "rccconfig.h"
 #include "rccdb4.h"
+#include "rcctranslate.h"
 
 
 
@@ -37,6 +38,7 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     rcc_iconv icnv = NULL;
     rcc_string result;
     rcc_option_value usedb4;
+    const char *charset;
 
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
@@ -66,11 +68,17 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     if (err) return NULL;
     
     charset_id = rccIConvAuto(ctx, class_id, buf, len);
-    if (charset_id != (rcc_autocharset_id)-1) icnv = ctx->iconv_auto[charset_id];
+    if (charset_id != (rcc_autocharset_id)-1) {
+	icnv = ctx->iconv_auto[charset_id];
+	if (rccGetOption(ctx, RCC_OPTION_AUTOENGINE_SET_CURRENT)) {
+	    charset = rccGetAutoCharsetName(ctx, charset_id);
+	    rccSetCharsetByName(ctx, class_id, charset);
+	}
+    }
     else icnv = ctx->iconv_from[class_id];
 
     if (icnv) {
-	ret = rccIConv(ctx, icnv, buf, len);
+	ret = rccIConvInternal(ctx, icnv, buf, len);
 	if (ret == (size_t)-1) return NULL;
 	result = rccCreateString(language_id, ctx->tmpbuffer, ret);
     } else {
@@ -92,8 +100,10 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
     char *result;
     char *prefix, *name;
     const char *utfstring;
+    char *translated = NULL;
     rcc_language_config config;
     rcc_language_id language_id;
+    rcc_language_id current_language_id;
     rcc_class_type class_type;
     rcc_iconv icnv;
 
@@ -117,6 +127,38 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
     if (err) return NULL;
 
     class_type = rccGetClassType(ctx, class_id);
+    if ((class_type != RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_TRANSLATE))) {
+	current_language_id = rccGetCurrentLanguage(ctx);
+	if (current_language_id != language_id) {
+	    if ((config->trans)&&(config->translang != current_language_id)) {
+		rccTranslateClose(config->trans);
+		config->trans = NULL;
+	    }
+	    if (!config->trans) {
+		config->trans = rccTranslateOpen(rccGetLanguageName(ctx, language_id), rccGetLanguageName(ctx, current_language_id));
+		config->translang = current_language_id;
+	    }
+	    if (config->trans) {
+		translated = rccTranslate(config->trans, utfstring);
+		if (translated) {
+		    language_id = current_language_id;
+		    
+		    config = rccGetConfig(ctx, language_id);
+		    if (!config) {
+			free(translated);
+			return NULL;
+		    }
+
+		    err = rccConfigConfigure(config);
+		    if (err) {
+			free(translated);
+			return NULL;
+		    }
+		}
+	    }
+	}
+    }
+    
     if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_NAMES))) {
 	    if (rccIsASCII(utfstring)) {
 		result = rccStringExtractString(buf);
@@ -141,14 +183,20 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
 
     icnv =  config->iconv_to[class_id];
     if (icnv) {
-	newlen = rccIConv(ctx, icnv, rccStringGetString((const char*)buf), newlen);
+	newlen = rccIConvInternal(ctx, icnv, translated?translated:utfstring, newlen);
+	if (translated) free(translated);
 	if (newlen == (size_t)-1) return NULL;
 
 	result = rccCreateResult(ctx, newlen);
 	if (rlen) *rlen = newlen;
     } else {
-	result = rccStringExtractString(buf);
-	if (rlen) *rlen = newlen;
+	if (translated) {
+	    result = translated;
+	    if (rlen) *rlen = strlen(result);
+	} else {
+	    result = rccStringExtractString(buf);
+	    if (rlen) *rlen = newlen;
+	}
     }    
     
     return result;
@@ -274,7 +322,7 @@ rcc_string rccSizedFromCharset(rcc_context ctx, const char *charset, const char 
     
     icnv = rccIConvOpen("UTF-8", charset);
     if (icnv) {
-	res = rccIConv(ctx, icnv, buf, len);
+	res = rccIConvInternal(ctx, icnv, buf, len);
 	rccIConvClose(icnv);
 	if (res == (size_t)-1) return NULL;
 	return rccCreateString(language_id, ctx->tmpbuffer, res);
@@ -293,7 +341,7 @@ char *rccSizedToCharset(rcc_context ctx, const char *charset, rcc_const_string b
     
     icnv = rccIConvOpen(charset, "UTF-8");
     if (icnv) {
-	res = rccIConv(ctx, icnv, rccStringGetString(buf), res);
+	res = rccIConvInternal(ctx, icnv, rccStringGetString(buf), res);
 	rccIConvClose(icnv);
 	if (res == (size_t)-1) return NULL;
 	
@@ -321,7 +369,7 @@ char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char
 
     icnv = rccIConvOpen(charset, "UTF-8");
     if (icnv) {
-	res = rccIConv(ctx, icnv, str, 0);
+	res = rccIConvInternal(ctx, icnv, str, 0);
 	rccIConvClose(icnv);
 	free(utf8);
 
@@ -349,7 +397,7 @@ char *rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, const ch
     
     icnv = rccIConvOpen("UTF-8", charset);
     if (icnv) {
-	res = rccIConv(ctx, icnv, buf, len);
+	res = rccIConvInternal(ctx, icnv, buf, len);
 	rccIConvClose(icnv);
 
 	if (res == (size_t)-1) return NULL;
@@ -373,7 +421,7 @@ char *rccSizedRecodeCharsets(rcc_context ctx, const char *from, const char *to, 
     icnv = rccIConvOpen(to, from);
     if (!icnv) return NULL;
 
-    res = rccIConv(ctx, icnv, buf, len);
+    res = rccIConvInternal(ctx, icnv, buf, len);
     rccIConvClose(icnv);
     
     if (res == (size_t)-1) return NULL;

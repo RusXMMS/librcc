@@ -371,6 +371,8 @@ typedef enum rcc_option_t {
     RCC_OPTION_AUTODETECT_FS_TITLES,	/**< Detect titles of #RCC_CLASS_FS classes */
     RCC_OPTION_AUTODETECT_FS_NAMES,	/**< Try to find encoding of #RCC_CLASS_FS by accessing fs */
     RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, /**< Use only configured languages or languages with auto-engines */
+    RCC_OPTION_TRANSLATE,		/**< Translate #rcc_string if it's language differs from current one */
+    RCC_OPTION_AUTOENGINE_SET_CURRENT,	/**< If enabled autodetection engine will set current charset */
     RCC_MAX_OPTIONS
 } rcc_option;
 
@@ -908,7 +910,6 @@ typedef struct rcc_iconv_t *rcc_iconv;
   * @result 
   *	- NULL if no recoding is required
   *	- Pointer on initialized context if successful
-  *	- Pointer on errnous context in the case of error
   */
 rcc_iconv rccIConvOpen(const char *from, const char *to);
 /**
@@ -920,13 +921,53 @@ void rccIConvClose(rcc_iconv icnv);
   * Recodes chunk of data.
   *
   * @param icnv is recoding context
-  * @param outbuf is preallocated output buffer
-  * @param outsize is size of output buffer (striped string will be returned if buffer to small) 
   * @param buf is data for recoding
-  * @param size is size of the data
-  * @return number of recoded bytes in output buffer or -1 in the case of error
+  * @param len is size of the data
+  * @param rlen is size of recoded data
+  * @return recoded string or NULL in the case of error
   */
-size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size);
+char *rccIConv(rcc_iconv icnv, const char *buf, size_t len, size_t *rlen);
+
+/**
+  * translating context
+  */
+typedef struct rcc_translate_t *rcc_translate;
+
+/* rcctranslate.c */
+/**
+  * Open translating context.
+  *
+  * @param from is source language
+  * @param to is destination language
+  * @return
+  *	- NULL if translation is not required or possible
+  *	- Pointer on initialized context if successful
+  */
+rcc_translate rccTranslateOpen(const char *from, const char *to);
+/**
+  * Close translating context.
+  *
+  * @param translate is translating context
+  */
+void rccTranslateClose(rcc_translate translate);
+
+/*
+ * Set translation timeout
+ *
+ * @param translate is translating context 
+ * @param us is timeout in microseconds (0 - no timeout)
+ * @return non-zero value is returned in the case of errror
+ */
+int rccTranslateSetTimeout(rcc_translate translate, unsigned long us);
+
+/** 
+  * Translate string.
+  *
+  * @param translate is translating context
+  * @param buf is UTF-8 encoded string for translating
+  * @return recoded string or NULL in the case of error
+  */
+char *rccTranslate(rcc_translate translate, const char *buf);
 
 /* recode.c */
 /**
@@ -1118,6 +1159,11 @@ rcc_context rccEngineGetRccContext(rcc_engine_context ctx);
   * LibRCD engine is compiled in
   */
 #define RCC_CC_FLAG_HAVE_RCD				0x08
+/**
+  * Libtranslate translation engine compiled in
+  */
+#define RCC_CC_FLAG_HAVE_LIBTRANSLATE			0x10
+
 /**
   * The library build environment is represented by this structure
   */ 

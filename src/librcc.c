@@ -11,6 +11,9 @@
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif /* HAVE_SYS_TYPES_H */
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif /* HAVE_SYS_STAT_H */
 
 #ifdef HAVE_PWD_H
 # include <pwd.h>
@@ -23,6 +26,8 @@
 #include "plugin.h"
 #include "engine.h"
 #include "rccxml.h"
+#include "rccexternal.h"
+#include "rcctranslate.h"
 
 static int initialized = 0;
 char *rcc_home_dir = NULL;
@@ -43,6 +48,9 @@ rcc_compiled_configuration rccGetCompiledConfiguration() {
 #ifdef HAVE_DB_H
     compiled_configuration.flags|=RCC_CC_FLAG_HAVE_BERKLEY_DB;
 #endif /* HAVE_DB_H */
+#ifdef HAVE_LIBTRANSLATE
+    compiled_configuration.flags|=RCC_CC_FLAG_HAVE_LIBTRANSLATE;
+#endif /* HAVE_LIBTRANSLATE */
 
     return &compiled_configuration;
 }
@@ -72,7 +80,12 @@ int rccInit() {
     memcpy(rcc_default_languages, rcc_default_languages_embeded, (RCC_MAX_LANGUAGES + 1)*sizeof(rcc_language));
     memcpy(rcc_option_descriptions, rcc_option_descriptions_embeded, (RCC_MAX_OPTIONS + 1)*sizeof(rcc_option_description));
 
+#ifdef HAVE_LIBTRANSLATE
+    rccExternalInit();
+#endif /* HAVE_LIBTRANSLATE */    
+
     err = rccPluginInit();
+    if (!err) err = rccTranslateInit();
     if (!err) err = rccXmlInit(1);
     if (!err) err = rccEngineInit();
 
@@ -94,7 +107,10 @@ void rccFree() {
     
     rccEngineFree();
     rccXmlFree();
+    rccTranslateFree();
     rccPluginFree();
+
+    rccExternalFree();
 
     if (rcc_home_dir) {
 	free(rcc_home_dir);
@@ -272,6 +288,35 @@ void rccFreeContext(rcc_context ctx) {
 	if (ctx->languages) free(ctx->languages);
 	free(ctx);
     }
+}
+
+int rccInitDb4(rcc_context ctx, const char *name, rcc_db4_flags flags) {
+    size_t size;
+    char *dbname;
+    
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+
+    if (!name) name = "default";
+
+    size = strlen(rcc_home_dir) + strlen(name) + 32;
+    dbname = (char*)malloc(size*sizeof(char));
+    if (!dbname) return -1;
+
+    sprintf(dbname,"%s/.rcc/",rcc_home_dir);
+    mkdir(dbname, 00644);
+    
+    sprintf(dbname,"%s/.rcc/%s.db/",rcc_home_dir,name);
+    mkdir(dbname, 00644);
+
+    ctx->db4ctx = rccDb4CreateContext(dbname, flags);
+    free(dbname);	
+    
+    if (!ctx->db4ctx) return -1;
+
+    return 0;
 }
 
 int rccLockConfiguration(rcc_context ctx, unsigned int lock_code) {

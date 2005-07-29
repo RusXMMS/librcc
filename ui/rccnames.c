@@ -11,6 +11,7 @@ rcc_name rcc_default_language_names[RCC_MAX_LANGUAGES+1];
 rcc_name rcc_default_language_names_embeded[RCC_MAX_LANGUAGES+1] = {
 {"default", "Autodetect"},
 {"off", "Dissable"},
+{"en", "English" },
 {"ru","Russian"},
 {"uk","Ukrainian"}, 
 {"be","Belarussian"},
@@ -38,6 +39,8 @@ rcc_option_name rcc_default_option_names_embeded[RCC_MAX_OPTIONS+1] = {
     { RCC_OPTION_AUTODETECT_FS_NAMES, "Autodetect File Names",  rcc_default_option_boolean_names },
     { RCC_OPTION_AUTODETECT_FS_TITLES, "Autodetect FS Titles", rcc_default_option_boolean_names },
     { RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, "Enabled Languages", rcc_default_option_clo_names },
+    { RCC_OPTION_TRANSLATE, "Translate Text", rcc_default_option_boolean_names },
+    { RCC_OPTION_AUTOENGINE_SET_CURRENT, "AutoEngine Set Current Encoding", rcc_default_option_boolean_names },
     { RCC_MAX_OPTIONS }
 };
 

@@ -1,6 +1,8 @@
-bin_PROGRAMS= example
-example_SOURCES= example.c
-example_LDADD= ../src/librcc.la
+bin_PROGRAMS= example1 example2
+example1_SOURCES= example1.c
+example1_LDADD= ../src/librcc.la
+example2_SOURCES= example2.c
+example2_LDADD= ../src/librcc.la
 
 if HAVE_GTK
 bin_PROGRAMS+= rcc-gtk-config
@@ -18,7 +20,7 @@ endif
 
 EXTRA_DIST= input-russian.txt rcc.xml rcc-example.xml mpg123-rcc.patch
 
-test-russian: example
-	cat input-russian.txt | ./example
+test-russian: example2
+	cat input-russian.txt | ./example2 ru
 
 AM_CPPFLAGS = -I../src -I../ui

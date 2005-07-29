@@ -38,14 +38,14 @@ int main (int argc, char *argv[])
     if (argc<1) config = argv[0];
     else config = argv[1];
 
-    gtk_set_locale ();
-    gtk_init (&argc, &argv);
-
     rccInit();
     rccUiInit();
     ctx = rccCreateContext(NULL, 0, 0, classes, 0);
     rccLoad(ctx, config);
     uictx = rccUiCreateContext(ctx);
+
+    gtk_set_locale ();
+    gtk_init (&argc, &argv);
 
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);

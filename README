@@ -1,9 +1,0 @@
-Library for autoconversion of charsets to/from UTF-8.
-
-    class = charset class
-    engine = auto engine
-    selected - which is selected
-    current - resolves default values
-
-icnv = NULL - conversion isn't required
-icnv->icnv = (iconv_t)-1 - problem

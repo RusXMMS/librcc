@@ -195,7 +195,7 @@ const char *rccFS2(rcc_language_config config, iconv_t icnv, const char *prefix,
     char *tmpbuffer = config->ctx->tmpbuffer;
 
     if (icnv) {    
-	size = rccIConv(config->ctx, icnv, name, 0);
+	size = rccIConvInternal(config->ctx, icnv, name, 0);
 	if (size == (size_t)-1) return NULL;
     } else {
 	strncpy(tmpbuffer, name, RCC_MAX_STRING_CHARS);

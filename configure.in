@@ -33,6 +33,11 @@ AC_ARG_ENABLE( force-dynamic-engines,
     [  --enable-force-dynamic-engines	force usage of dynamic engines],,
     enable_force_dynamic_engines="no")
 
+AC_ARG_ENABLE( libtranslate,
+    [  --disable-libtranslate		disable usage of libtranslate],,
+    disable_libtranslate="yes")
+
+
 AC_PROG_CC
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
@@ -49,7 +54,7 @@ AC_PATH_PROG(TAR, tar, /bin/tar)
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
-AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h sys/stat.h sys/file.h unistd.h fcntl.h)
+AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h sys/stat.h sys/file.h sys/socket.h sys/un.h sys/time.h sys/select.h sys/wait.h signal.h unistd.h fcntl.h)
 
 AC_TRY_COMPILE([#include <langinfo.h>],
     [char *codeset = nl_langinfo (CODESET);],
@@ -101,6 +106,7 @@ HAVE_RCD=no
 ENCA_LIBS=""
 ENCA_INCLUDES=""
 HAVE_ENCA=no
+
 
 if test "x$enable_force_dynamic_engines" != "xyes"; then
 AC_CHECK_HEADER(librcd.h, [AC_CHECK_LIB(rcd, rcdGetRussianCharset, [
@@ -157,6 +163,36 @@ AX_PATH_BDB([4],[
 AC_SUBST(BDB_LIBS)
 AC_SUBST(BDB_INCLUDES)
 
+PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0, HAVE_GLIB2=yes, HAVE_GLIB2=no)
+AM_CONDITIONAL(HAVE_GLIB2, [ test $HAVE_GLIB2 = yes ])
+
+
+if test "x$disable_libtranslate" != "xyes"; then
+    HAVE_LIBTRANSLATE=no
+    HAVE_LIBTRANSLATE_TIMED_TRANSLATE=no
+    LIBTRANSLATE_LIBS=""
+    LIBTRANSLATE_CFLAGS=""
+    AC_SUBST(LIBTRANSLATE_LIBS)
+    AC_SUBST(LIBTRANSLATE_CFLAGS)
+else
+PKG_CHECK_MODULES(LIBTRANSLATE, [libtranslate], [
+    HAVE_LIBTRANSLATE=yes
+],[ 
+    HAVE_LIBTRANSLATE=no
+])
+
+if test $HAVE_LIBTRANSLATE = yes; then
+    AC_DEFINE(HAVE_LIBTRANSLATE,1,[Defines if libtranslate is available])
+    AC_CHECK_LIB(translate, translate_session_timed_translate_text, [
+	HAVE_LIBTRANSLATE_TIMED_TRANSLATE=yes
+    	AC_DEFINE(HAVE_LIBTRANSLATE_TIMED_TRANSLATE,1,[Defines if libtranslate has time limited translate])
+    ],[
+	HAVE_LIBTRANSLATE_TIMED_TRANSLATE=no
+    ])
+else
+    HAVE_LIBTRANSLATE_TIMED_TRANSLATE=no
+fi
+fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -164,7 +200,7 @@ AC_C_CONST
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strcasecmp strncasecmp strdup strnlen)
 
-AC_OUTPUT(src/Makefile engines/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
+AC_OUTPUT(src/Makefile engines/Makefile external/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
 
 echo ""
 echo "Configuration:"
@@ -173,6 +209,8 @@ echo "  Enca Charset Detection Support:        $HAVE_ENCA"
 echo "  LibRCD Charset Detection Support:      $HAVE_RCD"
 echo ""
 echo "  Multilanguage support with DB4:        $HAVE_BDB"
+echo "  Libtranslate support:                  $HAVE_LIBTRANSLATE"
+echo "  Libtranslate Timed Translate:          $HAVE_LIBTRANSLATE_TIMED_TRANSLATE"
 echo ""
 echo "User Interfaces:"
 echo "  GTK User Interface:                    $HAVE_GTK"

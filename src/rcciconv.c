@@ -92,7 +92,28 @@ loop:
     return outsize - out_left;
 }
 
-size_t rccIConv(rcc_context ctx, rcc_iconv icnv, const char *buf, size_t len) {
+char *rccIConv(rcc_iconv icnv, const char *buf, size_t len, size_t *rlen) {
+    char *res;
+    size_t size;
+    char tmpbuffer[RCC_MAX_STRING_CHARS+1];
+
+    size = rccIConvRecode(icnv, tmpbuffer, RCC_MAX_STRING_CHARS, buf, len);
+    if (size != (size_t)-1) {
+	res = (char*)malloc((size+1)*sizeof(char));
+	if (!res) return res;
+	
+	if (rlen) *rlen = size;
+	memcpy(res, tmpbuffer, size);
+	res[size] = 0;
+
+	return res;
+    }
+
+    return NULL;
+}
+
+size_t rccIConvInternal(rcc_context ctx, rcc_iconv icnv, const char *buf, size_t len) {
     if (!ctx) return (size_t)-1;
     return rccIConvRecode(icnv, ctx->tmpbuffer, RCC_MAX_STRING_CHARS, buf, len);
 }
+

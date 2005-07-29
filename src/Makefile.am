@@ -8,6 +8,7 @@ librcc_la_SOURCES = librcc.c \
     rccconfig.c rccconfig.h \
     rcclist.c rcclist.h \
     plugin.c plugin.h \
+    rccexternal.c rccexternal.h \
     fake_enca.h fake_rcd.h \
     rccenca.c rccenca.h \
     rccdb4.c rccdb4.h \
@@ -15,6 +16,7 @@ librcc_la_SOURCES = librcc.c \
     rccstring.c rccstring.h \
     rccxml.c rccxml.h \
     rcciconv.c rcciconv.h \
+    rcctranslate.c rcctranslate.h \
     fs.c fs.h \
     recode.c recode.h \
     internal.h
