@@ -58,6 +58,14 @@ int rccStringFixID(rcc_string string, rcc_context ctx) {
     return 0;
 }
 
+int rccStringChangeID(rcc_string string, rcc_language_id language_id) {
+    if ((!string)&&(language_id != (rcc_language_id)-1)) return -1;
+    
+    ((rcc_string_header*)string)->language_id = language_id;
+    return 0;
+}
+
+
 void rccStringFree(rcc_string str) {
     if (str) free(str);
 }

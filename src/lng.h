@@ -4,6 +4,8 @@
 #include "internal.h"
 #include "lngconfig.h"
 
+
+int rccCheckLanguageUsability(rcc_context ctx, rcc_language_id language_id);
 rcc_language_ptr rccGetLanguagePointer(rcc_context ctx, rcc_language_id language_id);
 
 #define rccGetCurrentEnginePointer(ctx) rccConfigGetCurrentEnginePointer(ctx->current_config)

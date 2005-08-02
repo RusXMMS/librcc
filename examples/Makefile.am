@@ -20,6 +20,9 @@ endif
 
 EXTRA_DIST= input-russian.txt rcc.xml rcc-example.xml mpg123-rcc.patch
 
+test: example2
+	cat input-russian.txt | ./example2
+
 test-russian: example2
 	cat input-russian.txt | ./example2 ru
 

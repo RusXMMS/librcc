@@ -1,4 +1,4 @@
-0.2.x:
+0.3.x:
     - Common encodings:
 	+ Provide way to add to all languages several default Unicode encodings (UTF8, UTF16, UTF16BE)
 	+ Special type of classes to select only from Unicode encodings (or even just specified subset of encodings)
@@ -8,9 +8,8 @@
 	    * Code some options in charset name. (SpecialEncodingPrefix_Encoding_EncodingOptions)
     - Buffer managment:
 	+ SetBufferSize ( 0 - autogrow )
-    - Language autodetection
-	+ Using spellchecker (aspell)
-    - Look on ofline translation libraries    
+    - Look on ofline translation libraries and other possibilities to improove 
+      translation and language detection.
 
 on request:
     - Multibyte(not-UTF8) support for FS classes

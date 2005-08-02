@@ -48,6 +48,11 @@ void rccIConvClose(rcc_iconv icnv) {
     }
 }
 
+int rccIConvGetError(rcc_iconv icnv) {
+    if ((!icnv)||(icnv->icnv == (iconv_t)-1)) return -1;
+    return 0;
+}
+
 size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size) {
     char *in_buf, *out_buf, err;
     int in_left, out_left;

@@ -12,13 +12,18 @@ rcc_language_alias rcc_default_aliases[] = {
     { NULL, NULL}
 };
 
+const char rcc_default_language_sn[] = "default";
+const char rcc_disabled_language_sn[] = "Off";
+const char rcc_english_language_sn[] = "en";
+const char rcc_disabled_engine_sn[] = "Off";
 const char rcc_default_charset[] = "Default";
+
 const char rcc_utf8_charset[] = "UTF-8";
 const char rcc_engine_nonconfigured[] = "Default";
 const char rcc_option_nonconfigured[] = "DEFAULT";
 
 rcc_engine rcc_default_engine = {
-    "Off", NULL, NULL, NULL, {NULL}
+    rcc_disabled_engine_sn, NULL, NULL, NULL, {NULL}
 };
 
 rcc_engine rcc_russian_engine = {
@@ -32,11 +37,11 @@ rcc_engine rcc_ukrainian_engine = {
 rcc_language rcc_default_languages[RCC_MAX_LANGUAGES + 1];
 
 rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
-{"default", {rcc_default_charset, NULL}, {
+{rcc_default_language_sn, {rcc_default_charset, NULL}, {
     &rcc_default_engine,
     NULL
 }},
-{"off", {rcc_default_charset, NULL}, {
+{rcc_disabled_language_sn, {rcc_default_charset, NULL}, {
     &rcc_default_engine,
     NULL
 }},
@@ -112,14 +117,28 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
 rcc_option_value_name rcc_sn_boolean[] = { "OFF", "ON", NULL };
 rcc_option_value_name rcc_sn_learning[] = { "OFF", "ON", "RELEARN", "LEARN", NULL };
 rcc_option_value_name rcc_sn_clo[] = { "ALL", "CONFIGURED_AND_AUTO", "CONFIGURED_ONLY", NULL };
+rcc_option_value_name rcc_sn_translate[] = { "OFF", "TO_ENGLISH", "SKIP_ENGLISH", "FULL", NULL };
 
 rcc_option_description rcc_option_descriptions[RCC_MAX_OPTIONS+1];
 rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
+#ifdef HAVE_DB_H
     {RCC_OPTION_LEARNING_MODE, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1 }, RCC_OPTION_TYPE_STANDARD,  "LEARNING_MODE", rcc_sn_learning },
+#else
+    {RCC_OPTION_LEARNING_MODE, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1 }, RCC_OPTION_TYPE_INVISIBLE,  "LEARNING_MODE", rcc_sn_learning },
+#endif /* HAVE_DB_H */
     {RCC_OPTION_AUTODETECT_FS_NAMES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD,  "AUTODETECT_FS_NAMES", rcc_sn_boolean},
     {RCC_OPTION_AUTODETECT_FS_TITLES, 1, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_INVISIBLE, "AUTODETECT_FS_TITLES", rcc_sn_boolean},
     {RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, 1, { RCC_OPTION_RANGE_TYPE_MENU, 0, 2, 1}, RCC_OPTION_TYPE_INVISIBLE, "CONFIGURED_LANGUAGES_ONLY", rcc_sn_clo},
-    {RCC_OPTION_TRANSLATE, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD, "TRANSLATE", rcc_sn_boolean },
+#ifdef HAVE_ASPELL
+    {RCC_OPTION_AUTODETECT_LANGUAGE, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD, "AUTODETECT_LANGUAGE", rcc_sn_boolean},
+#else
+    {RCC_OPTION_AUTODETECT_LANGUAGE, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_INVISIBLE, "AUTODETECT_LANGUAGE", rcc_sn_boolean},
+#endif 
+#ifdef HAVE_LIBTRANSLATE
+    {RCC_OPTION_TRANSLATE, 0, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1}, RCC_OPTION_TYPE_STANDARD, "TRANSLATE", rcc_sn_translate },
+#else
+    {RCC_OPTION_TRANSLATE, 0, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1}, RCC_OPTION_TYPE_INVISIBLE, "TRANSLATE", rcc_sn_translate },
+#endif /* HAVE_LIBTRANSLATE */
     {RCC_OPTION_AUTOENGINE_SET_CURRENT, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD, "AUTOENGINE_SET_CURRENT", rcc_sn_boolean },
     {RCC_MAX_OPTIONS}
 };

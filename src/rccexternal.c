@@ -153,7 +153,7 @@ int rccExternalConnect(unsigned char module) {
     fd_set fdcon;
     
     if (pid == (pid_t)-1) return -1;
-
+    
     sock = socket(PF_UNIX, SOCK_STREAM, 0);
     if (sock<=0) return -1;
 

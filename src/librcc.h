@@ -364,6 +364,23 @@ typedef int rcc_option_value;
 #define RCC_OPTION_LEARNING_FLAG_LEARN 2
 
 /**
+  * Switch translation off.
+  */
+#define RCC_OPTION_TRANSLATE_OFF 0
+/**
+  * Translate data to english language (Current language don't matter).
+  */
+#define RCC_OPTION_TRANSLATE_TO_ENGLISH 1
+/**
+  * Skip translation of the english text.
+  */
+#define RCC_OPTION_TRANSLATE_SKIP_ENGLISH 2
+/**
+  * Translate whole data to the current language.
+  */
+#define RCC_OPTION_TRANSLATE_FULL 3
+
+/**
   * List of options available
   */
 typedef enum rcc_option_t {
@@ -371,8 +388,9 @@ typedef enum rcc_option_t {
     RCC_OPTION_AUTODETECT_FS_TITLES,	/**< Detect titles of #RCC_CLASS_FS classes */
     RCC_OPTION_AUTODETECT_FS_NAMES,	/**< Try to find encoding of #RCC_CLASS_FS by accessing fs */
     RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, /**< Use only configured languages or languages with auto-engines */
-    RCC_OPTION_TRANSLATE,		/**< Translate #rcc_string if it's language differs from current one */
     RCC_OPTION_AUTOENGINE_SET_CURRENT,	/**< If enabled autodetection engine will set current charset */
+    RCC_OPTION_AUTODETECT_LANGUAGE,	/**< Enables language detection */
+    RCC_OPTION_TRANSLATE,		/**< Translate #rcc_string if it's language differs from current one */
     RCC_MAX_OPTIONS
 } rcc_option;
 
@@ -970,6 +988,26 @@ int rccTranslateSetTimeout(rcc_translate translate, unsigned long us);
 char *rccTranslate(rcc_translate translate, const char *buf);
 
 /* recode.c */
+
+/**
+  * Tries to detect language of string
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is encoding class
+  * @param buf is original string (perhaps not zero terminated)
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @result is language_id or -1 if autodetection is failed
+  */
+rcc_language_id rccDetectLanguage(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
+/**
+  * Tries to detect charset of string
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is encoding class
+  * @param buf is original string (perhaps not zero terminated)
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @result is auto_charset_id or -1 if autodetection is failed
+  */
+int rccDetectCharset(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
+
 /**
   * Recode string from specified encoding class to #rcc_string. Encoding detection engines and
   * recoding cache are used (if possible) to detect original 'buf' encoding. Otherwise the 
@@ -1079,7 +1117,7 @@ char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char
   * @param rlen in rlen the size of recoded string will be returned.
   * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */
-char *rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, const char *buf, size_t len, size_t *rlen);
+rcc_string rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, const char *charset, const char *buf, size_t len, size_t *rlen);
 /**
   * Recode string between specified encodings. 
   *
@@ -1094,6 +1132,77 @@ char *rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, const ch
 char *rccSizedRecodeCharsets(rcc_context ctx, const char *from, const char *to, const char *buf, size_t len, size_t *rlen);
 
 
+/**
+  * Tries to detect charset of string
+  * @param config is language configuration
+  * @param class_id is encoding class
+  * @param buf is original string (perhaps not zero terminated)
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @result is auto_charset_id or -1 if autodetection is failed
+  */
+rcc_autocharset_id rccConfigDetectCharset(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len);
+
+/**
+  * Recode string from specified encoding class to #rcc_string. Encoding detection engines and
+  * recoding cache are used (if possible) to detect original 'buf' encoding. Otherwise the 
+  * preconfigured encoding of class is assumed.
+  *
+  * @param config is language configuration
+  * @param class_id is encoding class
+  * @param buf is original string (perhaps not zero terminated)
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
+  */
+rcc_string rccConfigSizedFrom(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len);
+/**
+  * Recode string from #rcc_string to specified encoding class. If encoding class is of 
+  * 'File System' type, the autoprobing for file names can be performed. In the other cases
+  * the rcc_string will be recoded in preconfigured class encoding.
+  *
+  * @param config is language configuration
+  * @param class_id is encoding class
+  * @param buf is original zero terminated string
+  * @param rlen in rlen the size of recoded string will be returned.
+  * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
+  */
+char *rccConfigSizedTo(rcc_language_config config, rcc_class_id class_id, rcc_const_string buf, size_t *rlen);
+/**
+  * Recode string between different encoding classes. The conversion is relays on rccConfigSizedFrom
+  * and rccConfigSizedTo functions.
+  * @see rccConfigSizedFrom
+  * @see rccConfigSizedTo
+  *
+  * @param config is language configuration
+  * @param from is source encoding class
+  * @param to is destination encoding class
+  * @param buf is original string (perhaps not zero terminated)
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @param rlen in rlen the size of recoded string will be returned.
+  * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
+  */
+char *rccConfigSizedRecode(rcc_language_config config, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen);
+/**
+  * Recode string from specified encoding to #rcc_string. 
+  *
+  * @param config is language configuration
+  * @param charset is source encoding
+  * @param buf is original string (perhaps not zero terminated)
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
+  */
+rcc_string rccConfigSizedRecodeFromCharset(rcc_language_config config, rcc_class_id class_id, const char *charset, const char *buf, size_t len, size_t *rlen);
+/**
+  * Recode string from #rcc_string to specified encoding. 
+  *
+  * @param config is language configuration
+  * @param charset is destination encoding
+  * @param buf is original zero terminated string
+  * @param rlen in rlen the size of recoded string will be returned.
+  * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
+  */
+char *rccConfigSizedRecodeToCharset(rcc_language_config config, rcc_class_id class_id, const char *charset, rcc_const_string buf, size_t len, size_t *rlen);
+
+
 #define rccFrom(ctx, class_id, buf) rccSizedFrom(ctx, class_id, buf, 0)
 #define rccTo(ctx, class_id, buf) rccSizedTo(ctx, class_id, buf, NULL)
 #define rccRecode(ctx, from, to, buf) rccSizedRecode(ctx, from, to, buf, 0, NULL)
@@ -1103,6 +1212,12 @@ char *rccSizedRecodeCharsets(rcc_context ctx, const char *from, const char *to, 
 #define rccRecodeToCharset(ctx, class_id, charset, buf) rccSizedRecodeToCharset(ctx, class_id, charset, buf, 0, NULL)
 #define rccRecodeFromCharset(ctx, class_id, charset, buf) rccSizedRecodeFromCharset(ctx, class_id, charset, buf, 0, NULL)
 #define rccRecodeCharsets(ctx, from, to, buf) rccSizedRecodeCharsets(ctx, from, to, buf, 0, NULL)
+
+#define rccConfigFrom(ctx, class_id, buf) rccConfigSizedFrom(ctx, class_id, buf, 0)
+#define rccConfigTo(ctx, class_id, buf) rccConfigSizedTo(ctx, class_id, buf, NULL)
+#define rccConfigRecode(ctx, from, to, buf) rccConfigSizedRecode(ctx, from, to, buf, 0, NULL)
+#define rccConfigRecodeToCharset(ctx, class_id, charset, buf) rccConfigSizedRecodeToCharset(ctx, class_id, charset, buf, 0, NULL)
+#define rccConfigRecodeFromCharset(ctx, class_id, charset, buf) rccConfigSizedRecodeFromCharset(ctx, class_id, charset, buf, 0, NULL)
 
 /*******************************************************************************
 ******************************** Options ***************************************

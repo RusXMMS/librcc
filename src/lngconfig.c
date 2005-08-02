@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../config.h"
+
 #include "internal.h"
 #include "rccconfig.h"
 #include "rcclocale.h"
+#include "lng.h"
 
 rcc_engine_ptr rccConfigGetEnginePointer(rcc_language_config config, rcc_engine_id engine_id) {
     unsigned int i;
@@ -165,6 +168,7 @@ int rccConfigInit(rcc_language_config config, rcc_context ctx) {
 
     config->fsiconv = NULL;
     config->trans = NULL;
+    config->entrans = NULL;
 
     config->ctx = ctx;
     config->language = NULL;
@@ -172,6 +176,7 @@ int rccConfigInit(rcc_language_config config, rcc_context ctx) {
     config->engine = -1;
     config->default_charset = dcharsets;
     config->configured = 0;
+    config->speller = NULL;
 
     config->iconv_to = iconv_to;
     config->configure = 1;
@@ -204,6 +209,10 @@ void rccConfigClear(rcc_language_config config) {
 	    rccTranslateClose(config->trans);
 	    config->trans = NULL;
 	}
+	if (config->entrans) {
+	    rccTranslateClose(config->entrans);
+	    config->entrans = NULL;
+	}
 	if (config->iconv_to) {
 	    free(config->iconv_to);
 	    config->iconv_to = NULL;
@@ -216,31 +225,55 @@ void rccConfigClear(rcc_language_config config) {
 	    free(config->default_charset);
 	    config->default_charset = NULL;
 	}
+	if (config->speller) {
+	    rccSpellerFree(config->speller);
+	    config->speller = NULL;
+	}
     }
 }
 
-rcc_language_config rccCheckConfig(rcc_context ctx, rcc_language_id language_id) {
-    rcc_language_id new_language_id;
-    
-    new_language_id = rccGetRealLanguage(ctx, language_id);
-    if ((new_language_id == (rcc_language_id)-1)||(new_language_id != language_id)) return NULL;
-    if (!ctx->configs[language_id].charset) return NULL;
-    if (!strcasecmp(ctx->languages[language_id]->sn, "off")) return NULL;
+static rcc_language_config rccGetConfigPointer(rcc_context ctx, rcc_language_id language_id, rcc_language_id *r_language_id) {
+
+    language_id = rccGetRealLanguage(ctx, language_id);
+    if (!strcasecmp(ctx->languages[language_id]->sn, rcc_disabled_language_sn)) return NULL;
+    if (r_language_id) *r_language_id = language_id;
 
     return ctx->configs + language_id;
 }
 
-rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id) {
-    language_id = rccGetRealLanguage(ctx, language_id);
-    if (language_id == (rcc_language_id)-1) return NULL;
-    if (!strcasecmp(ctx->languages[language_id]->sn, "off")) return NULL;
-    
-    if (!ctx->configs[language_id].charset) {
-	if (rccConfigInit(ctx->configs+language_id, ctx)) return NULL;
-    }    
+rcc_language_config rccCheckConfig(rcc_context ctx, rcc_language_id language_id) {
+    rcc_language_config config;
 
-    ctx->configs[language_id].language = ctx->languages[language_id];
-    return ctx->configs + language_id;
+    config = rccGetConfigPointer(ctx, language_id, NULL);
+    if ((config)&&(!config->charset)) return NULL;
+
+    return config;
+}
+
+
+rcc_language_config rccGetUsableConfig(rcc_context ctx, rcc_language_id language_id) {
+    rcc_language_config config;
+
+    config = rccGetConfigPointer(ctx, language_id, &language_id);
+    if (config) {
+	if (!rccCheckLanguageUsability(ctx, language_id)) return NULL;
+	if ((!config->charset)&&(rccConfigInit(config, ctx))) return NULL;
+	config->language = ctx->languages[language_id];
+    }
+
+    return config;
+}
+
+rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id) {
+    rcc_language_config config;
+
+    config = rccGetConfigPointer(ctx, language_id, &language_id);
+    if (config) {
+	if ((!config->charset)&&(rccConfigInit(config, ctx))) return NULL;
+	config->language = ctx->languages[language_id];
+    }
+
+    return config;
 }
 
 rcc_language_config rccGetConfigByName(rcc_context ctx, const char *name) {
@@ -259,6 +292,15 @@ rcc_language_config rccGetCurrentConfig(rcc_context ctx) {
     if (language_id == (rcc_language_id)-1) return NULL;
     
     return rccGetConfig(ctx, language_id);
+}
+
+rcc_speller rccConfigGetSpeller(rcc_language_config config) {
+    if (!config) return NULL;
+    
+    if (config->speller) return config->speller;
+
+    config->speller = rccSpellerCreate(config->language->sn);
+    return config->speller;
 }
 
 rcc_engine_id rccConfigGetSelectedEngine(rcc_language_config config) {
@@ -531,6 +573,161 @@ int rccConfigConfigure(rcc_language_config config) {
 
     return 0;
 }
+
+
+rcc_string rccConfigSizedFrom(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len) {
+    rcc_context ctx;
+    rcc_string result;
+    rcc_option_value usedb4;
+    rcc_autocharset_id charset_id;
+    const char *charset;
+
+
+    if (!config) return NULL;
+    ctx = config->ctx;
+
+    if (rccStringSizedCheck(buf, len)) return NULL;
+    
+    usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
+
+    if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
+	result = rccDb4GetKey(ctx->db4ctx, buf, len);
+	if (result) {
+	     if (rccStringFixID(result, ctx)) free(result);
+	     else return result;
+	}
+    }
+
+    charset_id = rccConfigDetectCharset(config, class_id, buf, len);
+    if (charset_id != (rcc_autocharset_id)-1)
+	charset = rccConfigGetAutoCharsetName(config, charset_id);
+    else
+	charset = rccConfigGetCurrentCharsetName(config, class_id);
+    
+    if (charset) {
+	result = rccSizedFromCharset(ctx, charset, buf, len);
+	if (result) rccStringChangeID(result, rccGetLanguageByName(ctx, config->language->sn));
+	return result;
+    }
+    
+    return NULL;
+}
+
+char *rccConfigSizedTo(rcc_language_config config, rcc_class_id class_id, rcc_const_string buf, size_t *rlen) {
+    rcc_context ctx;
+    const char *charset;
+
+    if (!config) return NULL;
+    ctx = config->ctx;
+
+    charset = rccConfigGetCurrentCharsetName(config, class_id);
+
+    if (charset)
+	return rccSizedToCharset(ctx, charset, buf, rlen);
+    
+    return NULL;
+}
+
+
+char *rccConfigSizedRecode(rcc_language_config config, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen) {
+    rcc_context ctx;
+    rcc_string result;
+    rcc_option_value usedb4;
+    rcc_autocharset_id charset_id;
+    rcc_string stmp;
+    const char *tocharset, *fromcharset;
+
+
+    if (!config) return NULL;
+    ctx = config->ctx;
+
+    if (rccStringSizedCheck(buf, len)) return NULL;
+    
+    usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
+
+    if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
+	stmp = rccDb4GetKey(ctx->db4ctx, buf, len);
+	if (stmp) {
+	     if (rccStringFixID(stmp, ctx)) free(stmp);
+	     else {
+		result = rccConfigSizedTo(config, to, stmp, rlen);
+		free(stmp);
+		return result;
+	    }
+	}
+    }
+
+    charset_id = rccConfigDetectCharset(config, from, buf, len);
+    if (charset_id != (rcc_autocharset_id)-1)
+	fromcharset = rccConfigGetAutoCharsetName(config, charset_id);
+    else
+	fromcharset = rccConfigGetCurrentCharsetName(config, from);
+    
+    tocharset = rccConfigGetCurrentCharsetName(config, to);
+    
+    if ((fromcharset)&&(tocharset))
+	return rccSizedRecodeCharsets(ctx, fromcharset, tocharset, buf, len, rlen);
+
+    return NULL;
+
+}
+
+
+char *rccConfigSizedRecodeToCharset(rcc_language_config config, rcc_class_id class_id, const char *charset, rcc_const_string buf, size_t len, size_t *rlen) {
+    rcc_context ctx;
+    rcc_string result;
+    rcc_option_value usedb4;
+    rcc_autocharset_id charset_id;
+    rcc_string stmp;
+    const char *ocharset;
+
+
+    if (!config) return NULL;
+    ctx = config->ctx;
+
+    if (rccStringSizedCheck(buf, len)) return NULL;
+    
+    usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
+
+    if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
+	stmp = rccDb4GetKey(ctx->db4ctx, buf, len);
+	if (stmp) {
+	     if (rccStringFixID(stmp, ctx)) free(stmp);
+	     else {
+		result = rccSizedToCharset(ctx, charset, stmp, rlen);
+		free(stmp);
+	        return result;
+	    }
+	}
+    }
+
+    charset_id = rccConfigDetectCharset(config, class_id, buf, len);
+    if (charset_id != (rcc_autocharset_id)-1)
+	ocharset = rccConfigGetAutoCharsetName(config, charset_id);
+    else
+	ocharset = rccConfigGetCurrentCharsetName(config, class_id);
+    
+    if (ocharset)
+	return rccSizedRecodeCharsets(ctx, ocharset, charset, buf, len, rlen);
+
+    return NULL;
+}
+
+char *rccConfigSizedRecodeFromCharset(rcc_language_config config, rcc_class_id class_id, const char *charset, const char *buf, size_t len, size_t *rlen) {
+    rcc_context ctx;
+    const char *ocharset;
+
+    if (!config) return NULL;
+    ctx = config->ctx;
+
+    ocharset = rccConfigGetCurrentCharsetName(config, class_id);
+
+    if (ocharset)
+	return rccSizedRecodeCharsets(ctx, charset, ocharset, buf, len, rlen);
+
+    return NULL;
+}
+
 
 /*
     rcc_option_value options[RCC_MAX_OPTIONS];

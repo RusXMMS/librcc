@@ -24,27 +24,26 @@ int main(int argc, char *argv[]) {
     rccInit();
     rccInitDefaultContext(NULL, 0, 0, classes, 0);
     rccInitDb4(NULL, "example", 0);
-    rccSetOption(NULL, RCC_OPTION_TRANSLATE, 1);
-
-//    rccExternalInit();
-//    rccExternalFree();
+    rccSetOption(NULL, RCC_OPTION_TRANSLATE, RCC_OPTION_TRANSLATE_FULL);
 
     current_language_id = rccGetCurrentLanguage(NULL);
     english_language_id = rccGetLanguageByName(NULL, "en");
     if (argc>1) rccSetLanguageByName(NULL, argv[1]);
+    else rccSetOption(NULL, RCC_OPTION_AUTODETECT_LANGUAGE, 1);
     language_id = rccGetCurrentLanguage(NULL);
 
     language = rccGetCurrentLanguageName(NULL);
     if (language) printf("Current Language: %s\n\n", language);
-    else printf("Unable Detect Language\n\n");
+    else {
+	printf("Unable Detect Language, using english\n\n");
+	rccSetLanguageByName(NULL, "en");
+    }
     
     while (fgets(buf,255,stdin)) {
 	if (strlen(buf)<2) break;
 	
-	rccSetLanguage(NULL, language_id);
 	rccstring = rccFrom(NULL, 0, buf);
 	if (rccstring) {
-	    rccSetLanguage(NULL, english_language_id);
 	    recoded = rccTo(NULL, 1, rccstring);
 	    if (recoded) {
 		printf(recoded);

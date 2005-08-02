@@ -3,6 +3,7 @@
 
 #include "rcciconv.h"
 #include "rcctranslate.h"
+#include "rccspell.h"
 
 struct rcc_language_config_t {
     rcc_context ctx;
@@ -17,8 +18,10 @@ struct rcc_language_config_t {
     
     unsigned char configured;
 
+    rcc_speller speller;
     rcc_translate trans;
     rcc_language_id translang;
+    rcc_translate entrans;
     
     rcc_iconv fsiconv;
 };
@@ -30,8 +33,12 @@ rcc_engine_ptr rccConfigCheckEnginePointer(rcc_language_config config, rcc_engin
 rcc_engine_ptr rccConfigGetCurrentEnginePointer(rcc_language_config config);
 rcc_engine_ptr rccConfigCheckCurrentEnginePointer(rcc_language_config config);
 
+rcc_speller rccConfigGetSpeller(rcc_language_config config);
+
 int rccConfigInit(rcc_language_config config, rcc_context ctx);
 void rccConfigClear(rcc_language_config config);
+
+rcc_language_config rccGetUsableConfig(rcc_context ctx, rcc_language_id language_id);
 
 int rccConfigConfigure(rcc_language_config config);
 

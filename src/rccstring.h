@@ -16,6 +16,7 @@ void rccStringFree(rcc_string str);
 
 int rccStringSetLang(rcc_string string, const char *sn);
 int rccStringFixID(rcc_string string, rcc_context ctx);
+int rccStringChangeID(rcc_string string, rcc_language_id language_id);
 
 #ifdef HAVE_STRNLEN
 # ifndef strnlen

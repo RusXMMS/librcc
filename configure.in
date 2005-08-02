@@ -194,6 +194,13 @@ else
 fi
 fi
 
+AM_PATH_ASPELL([
+    AC_DEFINE(HAVE_ASPELL,1,[Defines if aspell is available])
+    HAVE_ASPELL=yes
+],[
+    HAVE_ASPELL=no
+])
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
@@ -209,6 +216,7 @@ echo "  Enca Charset Detection Support:        $HAVE_ENCA"
 echo "  LibRCD Charset Detection Support:      $HAVE_RCD"
 echo ""
 echo "  Multilanguage support with DB4:        $HAVE_BDB"
+echo "  Language autodetection using aspell:   $HAVE_ASPELL"
 echo "  Libtranslate support:                  $HAVE_LIBTRANSLATE"
 echo "  Libtranslate Timed Translate:          $HAVE_LIBTRANSLATE_TIMED_TRANSLATE"
 echo ""

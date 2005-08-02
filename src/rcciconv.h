@@ -8,6 +8,8 @@ struct rcc_iconv_t {
 };
 typedef struct rcc_iconv_t rcc_iconv_s;
 
+int rccIConvGetError(rcc_iconv icnv);
+
 size_t rccIConvInternal(rcc_context ctx, rcc_iconv icnv, const char *buf, size_t len);
 
 /** 

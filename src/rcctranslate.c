@@ -66,18 +66,22 @@ int rccTranslateSetTimeout(rcc_translate translate, unsigned long us) {
 
 char *rccTranslate(rcc_translate translate, const char *buf) {
 #ifdef HAVE_LIBTRANSLATE
-    size_t i;
     rcc_external_command_s resp;
     size_t err, len;
     char *buffer;
-
-    if ((!translate)||(!buf)) return NULL;
+/*
+    size_t i;
+*/
     
+    if ((!translate)||(!buf)) return NULL;
+
+/*    
     if (!strcmp(translate->prefix.to, "en")) {
 	for (i=0;buf[i];i++) 
 	    if ((unsigned char)buf[i]>0x7F) break;
 	if (!buf[i]) return NULL;
     }
+*/
     
     if (translate->sock == -1) {
 	translate->sock = rccExternalConnect(RCC_EXTERNAL_MODULE_LIBRTRANSLATE);

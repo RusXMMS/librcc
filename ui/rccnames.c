@@ -32,6 +32,7 @@ rcc_name rcc_default_language_names_embeded[RCC_MAX_LANGUAGES+1] = {
 rcc_option_value_name rcc_default_option_boolean_names[] = { "Off", "On", NULL };
 rcc_option_value_name rcc_default_option_learning_names[] = { "Off", "On", "Relearn", "Learn", NULL };
 rcc_option_value_name rcc_default_option_clo_names[] = { "All Languages", "Configured / AutoEngine", "Configured Only", NULL };
+rcc_option_value_name rcc_default_option_translate_names[] = { "Off", "Translate to English", "Skip English Translation", "Full", NULL };
 
 rcc_option_name rcc_default_option_names[RCC_MAX_OPTIONS+1];
 rcc_option_name rcc_default_option_names_embeded[RCC_MAX_OPTIONS+1] = {
@@ -39,8 +40,9 @@ rcc_option_name rcc_default_option_names_embeded[RCC_MAX_OPTIONS+1] = {
     { RCC_OPTION_AUTODETECT_FS_NAMES, "Autodetect File Names",  rcc_default_option_boolean_names },
     { RCC_OPTION_AUTODETECT_FS_TITLES, "Autodetect FS Titles", rcc_default_option_boolean_names },
     { RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, "Enabled Languages", rcc_default_option_clo_names },
-    { RCC_OPTION_TRANSLATE, "Translate Text", rcc_default_option_boolean_names },
     { RCC_OPTION_AUTOENGINE_SET_CURRENT, "AutoEngine Set Current Encoding", rcc_default_option_boolean_names },
+    { RCC_OPTION_AUTODETECT_LANGUAGE, "Autodetect Language", rcc_default_option_boolean_names },
+    { RCC_OPTION_TRANSLATE, "Translate Text", rcc_default_option_translate_names },
     { RCC_MAX_OPTIONS }
 };
 

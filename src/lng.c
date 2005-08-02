@@ -36,11 +36,39 @@ rcc_language_id rccGetLanguageByName(rcc_context ctx, const char *name) {
     return (rcc_language_id)-1;
 }
 
-static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
-    unsigned int i;
+int rccCheckLanguageUsability(rcc_context ctx, rcc_language_id language_id) {
+    rcc_language_config config;
     rcc_option_value clo;
     rcc_engine_ptr *engines;
-    rcc_language_config config;
+    rcc_charset *charsets;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return 0;
+    }
+    if (language_id>=ctx->n_languages) return 0;
+
+    language_id = rccGetRealLanguage(ctx, language_id);
+    
+    clo = rccGetOption(ctx, RCC_OPTION_CONFIGURED_LANGUAGES_ONLY);
+    if (clo) {
+	config = rccCheckConfig(ctx, (rcc_language_id)language_id);
+	if ((!config)||(!config->configured)) {
+	    charsets = ctx->languages[language_id]->charsets;
+	    if ((charsets[0])&&(charsets[1])&&(charsets[2])) {
+		if (clo == 1) {
+		    engines = ctx->languages[language_id]->engines;
+		    if ((!engines[0])||(!engines[1])) return 0;
+		} else return 0;
+	    }
+	}
+    }
+    return 1;
+}
+
+
+static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
+    unsigned int i;
     char stmp[RCC_MAX_LANGUAGE_CHARS+1];
 
     if (ctx->default_language) return ctx->default_language;
@@ -48,16 +76,7 @@ static rcc_language_id rccGetDefaultLanguage(rcc_context ctx) {
     if (!rccLocaleGetLanguage(stmp, ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS)) {
     	for (i=0;ctx->languages[i];i++) {
 	    if (!strcmp(ctx->languages[i]->sn, stmp)) {
-		clo = rccGetOption(ctx, RCC_OPTION_CONFIGURED_LANGUAGES_ONLY);
-		if (clo) {
-		    config = rccCheckConfig(ctx, (rcc_language_id)i);
-		    if ((!config)||(!config->configured)) {
-			if (clo == 1) {
-			    engines = ctx->languages[i]->engines;
-			    if ((!engines[0])||(!engines[1])) break;
-			} else break;
-		    }
-		}
+		if (!rccCheckLanguageUsability(ctx, (rcc_language_id)i)) break;
 		ctx->default_language = (rcc_language_id)i;
 		return (rcc_language_id)i;
 	    }
