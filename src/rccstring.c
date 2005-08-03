@@ -61,6 +61,7 @@ int rccStringFixID(rcc_string string, rcc_context ctx) {
 int rccStringChangeID(rcc_string string, rcc_language_id language_id) {
     if ((!string)&&(language_id != (rcc_language_id)-1)) return -1;
     
+//    printf("ChangingID %lu: %s\n", language_id, string);
     ((rcc_string_header*)string)->language_id = language_id;
     return 0;
 }

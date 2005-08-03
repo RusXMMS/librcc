@@ -7,6 +7,7 @@ librcc_la_SOURCES = librcc.c \
     curconfig.c curconfig.h \
     rccconfig.c rccconfig.h \
     rcclist.c rcclist.h \
+    rccmutex.c rccmutex.h \
     plugin.c plugin.h \
     rccexternal.c rccexternal.h \
     fake_enca.h fake_rcd.h \
@@ -23,7 +24,7 @@ librcc_la_SOURCES = librcc.c \
     internal.h
 include_HEADERS = librcc.h
 
-AM_CPPFLAGS = -I../src -DLIBRCC_DATA_DIR=\"${pkgdatadir}\" @XML_INCLUDES@ @DLOPEN_INCLUDES@ @RCD_INCLUDES@ @ENCA_INCLUDES@ @BDB_INCLUDES@ @ASPELL_CFLAGS@
-librcc_la_LIBADD = @XML_LIBS@ @DLOPEN_LIBS@ @RCD_LIBS@ @ENCA_LIBS@ @BDB_LIBS@ @ASPELL_LIBS@
+AM_CPPFLAGS = -I../src -DLIBRCC_DATA_DIR=\"${pkgdatadir}\" @XML_INCLUDES@ @DLOPEN_INCLUDES@ @RCD_INCLUDES@ @ENCA_INCLUDES@ @BDB_INCLUDES@ @ASPELL_CFLAGS@ @PTHREAD_CFLAGS@
+librcc_la_LIBADD = @XML_LIBS@ @DLOPEN_LIBS@ @RCD_LIBS@ @ENCA_LIBS@ @BDB_LIBS@ @ASPELL_LIBS@ @PTHREAD_LIBS@
 librcc_la_LDFLAGS = -version-info @LIBRCC_VERSION_INFO@
 

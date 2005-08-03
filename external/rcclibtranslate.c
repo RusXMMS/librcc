@@ -45,11 +45,34 @@ static char *rccCreateKey(const char *from, const char *to, const char *data, si
     return res;
 }
 
+static char *rccTranslateFixEOL(char *result, const char *text) {
+    size_t i,j;
+    char *res;
+    
+    if (!result) return result;
+    if (strstr(text, "\r\n")) return result;
+    
+    res = (char*)malloc((strlen(result)+1)*sizeof(char));
+    if (!res) {
+	free(result);
+	return NULL;
+    }
+    
+    for (i=0, j=0;result[i];i++) {
+	if ((result[i]=='\r')&&(result[i+1]=='\n')) i++;
+	else res[j++] = result[i];
+    }
+    res[j] = 0;
+    free(result);
+    return res;
+}
+
 static void *rccLibPostponed(void *info) {
     char *result;
     char *data;
     char from[3];
     char to[3];
+    size_t datalen;
     
     from[2] = 0;
     to[2] = 0;
@@ -60,13 +83,21 @@ static void *rccLibPostponed(void *info) {
 	if (data) {
 	    g_mutex_unlock(mutex);
 	    
+	    datalen = strlen(data);
+	    
 	    memcpy(from, data, 2);
 	    memcpy(to, data + 2, 2);
-	    result = translate_session_translate_text(session, data + 4, from, to, NULL, NULL, NULL);
 
-	    if (result) {
-		rccDb4SetKey(db4ctx, data, strlen(data), result);
-		free(result);
+	    result = rccDb4GetKey(db4ctx, data, datalen);
+	    if (result) free(result);
+	    else {
+		result = translate_session_translate_text(session, data + 4, from, to, NULL, NULL, NULL);
+
+		if (result) {
+		    result = rccTranslateFixEOL(result, data+4);
+		    rccDb4SetKey(db4ctx, data, datalen, result);
+		    free(result);
+		}
 	    }
 
 	    free(data);
@@ -164,6 +195,26 @@ void rccLibTranslateFree() {
 }
 
 
+static void rccLibTranslateQueue(const char *from, const char *to, const char *text) {
+#ifdef HAVE_LIBTRANSLATE
+    char *key = NULL;
+    size_t keysize;
+    
+    if ((!session)||(!from)||(!to)||(!text)) return;
+    if ((strlen(from)!=2)||(strlen(to)!=2)) return;
+
+    if (db4ctx) {
+	key = rccCreateKey(from,to,text,&keysize);
+	if (key) {
+	    g_mutex_lock(mutex);
+	    g_queue_push_tail(queue, key);
+	    g_mutex_unlock(mutex);
+	    g_cond_signal(cond);
+	}
+    }
+#endif /* HAVE_LIBTRANSLATE */
+}
+
 static char *rccLibTranslateDo(const char *from, const char *to, const char *text, unsigned long timeout) {
 #ifdef HAVE_LIBTRANSLATE
     char *result;
@@ -188,6 +239,8 @@ static char *rccLibTranslateDo(const char *from, const char *to, const char *tex
 # else
     result = translate_session_translate_text(session, text, from, to, NULL, NULL, NULL);
 # endif /* HAVE_LIBTRANSLATE_TIMED_TRANSLATE */
+
+    result = rccTranslateFixEOL(result, text);
     
     if ((db4ctx)&&(key)) {
 	if (result) {
@@ -242,6 +295,7 @@ void *rccLibTranslate(void *info) {
 			res = read(s, buffer + readed, size - readed);
 			if (res<=0) connected = 0;
 		    }
+		    if (!connected)  goto clear;
 		    
 		    prefix.cmd.cmd = 0;
 		    prefix.cmd.size = 0;
@@ -264,14 +318,30 @@ respond:
 		    } else connected = 0;
 		    
 		    if (prefix.cmd.size) free(translated);		    
+clear:
+		    free(buffer);
+		} else connected = 0;
+	    break;
+	    case RCC_EXTERNAL_COMMAND_TRANSLATE_QUEUE:
+		size = 1 + prefix.cmd.size + sizeof(rcc_external_command_s) - sizeof(rcc_translate_prefix_s);
+		buffer = (char*)malloc(size);
+		if (buffer) {
+		    for (readed = 0; (readed < size)&&(connected); readed += res) {
+			res = read(s, buffer + readed, size - readed);
+			if (res<=0) connected = 0;
+		    }
+		    if ((connected)&&(!prefix.from[2])&&(!prefix.to[2])&&(!buffer[readed-1])) {
+			rccLibTranslateQueue(prefix.from, prefix.to, buffer);
+		    }
 		    free(buffer);
 		} else connected = 0;
 	    break;
 	    default:
-		buffer = (char*)malloc(prefix.cmd.size);
+		size = 1 + prefix.cmd.size + sizeof(rcc_external_command_s) - sizeof(rcc_translate_prefix_s);
+		buffer = (char*)malloc(size);
 		if (buffer) {
-		    for (readed = 0; (readed < prefix.cmd.size)&&(connected); readed += res) {
-			res = read(s, buffer + readed, prefix.cmd.size - readed);
+		    for (readed = 0; (readed < size)&&(connected); readed += res) {
+			res = read(s, buffer + readed, size - readed);
 			if (res<=0) connected = 0;
 		    }
 		    free(buffer);

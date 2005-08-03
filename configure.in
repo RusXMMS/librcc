@@ -201,6 +201,45 @@ AM_PATH_ASPELL([
     HAVE_ASPELL=no
 ])
 
+
+PTHREAD_LIBS=error
+AC_EGREP_CPP(yes,[
+#if (defined(__FreeBSD_cc_version) && __FreeBSD_cc_version <= 500001) || defined(__OpenBSD__)
+	  yes
+#endif
+],
+	PTHREAD_CFLAGS="-D_THREAD_SAFE" 
+	PTHREAD_LIBS="-pthread"
+)
+if test "x$PTHREAD_LIBS" = "xerror"; then
+	AC_CHECK_LIB(pthread, pthread_mutex_lock, PTHREAD_LIBS="-lpthread")
+fi
+if test "x$PTHREAD_LIBS" = xerror; then
+        AC_CHECK_LIB(pthreads, pthread_mutex_lock, PTHREAD_LIBS="-lpthreads")
+fi
+if test "x$PTHREAD_LIBS" = xerror; then
+        AC_CHECK_LIB(c_r, pthread_mutex_lock, PTHREAD_LIBS="-lc_r")
+fi
+if test "x$PTHREAD_LIBS" = xerror; then
+	AC_CHECK_FUNC(pthread_mutex_lock, PTHREAD_LIBS="")
+fi
+if test "x$PTHREAD_LIBS" = xerror; then
+	PTHREAD_LIBS=""
+	PTHREAD_CFLAGS=""
+else
+    AC_CHECK_HEADER(pthread.h, [
+	AC_DEFINE(HAVE_PTHREAD,1,[Defines if pthread is available])
+	HAVE_PTHREAD=yes
+    ],[
+	HAVE_PTHREAD=no
+	PTHREAD_LIBS=""
+	PTHREAD_CFLAGS=""
+    ])
+fi
+AC_SUBST(PTHREAD_CFLAGS)
+AC_SUBST(PTHREAD_LIBS)
+
+    
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
@@ -211,6 +250,8 @@ AC_OUTPUT(src/Makefile engines/Makefile external/Makefile ui/Makefile examples/M
 
 echo ""
 echo "Configuration:"
+echo "  POSIX Threading Support:               $HAVE_PTHREAD"
+echo ""
 echo "  Dynamic Engine Loading Support:        $HAVE_DLOPEN"
 echo "  Enca Charset Detection Support:        $HAVE_ENCA"
 echo "  LibRCD Charset Detection Support:      $HAVE_RCD"

@@ -15,21 +15,34 @@
 #include "rccspell.h"
 
 #define isSpace(ch) ((ch<0x7F)&&((ch<'A')||(ch>'z')||((ch>'Z')&&(ch<'a'))))
-#define RCC_REQUIRED_PROBABILITY	0.66
+#define RCC_PROBABILITY_STEP		0.10
+#define RCC_REQUIRED_PROBABILITY	0.33
+#define RCC_REQUIRED_LENGTH		5
+#define RCC_ACCEPTABLE_PROBABILITY	0
+#define RCC_ACCEPTABLE_LENGTH		3
 
 rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len, rcc_string *retstring) {
-    rcc_speller speller;
+    rcc_speller speller = NULL, english_speller = NULL;
     unsigned long i, nlanguages;
     rcc_language_config config, config0 = NULL;
     rcc_string recoded;
     unsigned char *utf8;
     size_t j, mode;
-    unsigned long words, english, result;
+    unsigned long spres, words, english, result;
+    size_t longest;
     unsigned char english_mode, english_word = 1;
+    char *english_string = NULL;
     rcc_language_id english_lang = (rcc_language_id)-1;
+    size_t english_longest = 0;
+    unsigned char is_english_string = 1;
     double res, english_res = 0;
     rcc_option_value usedb4;
-    
+    rcc_language_id bestlang = (rcc_language_id)-1;
+    unsigned long bestlongest = RCC_ACCEPTABLE_LENGTH;
+    double bestres = RCC_ACCEPTABLE_PROBABILITY;
+    char *best_string = NULL;
+
+    unsigned long accepted_nonenglish_langs = 0;
 
     usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
 
@@ -50,6 +63,15 @@ rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id class_id
 
     nlanguages = ctx->n_languages;
 
+    english_lang = rccGetLanguageByName(ctx, rcc_english_language_sn);
+    if (english_lang != (rcc_language_id)-1) {
+	config = rccGetUsableConfig(ctx, english_lang);
+	if (config) {
+	    english_speller  = rccConfigGetSpeller(config);
+	    if (rccSpellerGetError(english_speller)) english_speller = NULL;
+	}
+    }
+    
     for (i=0;i<nlanguages;i++) {
 	config = rccGetUsableConfig(ctx, (rcc_language_id)i);
 	if (!config) continue;
@@ -68,11 +90,20 @@ rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id class_id
 	else english_mode = 0;
 	
 	utf8 = (char*)rccStringGetString(recoded);
-	for (result=0,english=0,words=0,mode=0,j=0;utf8[j];j++) {
+	printf("%s\n", config->language->sn);
+	
+	for (result=0,english=0,words=0,longest=0,mode=0,j=0;utf8[j];j++) {
 	    if (isSpace(utf8[j])) {
 		if (mode) {
-		    if ((!english_mode)&&(english_word)) english++;
-		    result+=rccSpellerSized(speller, utf8 + mode - 1, j - mode + 1)?1:0;
+		    if ((!english_mode)&&(english_word)&&(rccSpellerSized(english_speller, utf8 + mode -1, j - mode + 1)))
+			english++;
+		    else {
+			if ((english_mode)&&(!english_word)) is_english_string = 0;
+			spres = rccSpellerSized(speller, utf8 + mode - 1, j - mode + 1)?1:0;
+			printf("%.*s %s\n",j-mode+1,utf8+mode-1, spres?"<======":"");
+			if ((spres)&&((j - mode + 1)>longest)) longest = j - mode + 1;
+			result+=spres;
+		    }
 		    words++;
 		    mode = 0;
 		} else continue;
@@ -85,40 +116,89 @@ rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id class_id
 		}
 	    }
 	}
+
 	if (mode) {
-	    result+=rccSpeller(speller, utf8 + mode - 1)?1:0;
+	    if ((!english_mode)&&(english_word)&&(rccSpeller(english_speller, utf8 + mode -1)))
+		english++;
+	    else {
+		if ((english_mode)&&(!english_word)) is_english_string = 0;
+		spres = rccSpeller(speller, utf8 + mode - 1)?1:0;
+		if ((spres)&&((j-mode+1)>longest)) longest = j - mode + 1;
+		result += spres;
+	    }
 	    words++;
 	}
 	
 	if (english_mode) {
+	    if (english_string) free(english_string);
+	    printf("%u %u\n", result, words);
+
 	    english_res = 1.*result/words;
-	    english_lang = (rcc_language_id)i;    
-	} else if (words) {
-	    res = 1.*result/words;
-	    if (res > RCC_REQUIRED_PROBABILITY) {
+	    english_lang = (rcc_language_id)i;
+	    english_longest = longest;
+	    english_string = recoded;
+	} else if (words>english) {
+	    res = 1.*result/(words - english);
+	    printf("%u %u %u\n", result, words, english);
+	    if ((res > RCC_REQUIRED_PROBABILITY)&&(longest > RCC_REQUIRED_LENGTH)) {
+		if (best_string) free(best_string);
+		if (english_string) free(english_string);
+		
 		if (retstring) *retstring = recoded;
 		else free(recoded);
 		return (rcc_language_id)i;
-	    }
-	    if (words > english) {
-		res = 1.*(result - english)/(words - english);
-		if (res > RCC_REQUIRED_PROBABILITY) {
-		    if (retstring) *retstring = recoded;
-		    else free(recoded);
-		    return (rcc_language_id)i;
-		}
-	    }
-	}
-	
-	free(recoded);
+	    } else if  ((res > bestres + RCC_PROBABILITY_STEP)||
+		    ((res > bestres - RCC_PROBABILITY_STEP)&&(longest > bestlongest))||
+		    ((res > bestres)&&(longest == bestlongest))) {
+		
+		if (best_string) free(best_string);
+		
+		bestres = res;
+		bestlang = (rcc_language_id)i;
+		bestlongest = longest;
+		best_string = recoded;
+	    }  else if (!accepted_nonenglish_langs) {
+		bestlang = (rcc_language_id)i;
+		best_string = recoded;
+	    } else free(recoded);
+
+	    accepted_nonenglish_langs++;
+	} else free(recoded);
     }
 
-    if (english_res > RCC_REQUIRED_PROBABILITY) {
-        if (retstring) {
-	    *retstring = rccCreateString(english_lang, buf, len);
-	}
+    if ((is_english_string)&&(english_res > RCC_REQUIRED_PROBABILITY)&&(english_longest > RCC_REQUIRED_LENGTH)) {
+	if (best_string) free(best_string);
+	if (retstring) *retstring = english_string;
+	else if (english_string) free(english_string);
         return english_lang;
     }
+
+    if ((bestres > RCC_ACCEPTABLE_PROBABILITY)&&(bestlongest > RCC_ACCEPTABLE_LENGTH)) {
+	if (english_string) free(english_string);
+	if (retstring) *retstring = best_string;
+	else if (best_string) free(best_string);
+        return bestlang;
+    } 
+
+    if ((is_english_string)&&(english_res > RCC_ACCEPTABLE_PROBABILITY)&&(english_longest > RCC_ACCEPTABLE_LENGTH)) {
+	if (best_string) free(best_string);	
+	if (retstring) *retstring = english_string;
+	else if (english_string) free(english_string);
+        return english_lang;
+    } 
+    
+    if (best_string) {
+	if (english_string) free(english_string);
+	if (retstring) *retstring = best_string;
+	else if (best_string) free(best_string);
+        return bestlang;
+    } else if (best_string) free(best_string);
+    
+    if ((english_res > RCC_ACCEPTABLE_PROBABILITY)&&(english_longest > RCC_ACCEPTABLE_LENGTH)) {
+	if (retstring) *retstring = english_string;
+	else if (english_string) free(english_string);
+        return english_lang;
+    } else if (english_string) free(english_string);
     
     return (rcc_language_id)-1;
 }
@@ -206,9 +286,12 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
 */
     
     detected_language_id = rccDetectLanguageInternal(ctx, class_id, buf, len, &result);
-    if (detected_language_id != (rcc_language_id)-1) return result;
+    if (detected_language_id != (rcc_language_id)-1) {
+	printf("Language %i: %s\n", rccStringGetLanguage(result), result);
+	return result;
+    }
 
-    
+
     err = rccConfigure(ctx);
     if (err) return NULL;
     
@@ -316,7 +399,6 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
 	    }
 	    
 	    if ((translate == RCC_OPTION_TRANSLATE_TO_ENGLISH)||((config->trans)&&(!translated))) {
-		puts("entrans");
 		if (!config->entrans) {
 		    config->entrans = rccTranslateOpen(rccGetLanguageName(ctx, language_id), rcc_english_language_sn);
 		}
@@ -384,7 +466,6 @@ char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const 
     const char *from_charset, *to_charset;
     rcc_charset_id from_charset_id, to_charset_id;
     rcc_class_type class_type;
-    rcc_option_value usedb4;
 
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
@@ -394,20 +475,9 @@ char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const 
 
     class_type = rccGetClassType(ctx, to);
     if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_NAMES))) goto recoding;
-    if (rccGetOption(ctx, RCC_OPTION_LEARNING_MODE)&RCC_OPTION_LEARNING_FLAG_LEARN) goto recoding;
-
-    usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
-    if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
-	stmp = rccDb4GetKey(ctx->db4ctx, buf, len);
-	if (stmp) {
-	     if (rccStringFixID(stmp, ctx)) free(stmp);
-	     else {
-		result = rccSizedTo(ctx, to, stmp, rlen);
-		free(stmp);
-		return result;
-	    }
-	}
-    }
+    if (rccGetOption(ctx, RCC_OPTION_LEARNING_MODE)) goto recoding;
+    if (rccGetOption(ctx, RCC_OPTION_AUTODETECT_LANGUAGE)) goto recoding;
+    if (rccGetOption(ctx, RCC_OPTION_TRANSLATE)) goto recoding;
 
     err = rccConfigure(ctx);
     if (err) return NULL;

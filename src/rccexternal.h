@@ -1,8 +1,6 @@
 #ifndef _RCC_EXTERNAL_H
 #define _RCC_EXTERNAL_H
 
-#define RCC_EXTERNAL_TIMEOUT			1000000
-
 typedef enum rcc_external_module_t {
     RCC_EXTERNAL_MODULE_CONTROL = 0,
     RCC_EXTERNAL_MODULE_LIBRTRANSLATE,

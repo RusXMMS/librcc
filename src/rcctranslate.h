@@ -1,9 +1,10 @@
 #ifndef _RCC_TRANSLATE_H
 #define _RCC_TRANSLATE_H
 
+#include "rccmutex.h"
 #include "rccexternal.h"
-#define RCC_TRANSLATE_DEFAULT_TIMEOUT	5000000	/* 5s */
 #define RCC_EXTERNAL_COMMAND_TRANSLATE 0x80
+#define RCC_EXTERNAL_COMMAND_TRANSLATE_QUEUE 0x81
 
 
 struct rcc_translate_prefix_t {
@@ -19,8 +20,13 @@ typedef struct rcc_translate_prefix_t *rcc_translate_prefix;
 
 struct rcc_translate_t {
     rcc_translate_prefix_s prefix;
+    rcc_translate_prefix_s wprefix;
     size_t remaining;
+    rcc_mutex mutex;
+    rcc_mutex wmutex;
     int sock;
+
+    unsigned char werror;
 };
 typedef struct rcc_translate_t rcc_translate_s;
 

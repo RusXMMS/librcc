@@ -1,4 +1,13 @@
 0.3.x:
+    - Buffer managment:
+	+ SetBufferSize ( 0 - autogrow )
+    - Language autodetection and translation improvements
+	+ Look on ofline translation libraries and other possibilities to improove 
+	translation and language detection.
+	+ Implement ispell support
+	+ Configurable timeouts
+
+1.x:
     - Common encodings:
 	+ Provide way to add to all languages several default Unicode encodings (UTF8, UTF16, UTF16BE)
 	+ Special type of classes to select only from Unicode encodings (or even just specified subset of encodings)
@@ -6,10 +15,8 @@
 	    * rccToEncoding(current_language, *new_language, buf, size)?
 	    * rccFromEncoding(current_language, utf8_language, buf, size)?
 	    * Code some options in charset name. (SpecialEncodingPrefix_Encoding_EncodingOptions)
-    - Buffer managment:
-	+ SetBufferSize ( 0 - autogrow )
-    - Look on ofline translation libraries and other possibilities to improove 
-      translation and language detection.
+    - Recoding options:
+	+ Skip Translation
 
 on request:
     - Multibyte(not-UTF8) support for FS classes

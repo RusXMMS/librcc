@@ -42,6 +42,7 @@
 #include "internal.h"
 
 #define RCC_EXT_PROG_NAME "rccexternal"
+#define RCC_EXTERNAL_TIMEOUT			250 /* 100us */
 
 static pid_t pid = (pid_t)-1;
 static char *addr = NULL;
@@ -88,9 +89,13 @@ void rccExternalFree() {
 }
 
 static int rccExternalSetDeadline(struct timeval *tv, unsigned long timeout) {
+/*
     gettimeofday(tv, NULL);
     tv->tv_sec += (tv->tv_usec + timeout + RCC_EXTERNAL_TIMEOUT) / 1000000;
     tv->tv_usec = (tv->tv_usec + timeout + RCC_EXTERNAL_TIMEOUT) % 1000000;
+*/
+    tv->tv_sec = (timeout + RCC_EXTERNAL_TIMEOUT) / 1000000;
+    tv->tv_usec = (timeout + RCC_EXTERNAL_TIMEOUT) % 1000000;
     return 0;
 }
 
@@ -103,7 +108,7 @@ size_t rccExternalWrite(int s, const char *buffer, ssize_t size, unsigned long t
 
     if (s == -1) return -1;
     
-    for (writed = 0; (writed < size)&&(connected); writed += connected?res:0) {
+    for (writed = 0; ((writed < size)&&(connected)); writed += connected?res:0) {
 	FD_ZERO(&fdcon);
 	FD_SET(s, &fdcon);
 	rccExternalSetDeadline(&tv, timeout);
@@ -127,7 +132,7 @@ size_t rccExternalRead(int s, char *buffer, ssize_t size, unsigned long timeout)
     
     if (s == -1) return -1;
     
-    for (readed = 0; (readed < size)&&(connected); readed += connected?res:0) {
+    for (readed = 0; ((readed < size)&&(connected)); readed += connected?res:0) {
 	FD_ZERO(&fdcon);
 	FD_SET(s, &fdcon);
 	rccExternalSetDeadline(&tv, timeout);
