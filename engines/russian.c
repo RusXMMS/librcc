@@ -5,7 +5,7 @@
 #include <librcc.h>
 
 static rcc_autocharset_id AutoengineRussian(rcc_engine_context ctx, const char *buf, int len) {
-    return (rcc_charset_id)rcdGetRussianCharset(buf,len);
+    return (rcc_autocharset_id)rcdGetRussianCharset(buf,len);
 }
 
 static rcc_engine russian_engine = {

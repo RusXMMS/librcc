@@ -157,9 +157,11 @@ int rccSetLanguage(rcc_context ctx, rcc_language_id language_id) {
 	config = rccGetConfig(ctx, language_id);
 	// NULL is Okey (Off), if (!config) return -1;
 	
+	rccMutexLock(ctx->mutex);
 	ctx->configure = 1;
 	ctx->current_language = language_id;
 	ctx->current_config = config; 
+	rccMutexUnLock(ctx->mutex);
     }
 
     return 0;

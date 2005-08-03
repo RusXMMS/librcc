@@ -92,10 +92,10 @@ void rccEngineFree() {
 #endif /* RCC_RCD_DYNAMIC */
 }
 
-int rccEngineInitContext(rcc_engine_context engine_ctx, rcc_context ctx) {
-    if ((!ctx)||(!engine_ctx)) return -1;
+int rccEngineInitContext(rcc_engine_context engine_ctx, rcc_language_config config) {
+    if ((!config)||(!engine_ctx)) return -1;
     
-    engine_ctx->ctx = ctx;
+    engine_ctx->config = config;
     engine_ctx->free_func = NULL;
     engine_ctx->func = NULL;
     return 0;
@@ -114,25 +114,19 @@ void rccEngineFreeContext(rcc_engine_context engine_ctx) {
 }
 
 int rccEngineConfigure(rcc_engine_context ctx) {
-    rcc_language_id language_id;
     rcc_engine_id engine_id;
     rcc_engine *engine;
 
-    if ((!ctx)||(!ctx->ctx)) return -1;
+    if ((!ctx)||(!ctx->config)) return -1;
 
     rccEngineFreeContext(ctx);
-    
-    language_id = rccGetCurrentLanguage(ctx->ctx);
-    if (language_id == (rcc_language_id)-1) return -1;
-
-    engine_id = rccGetCurrentEngine(ctx->ctx);
+    engine_id = rccConfigGetCurrentEngine(ctx->config);
     if (engine_id == (rcc_engine_id)-1) return -1;
-    
-    engine = ctx->ctx->languages[language_id]->engines[engine_id];
+
+    engine = ctx->config->language->engines[engine_id];
     
     ctx->free_func = engine->free_func;
     ctx->func = engine->func;
-    ctx->language = ctx->ctx->languages[language_id];
 
     if (engine->init_func) ctx->internal = engine->init_func(ctx);
     else ctx->internal = NULL;
@@ -149,11 +143,11 @@ rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx) {
 rcc_language *rccEngineGetLanguage(rcc_engine_context ctx) {
     if (!ctx) return NULL;
 
-    return ctx->language;
+    return ctx->config->language;
 }
 
 rcc_context rccEngineGetRccContext(rcc_engine_context ctx) {
     if (!ctx) return NULL;
 
-    return ctx->ctx;
+    return ctx->config->ctx;
 }

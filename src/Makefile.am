@@ -21,6 +21,7 @@ librcc_la_SOURCES = librcc.c \
     rcctranslate.c rcctranslate.h \
     fs.c fs.h \
     recode.c recode.h \
+    lngrecode.c lngrecode.h \
     internal.h
 include_HEADERS = librcc.h
 

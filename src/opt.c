@@ -50,8 +50,10 @@ int rccSetOption(rcc_context ctx, rcc_option option, rcc_option_value value) {
     ctx->default_options[option] = 0;
 
     if (ctx->options[option] != value) {
+	rccMutexLock(ctx->mutex);
 	ctx->configure = 1;
 	ctx->options[option]=value;
+	rccMutexUnLock(ctx->mutex);
     }
     
     return 0;

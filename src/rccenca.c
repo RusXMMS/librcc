@@ -24,9 +24,9 @@ rcc_engine_internal rccEncaInitContext(rcc_engine_context ctx) {
 #ifdef RCC_ENCA_SUPPORT
     EncaAnalyser enca;
     
-    if ((!ctx)||(!ctx->language)) return NULL;
+    if ((!ctx)||(!ctx->config)) return NULL;
     
-    enca = enca_analyser_alloc(ctx->language->sn);    
+    enca = enca_analyser_alloc(rccConfigGetLanguageName(ctx->config));    
     if (!enca) return NULL;
 
     enca_set_threshold(enca, 1);
@@ -65,7 +65,7 @@ rcc_autocharset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
     if (ee.charset<0) return (rcc_charset_id)-1;
 
     charset = enca_charset_name(ee.charset, ENCA_NAME_STYLE_ICONV);
-    return rccGetAutoCharsetByName(ctx->ctx, charset);
+    return rccGetAutoCharsetByName(ctx->config->ctx, charset);
 #else /* RCC_ENCA_SUPPORT */
     return (rcc_charset_id)-1;
 #endif /* RCC_ENCA_SUPPORT */

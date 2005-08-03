@@ -10,5 +10,23 @@
 		<Charset>SHIFT-JIS</Charset>
 	    </Charsets>
 	</Language>
+	<Language name="de">
+	    <FullName>German</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="fr">
+	    <FullName>French</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
     </Languages>
 </LibRCC>

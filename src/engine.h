@@ -21,8 +21,7 @@
 #endif
 
 struct rcc_engine_context_t {
-    rcc_context ctx;
-    rcc_language *language;
+    rcc_language_config config;
     
     rcc_engine_function func;
     rcc_engine_free_function free_func;
@@ -34,7 +33,7 @@ typedef struct rcc_engine_context_t rcc_engine_context_s;
 int rccEngineInit();
 void rccEngineFree();
 
-int rccEngineInitContext(rcc_engine_context engine_ctx, rcc_context ctx);
+int rccEngineInitContext(rcc_engine_context engine_ctx, rcc_language_config config);
 void rccEngineFreeContext(rcc_engine_context engine_ctx);
 int rccEngineConfigure(rcc_engine_context ctx);
 

@@ -190,7 +190,7 @@ int rccFS1(rcc_language_config config, const char *fspath, char **prefix, char *
 
 /* Checks if 'prefix/name' is accessible using 'icnv' recoding. In case of 
 sucess returns pointer on statically allocated memory, and NULL overwise */
-const char *rccFS2(rcc_language_config config, iconv_t icnv, const char *prefix, const char *name) {
+char *rccFS2(rcc_language_config config, iconv_t icnv, const char *prefix, const char *name) {
     size_t size;
     char *tmpbuffer = config->ctx->tmpbuffer;
 
@@ -207,9 +207,9 @@ const char *rccFS2(rcc_language_config config, iconv_t icnv, const char *prefix,
 
 /* Tries to find 'name' encoding in 'prefix/name' file. Returns pointer on
 statically allocated string with correct filename or NULL. */
-const char *rccFS3(rcc_language_config config, rcc_class_id class_id, const char *prefix, const char *name) {
+char *rccFS3(rcc_language_config config, rcc_class_id class_id, const char *prefix, const char *name) {
     unsigned int i;
-    const char *result;
+    char *result;
     rcc_charset charset; 
     rcc_language *language;
     iconv_t icnv = config->fsiconv;
@@ -250,4 +250,33 @@ const char *rccFS3(rcc_language_config config, rcc_class_id class_id, const char
     }
     
     return result;
+}
+
+char *rccFS5(rcc_context ctx, rcc_language_config config, rcc_class_id class_id, const char *utfstring) {
+    int err;
+    char *prefix, *name;
+    char *result;
+
+    if (rccIsASCII(utfstring)) return strdup(utfstring);
+
+    name = NULL;
+    prefix = NULL;
+	    
+    rccMutexLock(ctx->mutex);
+    rccMutexLock(config->mutex);
+    err = rccFS0(config, NULL, utfstring, &prefix, &name);
+    if (err>=0) {
+	result = rccFS3(config, class_id, prefix, name);
+	rccMutexUnLock(config->mutex);
+	rccMutexUnLock(ctx->mutex);
+	if (!err) {
+	    if (prefix) free(prefix);
+	    free(name);
+	}
+	return result;
+    }
+    rccMutexUnLock(config->mutex);
+    rccMutexUnLock(ctx->mutex);
+
+    return NULL;
 }

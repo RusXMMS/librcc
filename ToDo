@@ -6,6 +6,10 @@
 	translation and language detection.
 	+ Implement ispell support
 	+ Configurable timeouts
+    - Move all recoding functionality on rccConfig level
+    - Revise locking subsystem
+    - Think about parrent languages ( For example, it is possible to get ukrainian music band
+      with russian name and ukrainian song titles )
 
 1.x:
     - Common encodings:
@@ -17,6 +21,7 @@
 	    * Code some options in charset name. (SpecialEncodingPrefix_Encoding_EncodingOptions)
     - Recoding options:
 	+ Skip Translation
+    - Switch to Get/Ref/UnRef system
 
 on request:
     - Multibyte(not-UTF8) support for FS classes

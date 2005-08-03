@@ -624,6 +624,25 @@ rcc_language_config rccCheckConfig(rcc_context ctx, rcc_language_id language_id)
   */
 rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id);
 /**
+  * Checks if supplied language is usable. The usability of language is determined
+  * regarding #RCC_OPTION_CONFIGURED_LANGUAGES_ONLY option. Depending on that
+  * option there are several possibilities for language usability:
+  *   Any non-dummy language is usable
+  *   Any configured or AutoEngine enabled language is usable
+  *   Only configured languages are usable
+  *
+  * Language configuration is initialized if not yet configured. And pointer on 
+  * that configuration is returned. If default language is supplied (language_id = 0), the 
+  * language id will be resolved to particular language and config of that language
+  * will be returned.
+  *
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param language_id is concerned language id
+  * @return configuration context. The NULL is returned in the case of errors or 
+  * if unusable language is supplied.
+  */
+rcc_language_config rccGetUsableConfig(rcc_context ctx, rcc_language_id language_id);
+/**
   * Initializes language configuration if not yet configured and returns pointer on
   * that configuration.
   *
@@ -640,6 +659,19 @@ rcc_language_config rccGetConfigByName(rcc_context ctx, const char *name);
   * @return configuration context or NULL in case of error
   */
 rcc_language_config rccGetCurrentConfig(rcc_context ctx);
+
+/**
+  * Return language associated with supplied configuration.
+  *
+  * @param config is language configuration
+  */
+rcc_language_id rccConfigGetLanguage(rcc_language_config config);
+/**
+  * Return name of the language associated with supplied configuration.
+  *
+  * @param config is language configuration
+  */
+const char *rccConfigGetLanguageName(rcc_language_config config);
 
 /**
   * Return supplied engine name
@@ -822,6 +854,8 @@ int rccSetCharsetByName(rcc_context ctx, rcc_class_id class_id, const char *name
 
 rcc_charset_id rccGetLocaleCharset(rcc_context ctx, const char *locale_variable);
 
+rcc_autocharset_id rccDetectCharset(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
+
 /*******************************************************************************
 ************************ Language Configuaration *******************************
 *******************************************************************************/
@@ -998,15 +1032,16 @@ char *rccTranslate(rcc_translate translate, const char *buf);
   * @result is language_id or -1 if autodetection is failed
   */
 rcc_language_id rccDetectLanguage(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
+
 /**
   * Tries to detect charset of string
-  * @param ctx is working context ( or default one if NULL supplied )
+  * @param config is language configuration
   * @param class_id is encoding class
   * @param buf is original string (perhaps not zero terminated)
   * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
   * @result is auto_charset_id or -1 if autodetection is failed
   */
-int rccDetectCharset(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
+rcc_autocharset_id rccConfigDetectCharset(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len);
 
 /**
   * Recode string from specified encoding class to #rcc_string. Encoding detection engines and
@@ -1131,16 +1166,6 @@ rcc_string rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, con
   */
 char *rccSizedRecodeCharsets(rcc_context ctx, const char *from, const char *to, const char *buf, size_t len, size_t *rlen);
 
-
-/**
-  * Tries to detect charset of string
-  * @param config is language configuration
-  * @param class_id is encoding class
-  * @param buf is original string (perhaps not zero terminated)
-  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
-  * @result is auto_charset_id or -1 if autodetection is failed
-  */
-rcc_autocharset_id rccConfigDetectCharset(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len);
 
 /**
   * Recode string from specified encoding class to #rcc_string. Encoding detection engines and

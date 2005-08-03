@@ -121,7 +121,6 @@ void rccFree() {
 }
 
 rcc_context rccCreateContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags) {
-    int err;
     unsigned int i;
     
     rcc_context ctx;
@@ -129,6 +128,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     rcc_class_ptr *classes;
     rcc_language_config configs;
     rcc_iconv *from;
+    rcc_mutex mutex;
 
     if (!initialized) return NULL;
     
@@ -151,10 +151,12 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     languages = (rcc_language_ptr*)malloc((max_languages+1)*sizeof(rcc_language_ptr));
     classes = (rcc_class_ptr*)malloc((max_classes+1)*sizeof(rcc_class_ptr));
     from = (rcc_iconv*)malloc((max_classes)*sizeof(rcc_iconv));
+    mutex = rccMutexCreate();
 
     configs = (rcc_language_config)malloc((max_languages)*sizeof(struct rcc_language_config_t));
     
-    if ((!ctx)||(!languages)||(!classes)) {
+    if ((!ctx)||(!languages)||(!classes)||(!mutex)) {
+	if (mutex) rccMutexFree(mutex);
 	if (from) free(from);
 	if (configs) free(configs);
 	if (classes) free(classes);
@@ -164,6 +166,8 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     }
 
     ctx->configuration_lock = 0;
+    
+    ctx->mutex = mutex;
     
     ctx->db4ctx = NULL;
 
@@ -191,12 +195,6 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     for (i=0;i<max_languages;i++)
 	configs[i].charset = NULL;
 
-    err = rccEngineInitContext(&ctx->engine_ctx, ctx);
-    if (err) {
-	rccFree(ctx);
-	return NULL;
-    }
-    
     ctx->current_language = 0;
     ctx->default_language = 0;
 
@@ -275,7 +273,6 @@ void rccFreeContext(rcc_context ctx) {
     
     if (ctx) {
 	if (ctx->db4ctx) rccDb4FreeContext(ctx->db4ctx);
-	rccEngineFreeContext(&ctx->engine_ctx);
 	rccFreeIConv(ctx);
 	if (ctx->iconv_from) free(ctx->iconv_from);
 	
@@ -286,6 +283,7 @@ void rccFreeContext(rcc_context ctx) {
 	}
 	if (ctx->classes) free(ctx->classes);
 	if (ctx->languages) free(ctx->languages);
+	if (ctx->mutex) rccMutexFree(ctx->mutex);
 	free(ctx);
     }
 }
@@ -428,7 +426,6 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
 
 
 int rccConfigure(rcc_context ctx) {
-    int err;
     unsigned int i;
     rcc_charset *charsets;
     const char *charset;
@@ -437,9 +434,14 @@ int rccConfigure(rcc_context ctx) {
     if (!ctx) return -1;
     if (!ctx->configure) return 0;
     
-    cfg = rccGetCurrentConfig(ctx);
-    if (!cfg) return 1;
     
+
+    cfg = rccGetCurrentConfig(ctx);
+    if (!cfg) return -1;
+
+    rccMutexLock(ctx->mutex);
+    rccMutexLock(cfg->mutex);
+
     rccFreeIConv(ctx);
     for (i=0;i<ctx->n_classes;i++) {
 	charset = rccConfigGetCurrentCharsetName(cfg, (rcc_class_id)i);
@@ -456,10 +458,11 @@ int rccConfigure(rcc_context ctx) {
 	}
     }
     
-    err = rccEngineConfigure(&ctx->engine_ctx);
-    if (err) return err;
-    
     ctx->configure = 0;
+    
+    rccMutexUnLock(cfg->mutex);
+    rccMutexUnLock(ctx->mutex);
+    
     return 0;
 }
 

@@ -160,3 +160,12 @@ rcc_charset_id rccGetLocaleCharset(rcc_context ctx, const char *locale_variable)
     }
     return rccConfigGetLocaleCharset(ctx->current_config, locale_variable);
 }
+
+rcc_autocharset_id rccDetectCharset(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+
+    return rccConfigDetectCharset(ctx->current_config, class_id, buf, len);
+}

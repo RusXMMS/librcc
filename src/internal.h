@@ -13,6 +13,7 @@
 #include "rccdb4.h"
 #include "rcciconv.h"
 #include "rccstring.h"
+#include "rccmutex.h"
 
 #ifdef HAVE_STRNLEN
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
@@ -42,8 +43,6 @@ struct rcc_context_t {
     unsigned int n_classes;
     rcc_class_ptr *classes;
 
-    rcc_engine_context_s engine_ctx;
-
     rcc_iconv *iconv_from;
     rcc_iconv iconv_auto[RCC_MAX_CHARSETS];
 
@@ -60,6 +59,7 @@ struct rcc_context_t {
 
     db4_context db4ctx;
     
+    rcc_mutex mutex;
     unsigned int configuration_lock;
 };
 typedef struct rcc_context_t rcc_context_s;

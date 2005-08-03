@@ -103,7 +103,6 @@ static int rccTranslateQueue(rcc_translate translate, const char *buf) {
 
     err = rccExternalWrite(translate->sock, (char*)&translate->wprefix, sizeof(rcc_translate_prefix_s) - 1, 0);
     if (!err) err = rccExternalWrite(translate->sock, buf, len + 1, 0);
-    fsync(translate->sock);
     return err?1:0;
 }
 
