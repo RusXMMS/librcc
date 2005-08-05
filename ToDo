@@ -8,8 +8,9 @@
 	+ Configurable timeouts
     - Move all recoding functionality on rccConfig level
     - Revise locking subsystem
-    - Think about parrent languages ( For example, it is possible to get ukrainian music band
-      with russian name and ukrainian song titles )
+    - Libtranslate can leave translated message partly in old language. This causes problems
+      because of recoding from UTF8 to Current language. (With UTF-8 encoding should be Okey).
+
 
 1.x:
     - Common encodings:
@@ -25,3 +26,6 @@
 
 on request:
     - Multibyte(not-UTF8) support for FS classes
+    - If there are neccessity in western-european language relating.
+	+ Check for correctness between related western-european languages while 
+	invalid translation checking (rccTo). Can be done with rccSpeller.

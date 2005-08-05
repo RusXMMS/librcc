@@ -58,6 +58,7 @@ rcc_compiled_configuration rccGetCompiledConfiguration() {
 int rccInit() {
     int err;
     char *tmp;
+    unsigned long i, rpos;
 
 #ifdef HAVE_PWD_H
     struct passwd *pw;
@@ -78,11 +79,25 @@ int rccInit() {
     if (!rcc_home_dir) rcc_home_dir = strdup("/");
 
     memcpy(rcc_default_languages, rcc_default_languages_embeded, (RCC_MAX_LANGUAGES + 1)*sizeof(rcc_language));
+    memcpy(rcc_default_aliases, rcc_default_aliases_embeded, (RCC_MAX_ALIASES + 1)*sizeof(rcc_language_alias));
+    memcpy(rcc_default_relations, rcc_default_relations_embeded, (RCC_MAX_RELATIONS + 1)*sizeof(rcc_language_relation));
     memcpy(rcc_option_descriptions, rcc_option_descriptions_embeded, (RCC_MAX_OPTIONS + 1)*sizeof(rcc_option_description));
 
 #ifdef HAVE_LIBTRANSLATE
     rccExternalInit();
 #endif /* HAVE_LIBTRANSLATE */    
+
+    for (rpos=0;rcc_default_relations[rpos].lang;rpos++);
+    for (i=0;rcc_default_languages[i].sn;i++) {
+	if (!strcasecmp(rcc_default_languages[i].sn, rcc_default_language_sn)) continue;
+	if (!strcasecmp(rcc_default_languages[i].sn, rcc_disabled_language_sn)) continue;
+	if (!strcasecmp(rcc_default_languages[i].sn, rcc_english_language_sn)) continue;
+
+	rcc_default_relations[rpos].lang = rcc_default_languages[i].sn;
+	rcc_default_relations[rpos++].parrent = rcc_english_language_sn;
+    }
+    rcc_default_relations[rpos].lang = NULL;
+    rcc_default_relations[rpos].parrent = NULL;
 
     err = rccPluginInit();
     if (!err) err = rccTranslateInit();
@@ -125,6 +140,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     
     rcc_context ctx;
     rcc_language_ptr *languages;
+    rcc_language_parrent_list *language_parrents;
     rcc_class_ptr *classes;
     rcc_language_config configs;
     rcc_iconv *from;
@@ -151,16 +167,18 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     languages = (rcc_language_ptr*)malloc((max_languages+1)*sizeof(rcc_language_ptr));
     classes = (rcc_class_ptr*)malloc((max_classes+1)*sizeof(rcc_class_ptr));
     from = (rcc_iconv*)malloc((max_classes)*sizeof(rcc_iconv));
+    language_parrents = (rcc_language_parrent_list*)malloc((max_languages+1)*sizeof(rcc_language_parrent_list));
     mutex = rccMutexCreate();
 
     configs = (rcc_language_config)malloc((max_languages)*sizeof(struct rcc_language_config_t));
     
-    if ((!ctx)||(!languages)||(!classes)||(!mutex)) {
+    if ((!ctx)||(!languages)||(!classes)||(!mutex)||(!language_parrents)) {
 	if (mutex) rccMutexFree(mutex);
 	if (from) free(from);
 	if (configs) free(configs);
 	if (classes) free(classes);
 	if (languages) free(languages);
+	if (language_parrents) free(language_parrents);
 	if (ctx) free(ctx);
 	return NULL;
     }
@@ -174,7 +192,10 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     ctx->aliases[0] = NULL;
     for (i=0;rcc_default_aliases[i].alias;i++)
 	rccRegisterLanguageAlias(ctx, rcc_default_aliases + i);
-
+    
+    ctx->language_parrents = language_parrents;
+    for (i=0;i<max_languages;i++) language_parrents[i][0] = (rcc_language_id)-1;
+    
     ctx->languages = languages;
     ctx->max_languages = max_languages;
     ctx->n_languages = 0;
@@ -216,12 +237,15 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     } else {
 	for (i=0;rcc_default_languages[i].sn;i++)
 	    rccRegisterLanguage(ctx, rcc_default_languages+i);
-	
+
 	if (max_languages < i) {
 	    rccFree(ctx);
 	    return NULL;
 	}
 
+	for (i=0;rcc_default_relations[i].lang;i++)
+	    rccRegisterLanguageRelation(ctx, rcc_default_relations+i);
+	
 	ctx->current_config = rccGetCurrentConfig(ctx);
     } 
     
@@ -282,6 +306,7 @@ void rccFreeContext(rcc_context ctx) {
 	    free(ctx->configs);
 	}
 	if (ctx->classes) free(ctx->classes);
+	if (ctx->language_parrents) free(ctx->language_parrents);
 	if (ctx->languages) free(ctx->languages);
 	if (ctx->mutex) rccMutexFree(ctx->mutex);
 	free(ctx);
@@ -396,6 +421,45 @@ rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias
 
     return i-1;
 }
+
+rcc_relation_id rccRegisterLanguageRelation(rcc_context ctx, rcc_language_relation *relation) {
+    unsigned int i;
+    rcc_language_id language_id;
+    const char *lang;
+    const char *parrent;
+    rcc_language_id *list;
+    
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return (rcc_alias_id)-1;
+    }
+    if (!relation) return (rcc_relation_id)-1;
+
+    lang = relation->lang;
+    parrent = relation->parrent;
+    if ((!lang)||(!parrent)||(!strcasecmp(lang,parrent))) return (rcc_relation_id)-1;
+    
+    language_id = rccGetLanguageByName(ctx, lang);
+    if (language_id == (rcc_language_id)-1) return (rcc_relation_id)-1;
+    
+
+    list = ctx->language_parrents[language_id];
+
+    language_id = rccGetLanguageByName(ctx, parrent);
+    if (language_id == (rcc_language_id)-1) return (rcc_relation_id)0;
+    
+    for (i=0;list[i]!=(rcc_language_id)-1;i++)
+	if (list[i] == language_id) return (rcc_relation_id)0;
+
+    if (i<RCC_MAX_LANGUAGE_PARRENTS) {
+	list[i++] = language_id;
+    	list[i] = (rcc_language_id)-1;
+    } else return (rcc_relation_id)-1;
+    
+    
+    return (rcc_relation_id)0;
+}
+
 
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
     if (!ctx) {

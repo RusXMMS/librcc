@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "internal.h"
 #include "rccspell.h"
 
 rcc_speller rccSpellerCreate(const char *lang) {
@@ -28,6 +29,7 @@ rcc_speller rccSpellerCreate(const char *lang) {
     }
     
     rccspeller->speller = speller;
+    rccspeller->parrents[0] = NULL;
     return rccspeller;
 #else 
     return NULL;
@@ -47,17 +49,58 @@ int rccSpellerGetError(rcc_speller rccspeller) {
     return 0;
 }
 
-int rccSpellerSized(rcc_speller speller, const char *word, size_t len) {
-#ifdef HAVE_ASPELL
-    int res;
+int rccSpellerAddParrent(rcc_speller speller, rcc_speller parrent) {
+    unsigned int i;
+    if ((!speller)||(!parrent)) return -1;
     
-    if (rccSpellerGetError(speller)) return 0;
+    for (i=0;speller->parrents[i];i++);
+    if (i >= RCC_MAX_LANGUAGE_PARRENTS) return -1;
+    speller->parrents[i++] = parrent;
+    speller->parrents[i] = NULL;
+    
+    return 0;
+}
+
+rcc_speller_result rccSpellerSized(rcc_speller speller, const char *word, size_t len, int recursion) {
+#ifdef HAVE_ASPELL
+    rcc_speller_result result, saved_result = (rcc_speller_result)0;
+    unsigned int i;
+    int res;
+
+    if (rccSpellerGetError(speller)) return (rcc_speller_result)RCC_SPELLER_INCORRECT;
+
+    if (recursion) {
+	for (i=0; speller->parrents[i]; i++) {
+	    result = rccSpellerSized(speller->parrents[i], word, len, 0);
+	    if ((result == RCC_SPELLER_CORRECT)||(result == RCC_SPELLER_PARRENT)) return RCC_SPELLER_PARRENT;
+	    if ((result == RCC_SPELLER_ALMOST_CORRECT)||(result == RCC_SPELLER_ALMOST_PARRENT)) saved_result = RCC_SPELLER_ALMOST_PARRENT;
+	}
+    }
+    
+    if (saved_result) return saved_result;
+
     res = aspell_speller_check(speller->speller, word, len?len:-1);
-    return res<0?0:res;    
+    return res<=0?RCC_SPELLER_INCORRECT:RCC_SPELLER_CORRECT;    
 #endif /* HAVE_ASPELL */
     return 0;
 }
 
-int rccSpeller(rcc_speller speller, const char *word) {
-    return rccSpellerSized(speller, word, 0);
+rcc_speller_result rccSpeller(rcc_speller speller, const char *word) {
+    return rccSpellerSized(speller, word, 0, 1);
+}
+
+int rccSpellerResultIsOwn(rcc_speller_result res) {
+    if ((res == RCC_SPELLER_ALMOST_CORRECT)||(res == RCC_SPELLER_CORRECT)) return 1;
+    return 0;
+}
+
+int rccSpellerResultIsPrecise(rcc_speller_result res) {
+    if ((res == RCC_SPELLER_PARRENT)||(res == RCC_SPELLER_CORRECT)) return 1;
+    return 0;
+}
+
+int rccSpellerResultIsCorrect(rcc_speller_result res) {
+    if ((res == RCC_SPELLER_ALMOST_CORRECT)||(res == RCC_SPELLER_CORRECT)) return 1;
+    if ((res == RCC_SPELLER_ALMOST_PARRENT)||(res == RCC_SPELLER_PARRENT)) return 1;
+    return 0;
 }

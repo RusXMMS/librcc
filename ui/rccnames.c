@@ -43,6 +43,7 @@ rcc_option_name rcc_default_option_names_embeded[RCC_MAX_OPTIONS+1] = {
     { RCC_OPTION_AUTOENGINE_SET_CURRENT, "AutoEngine Set Current Encoding", rcc_default_option_boolean_names },
     { RCC_OPTION_AUTODETECT_LANGUAGE, "Autodetect Language", rcc_default_option_boolean_names },
     { RCC_OPTION_TRANSLATE, "Translate Text", rcc_default_option_translate_names },
+    { RCC_OPTION_TIMEOUT, "Recoding Timeout (us)", NULL },
     { RCC_MAX_OPTIONS }
 };
 

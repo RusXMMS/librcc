@@ -175,3 +175,26 @@ int rccIsASCII(const char *str) {
 	if ((unsigned char)str[i]>0x7F) return 0;
     return 1;
 }
+
+size_t rccStringSizedGetChars(const char *str, size_t size) {
+    size_t i, skip = 0, chars = 0;
+    const unsigned char *tmp;
+
+    tmp = rccGetString(str);
+    
+    for (i=0;(size?(size-i):tmp[i]);i++) {
+	if (skip) {
+	    skip--;
+	    continue;
+	}
+	
+	if (tmp[i]<0x80) skip = 0;
+	else if ((tmp[i]>0xBF)&&(tmp[i]<0xE0)) skip = 1;
+	else if ((tmp[i]>0xDF)&&(tmp[i]<0xF0)) skip = 2;
+	else if ((tmp[i]>0xEF)&&(tmp[i]<0xF8)) skip = 3;
+	else skip = 4;
+	chars++;
+    }
+    
+    return chars;
+}

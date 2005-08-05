@@ -34,6 +34,10 @@ typedef unsigned char rcc_language_id;
   */
 typedef unsigned char rcc_alias_id;
 /**
+  * Relation ID
+  */
+typedef unsigned char rcc_relation_id;
+/**
   * Charset ID.
   *	-  0 is default charset
   *	- -1 is error
@@ -225,15 +229,31 @@ typedef rcc_language_ptr rcc_language_list[RCC_MAX_LANGUAGES+1];
 
 /** 
   * Language Aliases.
-  * For example (ru_UA = uk, cs_SK = sk )
+  * For example: ru_UA = uk, cs_SK = sk
   */
 struct rcc_language_alias_t {
     const char *alias; /**< Long locale name */
-    const char *lang; /* Coresponded language ISO-639-1 name */
+    const char *lang; /**< Coresponded language ISO-639-1 name */
 };
 typedef struct rcc_language_alias_t rcc_language_alias;
 typedef rcc_language_alias *rcc_language_alias_ptr;
 typedef rcc_language_alias_ptr rcc_language_alias_list[RCC_MAX_ALIASES+1];
+
+/**
+  * Language relations. 
+  * Meaning: sentence in considered language may contain words from all his parrents. This
+  * knowledge will help Autodetection Engine to guess right language. 
+  * 
+  * For example: Russian is parrent language for Ukrainian. This means it is possible
+  * to encounter russian words in ukrainian sentence.
+  *
+  * All languages by default are related to english language.
+  */
+struct rcc_language_relation_t {
+    const char *lang;		/**< Coresponded language ISO-639-1 name */
+    const char *parrent;	/**< Parrent language  */
+};
+typedef struct rcc_language_relation_t rcc_language_relation;
 
 /**
   * Register new language in supplied working context
@@ -263,6 +283,13 @@ rcc_engine_id rccLanguageRegisterEngine(rcc_language *language, rcc_engine *engi
   * @return registered alias id  or -1 in case of a error.
   */
 rcc_alias_id rccRegisterLanguageAlias(rcc_context ctx, rcc_language_alias *alias);
+/**
+  * Register new language relation in supplied working context
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param relation is pointer on relation description (shouldn't be freed before library deinitialization).
+  * @return registered relation id  or -1 in case of a error.
+  */
+rcc_relation_id rccRegisterLanguageRelation(rcc_context ctx, rcc_language_relation *relation);
 
 /*******************************************************************************
 ************************ Altering Configuaration *******************************
@@ -391,7 +418,9 @@ typedef enum rcc_option_t {
     RCC_OPTION_AUTOENGINE_SET_CURRENT,	/**< If enabled autodetection engine will set current charset */
     RCC_OPTION_AUTODETECT_LANGUAGE,	/**< Enables language detection */
     RCC_OPTION_TRANSLATE,		/**< Translate #rcc_string if it's language differs from current one */
-    RCC_MAX_OPTIONS
+    RCC_OPTION_TIMEOUT,			/**< Recoding timeout. Currently it is only used to limit translation time */
+    RCC_MAX_OPTIONS,
+    RCC_OPTION_ALL
 } rcc_option;
 
 /**
@@ -948,12 +977,13 @@ int rccStringNCaseCmp(const char *str1, const char *str2, size_t n);
 /*******************************************************************************
 ******************************** Recoding **************************************
 *******************************************************************************/
+/* rcciconv.c */
+
 /**
   * recoding context
   */
 typedef struct rcc_iconv_t *rcc_iconv;
 
-/* rcciconv.c */
 /**
   * Open recoding context.
   *
@@ -980,12 +1010,13 @@ void rccIConvClose(rcc_iconv icnv);
   */
 char *rccIConv(rcc_iconv icnv, const char *buf, size_t len, size_t *rlen);
 
+/* rcctranslate.c */
+
 /**
   * translating context
   */
 typedef struct rcc_translate_t *rcc_translate;
 
-/* rcctranslate.c */
 /**
   * Open translating context.
   *
@@ -1020,6 +1051,61 @@ int rccTranslateSetTimeout(rcc_translate translate, unsigned long us);
   * @return recoded string or NULL in the case of error
   */
 char *rccTranslate(rcc_translate translate, const char *buf);
+
+
+/* rccspell.c */
+
+/**
+  * spelling context
+  */
+typedef struct rcc_speller_t *rcc_speller;
+
+/**
+  * result of spelling
+  */
+typedef enum rcc_speller_result_t {
+    RCC_SPELLER_INCORRECT = 0,		/**< Word not found in dictionaries */
+    RCC_SPELLER_ALMOST_PARRENT,		/**< Similliar word is found in parrents dictionary */
+    RCC_SPELLER_ALMOST_CORRECT,		/**< Similliar word is found in dictionary */
+    RCC_SPELLER_PARRENT,		/**< Word is found in parrent dictionary */
+    RCC_SPELLER_CORRECT			/**< Word is found in dictionary */
+} rcc_speller_result;
+
+int rccSpellerResultIsOwn(rcc_speller_result res);
+int rccSpellerResultIsPrecise(rcc_speller_result res);
+int rccSpellerResultIsCorrect(rcc_speller_result res);
+
+/**
+  * Open spelling context.
+  *
+  * @param lang is language
+  * @return 
+  *	- NULL if language is not supported and in the case of error.
+  *	- Pointer on initialized context if successful
+  */
+rcc_speller rccSpellerCreate(const char *lang);
+/**
+  * Close spelling context.
+  *
+  * @param speller is spelling context
+  */
+void rccSpellerFree(rcc_speller speller);
+/**
+  * Add parrent to the spelling context.
+  *
+  * @param speller is spelling context
+  * @param parrent is parrent spelling context
+  * @return non-zero value in the case of error
+  */
+int rccSpellerAddParrent(rcc_speller speller, rcc_speller parrent);
+/** 
+  * Spell a word.
+  *
+  * @param speller is spelling context
+  * @param word is UTF-8 encoded word for spelling
+  * @return FALSE if word is not found in dictionary
+  */
+rcc_speller_result rccSpeller(rcc_speller speller, const char *word);
 
 /* recode.c */
 

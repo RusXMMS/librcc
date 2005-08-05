@@ -104,6 +104,9 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx);
   */
 void rccUiFreeContext(rcc_ui_context ctx);
 
+int rccUiHideOption(rcc_ui_context ctx, rcc_option option);
+int rccUiUnHideOption(rcc_ui_context ctx, rcc_option option);
+
 /**
   * Restores current language UI menu values from #rcc_context.
   *

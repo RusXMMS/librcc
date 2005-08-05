@@ -5,15 +5,8 @@
 # define LIBRCC_DATA_DIR "/usr/lib/rcc"
 #endif /* LIBRCC_DATA_DIR */
 
-#include "librcc.h"
-#include "recode.h"
-#include "engine.h"
-#include "lngconfig.h"
-#include "rccstring.h"
-#include "rccdb4.h"
-#include "rcciconv.h"
-#include "rccstring.h"
-#include "rccmutex.h"
+#define RCC_MAX_LANGUAGE_PARRENTS 4
+#define RCC_MAX_RELATIONS RCC_MAX_LANGUAGES
 
 #ifdef HAVE_STRNLEN
 #define STRNLEN(str,n) (n?strnlen(str,n):strlen(str))
@@ -26,6 +19,20 @@
 #define RCC_MAX_PREFIX_CHARS 32
 #define RCC_MIN_DB4_CHARS 3
 
+#include "librcc.h"
+#include "recode.h"
+#include "engine.h"
+#include "lngconfig.h"
+#include "rccstring.h"
+#include "rccdb4.h"
+#include "rcciconv.h"
+#include "rccstring.h"
+#include "rccmutex.h"
+
+
+
+typedef rcc_language_id rcc_language_parrent_list[RCC_MAX_LANGUAGE_PARRENTS];
+
 struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];
     
@@ -37,6 +44,7 @@ struct rcc_context_t {
     unsigned int max_languages;
     unsigned int n_languages;
     rcc_language_ptr *languages;
+    rcc_language_parrent_list *language_parrents;
     rcc_language_config configs;
     
     unsigned int max_classes;

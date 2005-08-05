@@ -50,7 +50,7 @@ int rccXmlInit(int LoadConfiguration) {
     FILE *f;
     char config[MAX_HOME_CHARS + 32];
 
-    xmlXPathContextPtr xpathctx;    
+    xmlXPathContextPtr xpathctx = NULL;
     xmlXPathObjectPtr obj = NULL;
     xmlNodeSetPtr node_set;
     unsigned long i, nnodes;
@@ -58,6 +58,8 @@ int rccXmlInit(int LoadConfiguration) {
     xmlAttrPtr attr;
     const char *lang, *engine_name;
     unsigned int pos, lpos, epos, cpos;
+    const char *alias, *parrent;
+    unsigned int j, apos, rpos;
     
     rcc_engine *engine;
     
@@ -81,6 +83,8 @@ int rccXmlInit(int LoadConfiguration) {
 	}
     } else config[0] = 0;
 
+    
+    for (apos=0;rcc_default_aliases[apos].alias;apos++);
     
 	// Load Extra Languages
     if (config[0]) {
@@ -108,7 +112,17 @@ int rccXmlInit(int LoadConfiguration) {
 	    
 	    pos = rccDefaultGetLanguageByName(lang);
 	    if (!pos) continue;
-	    if (pos == (rcc_language_id)-1) pos = lpos;
+	    if (pos == (rcc_language_id)-1) {
+		for (rpos=0;rcc_default_relations[rpos].lang;rpos++);
+		if (rpos < RCC_MAX_RELATIONS) {
+			rcc_default_relations[rpos].parrent = rcc_english_language_sn;
+			rcc_default_relations[rpos++].lang = lang;
+			rcc_default_relations[rpos].parrent = NULL;
+			rcc_default_relations[rpos].lang = NULL;
+		}
+		
+		pos = lpos;
+	    }
 	    else if (pos == RCC_MAX_LANGUAGES) continue; 
 	    
 	    for (epos = 1, cpos = 1,node=pnode->children;node;node=node->next) {
@@ -121,16 +135,49 @@ int rccXmlInit(int LoadConfiguration) {
 			}
 		    }
 		} 
-		if (!xmlStrcmp(node->name, "Engines")) {
+		else if (!xmlStrcmp(node->name, "Engines")) {
 		    for (enode=node->children;enode;enode=enode->next) {
 			if (enode->type != XML_ELEMENT_NODE) continue;
-			if ((!xmlStrcmp(enode->name, "Engine"))&&(rccXmlGetText(enode))&&(epos<RCC_MAX_ENGINES)) {
+			if ((!xmlStrcmp(enode->name, "Engine"))&&(epos<RCC_MAX_ENGINES)) {
 				engine_name = rccXmlGetText(enode);
 				if (!engine_name) continue;
 				engine = rccPluginEngineGetInfo(engine_name, lang);
 				if (!engine) continue;
 				 
 				rcc_default_languages[pos].engines[epos++] = engine;
+			}
+		    }
+		}
+		else if (!xmlStrcmp(node->name, "Aliases")) {
+		    for (enode=node->children;enode;enode=enode->next) {
+			if (enode->type != XML_ELEMENT_NODE) continue;
+			if ((!xmlStrcmp(enode->name, "Alias"))&&(apos<RCC_MAX_ALIASES)) {
+			    alias = rccXmlGetText(enode);
+			    if (!alias) continue;
+			    for (j=0;j<apos;j++)
+				if (!strcasecmp(alias, rcc_default_aliases[j].alias)) break;
+			    if (j<apos) {
+				rcc_default_aliases[j].lang = lang;
+			    } else {
+				rcc_default_aliases[apos].alias = alias;
+				rcc_default_aliases[apos++].lang = lang;
+				rcc_default_aliases[apos].alias = NULL;
+				rcc_default_aliases[apos].lang = NULL;
+			    }
+			}
+		    }
+		}
+		else if (!xmlStrcmp(node->name, "Relations")) {
+		    rpos = rccDefaultDropLanguageRelations(lang);
+		    for (enode=node->children;enode;enode=enode->next) {
+			if (enode->type != XML_ELEMENT_NODE) continue;
+			if ((!xmlStrcmp(enode->name, "Parrent"))&&(rpos<RCC_MAX_RELATIONS)) {
+			    parrent = rccXmlGetText(enode);
+			    if (!parrent) continue;
+			    rcc_default_relations[rpos].parrent = parrent;
+			    rcc_default_relations[rpos++].lang = lang;
+			    rcc_default_relations[rpos].parrent = NULL;
+			    rcc_default_relations[rpos].lang = NULL;
 			}
 		    }
 		}
@@ -161,6 +208,7 @@ clear:
 	    }
 	}
     }
+
     return 0;
 }
 
@@ -507,8 +555,7 @@ int rccLoad(rcc_context ctx, const char *name) {
 		ovalue = rccOptionDescriptionGetValueByName(odesc, tmp);
 		if (ovalue == (rcc_option_value)-1) ovalue = (rcc_option_value)atoi(tmp);
 		 err = rccSetOption(ctx, (rcc_option)i, ovalue);
-	    }
-	    else err = -1;
+	    } else err = -1;
 	} else err = -1;
 	if (err) rccOptionSetDefault(ctx, (rcc_option)i);
     }

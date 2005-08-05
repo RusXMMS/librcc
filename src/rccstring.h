@@ -26,5 +26,6 @@ int strnlen(const char *str, size_t size);
 int rccStrnlen(const char *str, size_t size);
 #endif /* HAVE_STRNLEN */
 int rccIsASCII(const char *str);
+size_t rccStringSizedGetChars(const char *str, size_t size);
 
 #endif /* _RCC_STRING_H */

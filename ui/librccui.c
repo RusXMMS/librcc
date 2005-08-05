@@ -525,6 +525,30 @@ void rccUiFreeContext(rcc_ui_context ctx) {
     free(ctx);
 }
 
+int rccUiHideOption(rcc_ui_context ctx, rcc_option option) {
+    unsigned int i;
+    if ((!ctx)||((option > RCC_MAX_OPTIONS)&&(option != RCC_OPTION_ALL))) return -1;
+    
+    if (option != RCC_OPTION_ALL) return rccUiMenuHide(ctx->options[option]);
+    
+    for (i=0;i<RCC_MAX_OPTIONS;i++)
+	rccUiMenuHide(ctx->options[i]);
+
+    return 0;
+}
+
+int rccUiUnHideOption(rcc_ui_context ctx, rcc_option option) {
+    unsigned int i;
+    if ((!ctx)||((option > RCC_MAX_OPTIONS)&&(option != RCC_OPTION_ALL))) return -1;
+    
+    if (option != RCC_OPTION_ALL) return rccUiMenuUnHide(ctx->options[option]);
+    
+    for (i=0;i<RCC_MAX_OPTIONS;i++)
+	rccUiMenuUnHide(ctx->options[i]);
+
+    return 0;
+}
+
 int rccUiSetLanguageNames(rcc_ui_context ctx, rcc_name *names) {
     if (!ctx) return -1;
 

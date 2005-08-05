@@ -22,14 +22,27 @@
 		<Charset>MACCYRILLIC</Charset>
 	    </Charsets>
 	</Language>
-	<Language name="ja">
-	    <FullName>Japanese</FullName>
+	<Language name="uk">
+	    <FullName>Ukrainian</FullName>
+	    <Engines>
+		<Engine>russian</Engine>
+	    </Engines>
 	    <Charsets>
 		<Charset>UTF-8</Charset>
-		<Charset>ISO-2022-JP</Charset>
-		<Charset>EUC-JP</Charset>
-		<Charset>SHIFT-JIS</Charset>
+		<Charset>KOI8-U</Charset>
+		<Charset>CP1251</Charset>
+		<Charset>IBM865</Charset>
+		<Charset>ISO8859-5</Charset>
+		<Charset>MACCYRILLIC</Charset>
+		<Charset>CP1125</Charset>
 	    </Charsets>
+	    <Aliases>
+		<Alias>ru_UA</Alias>
+	    </Aliases>
+	    <Relations>
+		<Parrent>en</Parrent>
+		<Parrent>ru</Parrent>
+	    </Relations>
 	</Language>
     </Languages>
     <Options>

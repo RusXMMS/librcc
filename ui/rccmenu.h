@@ -37,6 +37,7 @@ struct rcc_ui_option_menu_context_t {
     rcc_ui_menu_context_s ui_menu;
     rcc_option id;
     rcc_option_type type;
+    rcc_option_type realtype;
     rcc_option_range *range;
 };
 typedef struct rcc_ui_option_menu_context_t rcc_ui_option_menu_context_s;
@@ -51,5 +52,9 @@ rcc_class_id rccUiMenuGetClassId(rcc_ui_menu_context ctx);
 rcc_option rccUiMenuGetOption(rcc_ui_menu_context ctx);
 rcc_option_type rccUiMenuGetType(rcc_ui_menu_context ctx);
 rcc_option_range_type rccUiMenuGetRangeType(rcc_ui_menu_context ctx);
+rcc_option_range *rccUiMenuGetRange(rcc_ui_menu_context ctx);
+
+int rccUiMenuHide(rcc_ui_menu_context ctx);
+int rccUiMenuUnHide(rcc_ui_menu_context ctx);
 
 #endif /* _RCC_UI_MENU_H */

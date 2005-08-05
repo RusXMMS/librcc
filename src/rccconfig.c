@@ -6,10 +6,20 @@
 #include "engine.h"
 #include "opt.h"
 
-rcc_language_alias rcc_default_aliases[] = {
+#define RCC_DEFAULT_RECODING_TIMEOUT 500000
+
+rcc_language_alias rcc_default_aliases[RCC_MAX_ALIASES + 1];
+rcc_language_alias rcc_default_aliases_embeded[RCC_MAX_ALIASES + 1] = {
     { "cs_SK", "sk" },
     { "ru_UA", "uk" },
-    { NULL, NULL}
+    { NULL, NULL }
+};
+
+rcc_language_relation rcc_default_relations[RCC_MAX_RELATIONS + 1];
+rcc_language_relation rcc_default_relations_embeded[RCC_MAX_RELATIONS + 1] = {
+    { "uk", "ru" },
+    { "be", "ru" },
+    { NULL, NULL }
 };
 
 const char rcc_default_language_sn[] = "default";
@@ -140,6 +150,11 @@ rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
     {RCC_OPTION_TRANSLATE, 0, { RCC_OPTION_RANGE_TYPE_MENU, 0, 3, 1}, RCC_OPTION_TYPE_INVISIBLE, "TRANSLATE", rcc_sn_translate },
 #endif /* HAVE_LIBTRANSLATE */
     {RCC_OPTION_AUTOENGINE_SET_CURRENT, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0}, RCC_OPTION_TYPE_STANDARD, "AUTOENGINE_SET_CURRENT", rcc_sn_boolean },
+#ifdef HAVE_LIBTRANSLATE
+    {RCC_OPTION_TIMEOUT, RCC_DEFAULT_RECODING_TIMEOUT, { RCC_OPTION_RANGE_TYPE_RANGE, 0, 5000000, 50000}, RCC_OPTION_TYPE_STANDARD, "TIMEOUT", NULL },
+#else
+    {RCC_OPTION_TIMEOUT, RCC_DEFAULT_RECODING_TIMEOUT, { RCC_OPTION_RANGE_TYPE_RANGE, 0, 5000000, 50000}, RCC_OPTION_TYPE_INVISIBLE, "TIMEOUT", NULL },
+#endif /* HAVE_LIBTRANSLATE */
     {RCC_MAX_OPTIONS}
 };
 
@@ -149,7 +164,8 @@ rcc_option_description *rccGetOptionDescription(rcc_option option) {
     if ((option<0)||(option>=RCC_MAX_OPTIONS)) return NULL;
 
     for (i=0;rcc_option_descriptions[i].option!=RCC_MAX_OPTIONS;i++)
-	if (rcc_option_descriptions[i].option == option) return rcc_option_descriptions+i;
+	if (rcc_option_descriptions[i].option == option) 
+	    return rcc_option_descriptions+i;
     
     return NULL;
 }
@@ -179,4 +195,19 @@ rcc_language_id rccDefaultGetLanguageByName(const char *name) {
 int rccIsUTF8(const char *name) {
     if ((!name)||(strcasecmp(name, "UTF-8")&&strcasecmp(name, "UTF8"))) return 0;
     return 1;
+}
+
+unsigned int rccDefaultDropLanguageRelations(const char *lang) {
+    unsigned long i, j;
+    for (i=0,j=0;rcc_default_relations[i].lang;i++) {
+	if (strcasecmp(lang, rcc_default_relations[i].lang)) {
+	    if (j<i) {
+		rcc_default_relations[j].lang = rcc_default_relations[i].lang;
+		rcc_default_relations[j++].parrent = rcc_default_relations[i].parrent;
+	    } else j++;
+	}
+    }
+    rcc_default_relations[j].lang = NULL;
+    rcc_default_relations[j].parrent = NULL;
+    return j;
 }

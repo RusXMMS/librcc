@@ -112,7 +112,7 @@ rcc_option rccOptionDescriptionGetOption(rcc_option_description *desc) {
 const char *rccOptionDescriptionGetValueName(rcc_option_description *desc, rcc_option_value value) {
     unsigned int i;
     
-    if (desc) {
+    if ((desc)&&(desc->vsn)) {
 	for (i=0;desc->vsn[i];i++) {
 	    if (i == value) return desc->vsn[i];
 	}
@@ -123,7 +123,7 @@ const char *rccOptionDescriptionGetValueName(rcc_option_description *desc, rcc_o
 rcc_option_value rccOptionDescriptionGetValueByName(rcc_option_description *desc, const char *name) {
     unsigned int i;
 
-    if ((desc)&&(name)) {
+    if ((desc)&&(desc->vsn)&&(name)) {
 	for (i=0;desc->vsn[i];i++) {
 	    if (!strcasecmp(desc->vsn[i], name)) return (rcc_option_value)i;
 	}

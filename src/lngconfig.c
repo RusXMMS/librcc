@@ -340,16 +340,40 @@ rcc_language_config rccGetCurrentConfig(rcc_context ctx) {
 }
 
 rcc_speller rccConfigGetSpeller(rcc_language_config config) {
+    unsigned int i;
+    rcc_speller speller;
+    rcc_language_config pconfig;
+    rcc_language_id *parrents;
+    rcc_language_id language_id;
     if (!config) return NULL;
     
     rccMutexLock(config->mutex);    
-    if (!config->speller) config->speller = rccSpellerCreate(config->language->sn);
+    if (!config->speller) {
+	config->speller = rccSpellerCreate(config->language->sn);
+
+	if (config->speller) language_id = rccConfigGetLanguage(config);
+	else language_id = (rcc_language_id)-1;
+	if (language_id != (rcc_language_id)-1) parrents = config->ctx->language_parrents[language_id];
+	else parrents = NULL;
+
+	if (parrents) {
+	    for (i = 0; parrents[i]!=(rcc_language_id)-1; i++) {
+		pconfig = rccGetConfig(config->ctx, parrents[i]);
+		if (pconfig) {
+		    speller = rccConfigGetSpeller(pconfig);
+		    rccSpellerAddParrent(config->speller, speller);
+		}
+	    }
+	}	
+    }
     rccMutexUnLock(config->mutex);
 
     return config->speller;
 }
 
 rcc_translate rccConfigGetTranslator(rcc_language_config config, rcc_language_id to) {
+    rcc_option_value timeout;
+    
     if (!config) return NULL;
 
     rccMutexLock(config->mutex);
@@ -360,7 +384,11 @@ rcc_translate rccConfigGetTranslator(rcc_language_config config, rcc_language_id
 
     if (!config->trans) {
 	config->trans = rccTranslateOpen(config->language->sn, rccGetLanguageName(config->ctx, to));
-	config->translang = to;
+	if (config->trans) {
+	    config->translang = to;
+	    timeout = rccGetOption(config->ctx, RCC_OPTION_TIMEOUT);
+	    if (timeout) rccTranslateSetTimeout(config->trans, timeout);
+	}
     }
     rccMutexUnLock(config->mutex);
     
@@ -368,11 +396,18 @@ rcc_translate rccConfigGetTranslator(rcc_language_config config, rcc_language_id
 }
 
 rcc_translate rccConfigGetEnglishTranslator(rcc_language_config config) {
+    rcc_option_value timeout;
+
     if (!config) return NULL;
 
     rccMutexLock(config->mutex);
-    if (!config->entrans)
+    if (!config->entrans) {
 	config->entrans = rccTranslateOpen(config->language->sn, rcc_english_language_sn);
+	if (config->entrans) {
+	    timeout = rccGetOption(config->ctx, RCC_OPTION_TIMEOUT);
+	    if (timeout) rccTranslateSetTimeout(config->entrans, timeout);
+	}
+    }
     rccMutexUnLock(config->mutex);
 
     return config->entrans;

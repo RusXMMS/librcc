@@ -65,6 +65,15 @@ install -m 755 examples/rcc-gtk*-config $RPM_BUILD_ROOT/%{prefix}/bin
 
 install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc
 
+if [ -f $RPM_BUILD_ROOT/usr/bin/rcc-gtk2-config ]; then
+    ln -s rcc-gtk2-config $RPM_BUILD_ROOT/usr/bin/rcc-config
+elif [ -f $RPM_BUILD_ROOT/usr/bin/rcc-gtk-config ]; then
+    ln -s rcc-gtk-config $RPM_BUILD_ROOT/usr/bin/rcc-config
+else
+    echo "#!/bin/bash" > $RPM_BUILD_ROOT/usr/bin/rcc-config
+    echo "echo \"Configuration UI is not available!\"" >> $RPM_BUILD_ROOT/usr/bin/rcc-config
+fi
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -80,7 +89,7 @@ rm -rf $RPM_BUILD_ROOT
 /etc/rcc.xml
 %{prefix}/lib/lib*.so.*
 %{prefix}/lib/rcc/
-%{prefix}/bin/rcc-gtk*-config
+%{prefix}/bin/rcc-*config
 
 %files devel
 %defattr(-, root, root)  

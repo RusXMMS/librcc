@@ -1,9 +1,9 @@
 #ifndef _RCC_DB4_H
 #define _RCC_DB4_H
 
-#include "../config.h"
-
 #include "librcc.h"
+
+#include "../config.h"
 
 #ifdef HAVE_DB_H
 # include <db.h>

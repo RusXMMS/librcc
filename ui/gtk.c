@@ -33,8 +33,19 @@ rcc_ui_id rccUiMenuGet(rcc_ui_menu_context ctx) {
     
     if (!ctx) return (rcc_ui_id)-1;
 
-    if ((ctx->type == RCC_UI_MENU_OPTION)&&(rccUiMenuGetRangeType(ctx)==RCC_OPTION_RANGE_TYPE_BOOLEAN))
-	return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ctx->widget));
+    if (ctx->type == RCC_UI_MENU_OPTION) {
+	switch (rccUiMenuGetRangeType(ctx)) {
+	    
+	    case RCC_OPTION_RANGE_TYPE_BOOLEAN:
+		return gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ctx->widget));
+	    case RCC_OPTION_RANGE_TYPE_MENU:
+		break;
+	    case RCC_OPTION_RANGE_TYPE_RANGE:
+	        return gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(ctx->widget));
+	    default:
+		return (rcc_ui_id)-1;
+	}
+    }
     
     menu = gtk_option_menu_get_menu(ctx->widget);
     return g_list_index(GTK_MENU_SHELL(menu)->children, gtk_menu_get_active(GTK_MENU(menu)));
@@ -52,6 +63,8 @@ int rccUiMenuSet(rcc_ui_menu_context ctx, rcc_ui_id id) {
 		case RCC_OPTION_RANGE_TYPE_MENU:
 		    gtk_option_menu_set_history(ctx->widget, id);
 		break;
+		case RCC_OPTION_RANGE_TYPE_RANGE:
+		    gtk_spin_button_set_value(GTK_SPIN_BUTTON(ctx->widget), id);
 		default:
 		    return -1;
 	    }	
@@ -84,10 +97,12 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     rcc_charset_id charset_id;
     rcc_engine_id engine_id;
     
+    rcc_option_range *range;
     rcc_option_name *option_name;
     rcc_option_value_names optnames;
     
     GtkWidget *list, *item, *menu;
+    GtkObject *adjustment;
 
     if (!ctx) return -1;
     
@@ -202,6 +217,14 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 			gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
 		    }
 		    gtk_option_menu_set_history(GTK_OPTION_MENU(ctx->widget), rccGetOption(rccctx, rccUiMenuGetOption(ctx)));
+		break;
+		case RCC_OPTION_RANGE_TYPE_RANGE:
+		    range = rccUiMenuGetRange(ctx);
+		    adjustment = gtk_adjustment_new(rccGetOption(rccctx, rccUiMenuGetOption(ctx)), range->min, range->max, range->step, range->step*5, range->step*5);
+/*		    item = gtk_hscale_new(GTK_ADJUSTMENT(adjustment));
+		    gtk_scale_set_digits(GTK_SCALE(item), 0);*/
+		    item = gtk_spin_button_new(GTK_ADJUSTMENT(adjustment), range->step, 0);
+		    ctx->widget = item;
 		break;
 		default:
 		    return -1;

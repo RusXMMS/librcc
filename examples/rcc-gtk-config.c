@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <string.h>
 #include <gtk/gtk.h>
 
 #include <librcc.h>
@@ -17,7 +19,7 @@ static rcc_class classes[] = {
     { NULL }
 };
 
-static char *config;
+static char *config = NULL;
 static rcc_context ctx;
 static rcc_ui_context uictx;
 
@@ -30,13 +32,20 @@ static void apply_cb(GtkWidget * w, gpointer data)
  
 int main (int argc, char *argv[])
 {
+    unsigned int i;
+    unsigned char all_mode = 0;
     GtkWidget *window1;
     GtkWidget *save, *close, *hbox;
     GtkWidget *box;
     
     
-    if (argc<1) config = argv[0];
-    else config = argv[1];
+    for (i=1;i<argc;i++) {
+	if (!strcmp(argv[i],"--all")) all_mode = 1;
+	else if (!strcmp(argv[i], "--")) break;
+	else if ((!config)&&(strncmp(argv[i],"-",1))) config = argv[i];
+    }
+    if (i==1)
+	printf("Usage: rcc-config [ --all ] [ <config name> ]\n");
 
     gtk_set_locale ();
     gtk_init (&argc, &argv);
@@ -46,6 +55,7 @@ int main (int argc, char *argv[])
     ctx = rccCreateContext(NULL, 0, 0, classes, 0);
     rccLoad(ctx, config);
     uictx = rccUiCreateContext(ctx);
+    if (all_mode) rccUiUnHideOption(uictx, RCC_OPTION_ALL);
 
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);

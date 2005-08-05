@@ -51,6 +51,7 @@ rcc_ui_menu_context rccUiOptionMenuCreateContext(rcc_ui_menu_type type, rcc_opti
     ctx->ui_menu.type = type;
     ctx->id = id;
     ctx->type = otype;
+    ctx->realtype = otype;
     ctx->range = range;
     
     ctx->ui_menu.widget = rccUiMenuCreateWidget((rcc_ui_menu_context)ctx);
@@ -68,23 +69,54 @@ void rccUiMenuFreeContext(rcc_ui_menu_context ctx) {
 
 
 rcc_class_id rccUiMenuGetClassId(rcc_ui_menu_context ctx) {
-    if (ctx->type != RCC_UI_MENU_CHARSET) return (rcc_class_id)-1;
+    if ((!ctx)||(ctx->type != RCC_UI_MENU_CHARSET)) return (rcc_class_id)-1;
     return ((rcc_ui_charset_menu_context)ctx)->id;
 }
 
 rcc_option rccUiMenuGetOption(rcc_ui_menu_context ctx) {
-    if (ctx->type != RCC_UI_MENU_OPTION) return (rcc_option)-1;
+    if ((!ctx)||(ctx->type != RCC_UI_MENU_OPTION)) return (rcc_option)-1;
     return ((rcc_ui_option_menu_context)ctx)->id;
 }
 
 
 rcc_option_type rccUiMenuGetType(rcc_ui_menu_context ctx) {
-    if (ctx->type != RCC_UI_MENU_OPTION) return (rcc_option_type)-1;
+    if ((!ctx)||(ctx->type != RCC_UI_MENU_OPTION)) return (rcc_option_type)-1;
     return ((rcc_ui_option_menu_context)ctx)->type;
 }
 
+rcc_option_range *rccUiMenuGetRange(rcc_ui_menu_context ctx) {
+    if  ((!ctx)||(ctx->type != RCC_UI_MENU_OPTION)) return NULL;
+    return ((rcc_ui_option_menu_context)ctx)->range;
+}
+
 rcc_option_range_type rccUiMenuGetRangeType(rcc_ui_menu_context ctx) {
-    if (ctx->type != RCC_UI_MENU_OPTION) return (rcc_option_type)-1;
+    if  ((!ctx)||(ctx->type != RCC_UI_MENU_OPTION)) return (rcc_option_type)-1;
     return ((rcc_ui_option_menu_context)ctx)->range->type;
 }
 
+int rccUiMenuHide(rcc_ui_menu_context ctx) {
+    if (!ctx) return -1;
+    
+	// Only options right now
+    if (ctx->type != RCC_UI_MENU_OPTION) return -1;
+
+    ((rcc_ui_option_menu_context)ctx)->type = RCC_OPTION_TYPE_INVISIBLE;
+
+    return 0;
+}
+
+int rccUiMenuUnHide(rcc_ui_menu_context ctx) {
+    if (!ctx) return -1;
+
+	// Only options right now
+    if (ctx->type != RCC_UI_MENU_OPTION) return -1;
+
+    if (((rcc_ui_option_menu_context)ctx)->type == RCC_OPTION_TYPE_INVISIBLE) {
+	if (((rcc_ui_option_menu_context)ctx)->realtype == RCC_OPTION_TYPE_INVISIBLE)
+	    ((rcc_ui_option_menu_context)ctx)->type = RCC_OPTION_TYPE_STANDARD;
+	else
+	    ((rcc_ui_option_menu_context)ctx)->type = ((rcc_ui_option_menu_context)ctx)->realtype;
+    }
+    
+    return 0;
+}
