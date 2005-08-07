@@ -140,7 +140,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     
     rcc_context ctx;
     rcc_language_ptr *languages;
-    rcc_language_parrent_list *language_parrents;
+    rcc_language_internal *ilang;
     rcc_class_ptr *classes;
     rcc_language_config configs;
     rcc_iconv *from;
@@ -167,18 +167,18 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     languages = (rcc_language_ptr*)malloc((max_languages+1)*sizeof(rcc_language_ptr));
     classes = (rcc_class_ptr*)malloc((max_classes+1)*sizeof(rcc_class_ptr));
     from = (rcc_iconv*)malloc((max_classes)*sizeof(rcc_iconv));
-    language_parrents = (rcc_language_parrent_list*)malloc((max_languages+1)*sizeof(rcc_language_parrent_list));
+    ilang = (rcc_language_internal*)malloc((max_languages+1)*sizeof(rcc_language_internal));
     mutex = rccMutexCreate();
 
     configs = (rcc_language_config)malloc((max_languages)*sizeof(struct rcc_language_config_t));
     
-    if ((!ctx)||(!languages)||(!classes)||(!mutex)||(!language_parrents)) {
+    if ((!ctx)||(!languages)||(!classes)||(!mutex)||(!from)||(!ilang)||(!mutex)) {
 	if (mutex) rccMutexFree(mutex);
 	if (from) free(from);
 	if (configs) free(configs);
 	if (classes) free(classes);
 	if (languages) free(languages);
-	if (language_parrents) free(language_parrents);
+	if (ilang) free(ilang);
 	if (ctx) free(ctx);
 	return NULL;
     }
@@ -193,8 +193,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     for (i=0;rcc_default_aliases[i].alias;i++)
 	rccRegisterLanguageAlias(ctx, rcc_default_aliases + i);
     
-    ctx->language_parrents = language_parrents;
-    for (i=0;i<max_languages;i++) language_parrents[i][0] = (rcc_language_id)-1;
+    ctx->ilang = ilang;
     
     ctx->languages = languages;
     ctx->max_languages = max_languages;
@@ -306,7 +305,7 @@ void rccFreeContext(rcc_context ctx) {
 	    free(ctx->configs);
 	}
 	if (ctx->classes) free(ctx->classes);
-	if (ctx->language_parrents) free(ctx->language_parrents);
+	if (ctx->ilang) free(ctx->ilang);
 	if (ctx->languages) free(ctx->languages);
 	if (ctx->mutex) rccMutexFree(ctx->mutex);
 	free(ctx);
@@ -365,6 +364,7 @@ int rccUnlockConfiguration(rcc_context ctx, unsigned int lock_code) {
 }
 
 rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
+    unsigned int i;
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
 	else return (rcc_language_id)-1;
@@ -373,7 +373,21 @@ rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
     if (ctx->configuration_lock) return (rcc_language_id)-1;
     
     if (ctx->n_languages == ctx->max_languages) return (rcc_language_id)-1;
-    ctx->languages[ctx->n_languages++] = language;
+    
+    memcpy(ctx->ilang + ctx->n_languages, language, sizeof(rcc_language));
+    ctx->ilang[ctx->n_languages].parrents[0] = (rcc_language_id)-1;
+    ctx->ilang[ctx->n_languages].latin = 0;
+    
+    for (i=0;language->charsets[i];i++)
+	if ((strstr(language->charsets[i],"8859"))&&(language->charsets[i][strlen(language->charsets[i])-1]=='1')) {
+	    ctx->ilang[ctx->n_languages].latin = 1;
+	    break;
+	}
+
+    if ((i==1)&&(!language->charsets[1])&&(rccIsUTF8(language->charsets[0])))
+	    ctx->ilang[ctx->n_languages].latin = 1;
+
+    ctx->languages[ctx->n_languages++] = (rcc_language_ptr)(ctx->ilang + ctx->n_languages);
     ctx->languages[ctx->n_languages] = NULL;
     
     if (!ctx->current_language)
@@ -388,6 +402,10 @@ rcc_charset_id rccLanguageRegisterCharset(rcc_language *language, rcc_charset ch
     if ((!language)||(!charset)) return (rcc_charset_id)-1;
     for (i=0;language->charsets[i];i++);
     if (i>=RCC_MAX_CHARSETS) return (rcc_charset_id)-1;
+
+    if ((strstr(charset,"8859"))&&(charset[strlen(charset)-1]=='1')) 
+	((rcc_language_internal*)language)->latin = 1;
+    
     language->charsets[i++] = charset;
     language->charsets[i] = NULL;
     return i-1;
@@ -443,7 +461,7 @@ rcc_relation_id rccRegisterLanguageRelation(rcc_context ctx, rcc_language_relati
     if (language_id == (rcc_language_id)-1) return (rcc_relation_id)-1;
     
 
-    list = ctx->language_parrents[language_id];
+    list = ((rcc_language_internal*)ctx->languages[language_id])->parrents;
 
     language_id = rccGetLanguageByName(ctx, parrent);
     if (language_id == (rcc_language_id)-1) return (rcc_relation_id)0;
@@ -478,6 +496,8 @@ rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
 
 
 rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
+    rcc_class_type clt;
+    
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
 	else return RCC_CLASS_INVALID;
@@ -485,7 +505,14 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
 
     if ((class_id<0)||(class_id>=ctx->n_classes)) return RCC_CLASS_INVALID;
     
-    return ctx->classes[class_id]->class_type;
+    /*DS: temporary solution */
+    
+    clt = ctx->classes[class_id]->class_type;
+    
+    if ((!strcasecmp(ctx->classes[class_id]->name, "out"))&&(clt == RCC_CLASS_STANDARD))
+	clt = RCC_CLASS_TRANSLATE_LOCALE;
+    
+    return clt;
 }
 
 

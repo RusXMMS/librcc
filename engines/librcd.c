@@ -9,11 +9,11 @@ static rcc_autocharset_id AutoengineRussian(rcc_engine_context ctx, const char *
 }
 
 static rcc_engine russian_engine = {
-    "Russian", NULL, NULL, &AutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
+    "LibRCD", NULL, NULL, &AutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
 };
 
 static rcc_engine ukrainian_engine = {
-    "Russian", NULL, NULL, &AutoengineRussian, {"CP1251","KOI8-U","UTF-8","IBM865", NULL}
+    "LibRCD", NULL, NULL, &AutoengineRussian, {"CP1251","KOI8-U","UTF-8","IBM865", NULL}
 };
 
 rcc_engine *rccGetInfo(const char *lang) {

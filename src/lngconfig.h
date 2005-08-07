@@ -47,8 +47,6 @@ void rccConfigClear(rcc_language_config config);
 
 int rccConfigConfigure(rcc_language_config config);
 
-rcc_charset_id rccConfigGetLocaleUnicodeCharset(rcc_language_config config, const char *locale_variable);
-
 const char *rccConfigGetAutoCharsetName(rcc_language_config config, rcc_autocharset_id charset_id);
 rcc_autocharset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const char *name);
 

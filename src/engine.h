@@ -38,5 +38,6 @@ void rccEngineFreeContext(rcc_engine_context engine_ctx);
 int rccEngineConfigure(rcc_engine_context ctx);
 
 rcc_charset_id rccAutoengineRussian(rcc_engine_context ctx, const char *buf, int len);
+rcc_autocharset_id rccEngineDetectCharset(rcc_engine_context ctx, const char *buf, size_t len);
 
 #endif /* _RCC_ENGINE_H */

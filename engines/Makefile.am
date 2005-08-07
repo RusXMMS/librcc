@@ -3,8 +3,8 @@ lib_LTLIBRARIES = libwestern.la
 libdir = $(pkgdatadir)/engines
 
 if HAVE_RCD
-lib_LTLIBRARIES += librussian.la
-librussian_la_SOURCES = russian.c
+lib_LTLIBRARIES += librcd.la
+librussian_la_SOURCES = librcd.c
 librussian_la_LDFLAGS = -module -avoid-version -export-symbols-regex "rccGetInfo"
 endif
 

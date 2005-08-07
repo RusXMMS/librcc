@@ -1,5 +1,8 @@
 #ifndef _RCC_LOCALE_H
 #define _RCC_LOCALE_H
 
+#define RCC_MAX_CHARSET_CHARS 16
+#define RCC_MAX_LANGUAGE_CHARS 16
+#define RCC_MAX_VARIABLE_CHARS 16
 
 #endif /* _RCC_LOCALE_H */

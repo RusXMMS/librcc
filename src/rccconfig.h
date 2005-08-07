@@ -38,5 +38,6 @@ rcc_language_id rccDefaultGetLanguageByName(const char *name);
 unsigned int rccDefaultDropLanguageRelations(const char *lang);
 
 int rccIsUTF8(const char *name);
+int rccIsUnicode(const char *name);
 
 #endif /* _RCC_CONFIG_H */

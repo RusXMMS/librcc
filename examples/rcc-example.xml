@@ -11,7 +11,7 @@
 	    <FullName>Russian</FullName>
 	    <FullName locale="ru">Русский</FullName>
 	    <Engines>
-		<Engine>russian</Engine>
+		<Engine>librcd</Engine>
 	    </Engines>
 	    <Charsets>
 		<Charset>UTF-8</Charset>
@@ -25,7 +25,7 @@
 	<Language name="uk">
 	    <FullName>Ukrainian</FullName>
 	    <Engines>
-		<Engine>russian</Engine>
+		<Engine>librcd</Engine>
 	    </Engines>
 	    <Charsets>
 		<Charset>UTF-8</Charset>

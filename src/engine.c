@@ -151,3 +151,51 @@ rcc_context rccEngineGetRccContext(rcc_engine_context ctx) {
 
     return ctx->config->ctx;
 }
+
+#define bit(i) (1<<i)
+
+static int CheckWestern(const unsigned char *buf, int len) {
+    long i,j;
+    int bytes=0;
+
+    if (!len) len = strlen(buf);
+    for (i=0;i<len;i++) {
+	if (bytes>0) {
+		    // Western is 0x100-0x17e
+	    if ((buf[i]&0xC0)==0x80) bytes--;
+	    else return 0;
+	} else {
+	    if (buf[i]<128) continue;
+	    
+	    for (j=6;j>=0;j--)
+		if ((buf[i]&bit(j))==0) break;
+
+	    if ((j==0)||(j==6)) return 0;
+
+	    bytes=6-j;
+	    if (bytes==1) {
+		// Western Languages (C2-C3)
+		if ((buf[i]!=0xC2)&&(buf[i]!=0xC3)) return 0;
+	    } else return 0;
+	}
+    }
+    return 1;
+}
+
+
+rcc_autocharset_id rccEngineDetectCharset(rcc_engine_context ctx, const char *buf, size_t len) {
+    rcc_autocharset_id utf;
+
+    if (CheckWestern(buf, len)) {
+	utf=rccConfigGetAutoCharsetByName(ctx->config, "UTF-8");
+	if (utf != (rcc_autocharset_id)-1) return utf;
+	utf=rccConfigGetAutoCharsetByName(ctx->config, "UTF8");
+	if (utf != (rcc_autocharset_id)-1) return utf;
+	utf=rccConfigGetAutoCharsetByName(ctx->config, "UTF_8");
+	return utf;
+    }
+    
+    if ((ctx)&&(ctx->func)) return ctx->func(ctx, buf, len);
+    return (rcc_autocharset_id)-1;
+}
+

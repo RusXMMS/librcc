@@ -21,10 +21,17 @@
 #define RCC_ACCEPTABLE_PROBABILITY	0
 #define RCC_ACCEPTABLE_LENGTH		3
 
-static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len, rcc_string *retstring) {
+typedef enum rcc_detect_language_confidence_t {
+    RCC_DETECT_LANGUAGE_CONFIDENCE_UNSURE = 0,
+    RCC_DETECT_LANGUAGE_CONFIDENCE_ALMOST,
+    RCC_DETECT_LANGUAGE_CONFIDENCE_SURE,
+    RCC_DETECT_LANGUAGE_CONFIDENCE_CACHED
+} rcc_detect_language_confidence;
+
+static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len, rcc_string *retstring, rcc_detect_language_confidence *confidence) {
     rcc_speller speller = NULL;
-    unsigned long i, nlanguages;
-    rcc_language_config config, config0 = NULL;
+    long i, nlanguages;
+    rcc_language_config config, config0 = NULL, config1 = NULL;
     rcc_string recoded;
     unsigned char *utf8;
     size_t j, mode;
@@ -48,6 +55,9 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
     unsigned long k;
     rcc_language_id *parrents;
     size_t chars = 0;
+    char llang[RCC_MAX_LANGUAGE_CHARS];
+    rcc_language_id locale_lang;
+    unsigned char defstep = 0;
 
     unsigned long accepted_nonenglish_langs = 0;
 
@@ -61,6 +71,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	        english_lang = rccStringGetLanguage(recoded);
 	        if (retstring) *retstring = recoded;
 		else free(recoded);
+		if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_CACHED;
 	        return english_lang;
 	    }
 	}
@@ -72,17 +83,33 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 
     english_lang = rccGetLanguageByName(ctx, rcc_english_language_sn);
     
-    for (i=0;i<nlanguages;i++) {
-	if (i) config = rccGetUsableConfig(ctx, (rcc_language_id)i);
-	else config = rccGetCurrentConfig(ctx);
-	if (!config) continue;
-	
+    for (i=0;i<nlanguages;(defstep>1)?i++:i) {
 	if (i) {
-	    if (config==config0) continue;
-	} else config0=config;
+	    config = rccGetUsableConfig(ctx, (rcc_language_id)i);
+	    if ((!config)||(config==config0)||(config==config1)) continue;
+	} else {
+	    switch (defstep) {
+		case 0:
+		    config = rccGetCurrentConfig(ctx);
+		    config0 = config;
+		break;
+		case 1:
+		    if (!rccLocaleGetLanguage(llang ,ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS)) {
+			locale_lang = rccGetLanguageByName(ctx, llang);
+			config = rccGetConfig(ctx, locale_lang);
+		    } else config = NULL;
+		    config1 = config;
+		break;
+		default:
+		    config = NULL;
+	    }
+	    defstep++;
+	    if ((!config)||(config0==config1)) continue;
+	}
+	
 	
 	if (bestfixlang != (rcc_language_id)-1) {
-	    parrents = ctx->language_parrents[i];
+	    parrents = ((rcc_language_internal*)config->language)->parrents;
 	    for (k = 0;parrents[k] != (rcc_language_id)-1;k++)
 		if (parrents[k] == bestfixlang) break;
 
@@ -192,6 +219,8 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (english_string) free(english_string);
 	if (retstring) *retstring = best_string;
 	else if (best_string) free(best_string);
+
+	if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_SURE;
         return bestlang;
     } 
 
@@ -199,6 +228,8 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (best_string) free(best_string);
 	if (retstring) *retstring = english_string;
 	else if (english_string) free(english_string);
+	
+	if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_SURE;
         return english_lang;
     }
 
@@ -206,6 +237,8 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (english_string) free(english_string);
 	if (retstring) *retstring = best_string;
 	else if (best_string) free(best_string);
+
+	if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_ALMOST;
         return bestlang;
     } 
 
@@ -213,6 +246,8 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (best_string) free(best_string);	
 	if (retstring) *retstring = english_string;
 	else if (english_string) free(english_string);
+
+	if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_ALMOST;
         return english_lang;
     } 
     
@@ -220,18 +255,21 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (english_string) free(english_string);
 	if (retstring) *retstring = best_string;
 	else if (best_string) free(best_string);
+
+	if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_UNSURE;
         return bestlang;
     } else if (best_string) free(best_string);
     
     if ((english_res > RCC_ACCEPTABLE_PROBABILITY)&&(english_longest > RCC_ACCEPTABLE_LENGTH)) {
 	if (retstring) *retstring = english_string;
 	else if (english_string) free(english_string);
+
+	if (confidence) *confidence = RCC_DETECT_LANGUAGE_CONFIDENCE_UNSURE;
         return english_lang;
     } else if (english_string) free(english_string);
     
     return (rcc_language_id)-1;
 }
-
 
 rcc_language_id rccDetectLanguage(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len) {
     if (!ctx) {
@@ -239,70 +277,130 @@ rcc_language_id rccDetectLanguage(rcc_context ctx, rcc_class_id class_id, const 
 	else return -1;
     }
     
-    return rccDetectLanguageInternal(ctx, class_id, buf, len, NULL);
+    return rccDetectLanguageInternal(ctx, class_id, buf, len, NULL, NULL);
 }
 
 
-static rcc_autocharset_id rccConfigDetectCharsetInternal(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len) {
-    int err;
-    rcc_context ctx;
-    rcc_class_type class_type;
-    rcc_engine_ptr engine;
-    rcc_autocharset_id autocharset_id;
-    
-    if ((!buf)||(!config)) return (rcc_autocharset_id)-1;
-    
-    ctx = config->ctx;
-
-    err = rccConfigConfigure(config);
-    if (err) return (rcc_autocharset_id)-1;
-    
-    class_type = rccGetClassType(ctx, class_id);
-    if ((class_type != RCC_CLASS_FS)||((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_TITLES)))) {
-	rccMutexLock(config->mutex);
-	engine = rccConfigGetCurrentEnginePointer(config);
-	if ((engine)&&(engine->func)) autocharset_id = engine->func(&config->engine_ctx, buf, len);
-	else autocharset_id = (rcc_autocharset_id)-1;
-	rccMutexUnLock(config->mutex);
-	return autocharset_id;
-    }
-    
-    return (rcc_autocharset_id)-1;
-}
-
-
-rcc_autocharset_id rccConfigDetectCharset(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len) {
-    return rccConfigDetectCharsetInternal(config, class_id, buf, len);
-}
-
-static int rccAreLanguagesRelated(rcc_context ctx, rcc_language_id l1, rcc_language_id l2, rcc_language_id skip) {
+static int rccIsParrentLanguage(rcc_language_config config, rcc_language_id parrent) {
     unsigned int i;
+    rcc_language_id language;
     rcc_language_id *list;
 
-    if ((l1 == skip)||(l2 == skip)) return 0;
+    language = rccConfigGetLanguage(config);
+    if (parrent == language) return 1;
     
-    if (l1 == l2) return 1;
-    
-    list = ctx->language_parrents[l1];
+    list = ((rcc_language_internal*)config->language)->parrents;
     for (i=0;list[i] != (rcc_language_id)-1;i++)
-        if  (list[i] == l2) return 1;
-
-    list = ctx->language_parrents[l2];
-    for (i=0;list[i] != (rcc_language_id)-1;i++)
-        if  (list[i] == l1) return 1;
+        if  (list[i] == parrent) return 1;
 
     return 0;
+}
+
+
+static int rccAreRelatedLanguages(rcc_language_config c1, rcc_language_config c2) {
+    rcc_language_id l1, l2;
+
+    l1 = rccConfigGetLanguage(c1);
+    l2 = rccConfigGetLanguage(c2);
+    
+    if (rccIsParrentLanguage(c1, l2)) return 1;
+    if (rccIsParrentLanguage(c2, l1)) return 1;
+    
+    return 0;
+}
+
+
+static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_id, const char *utfstring) {
+    rcc_context ctx;
+    rcc_language_config curconfig;
+    
+    rcc_option_value translate;
+    rcc_class_type ctype;
+    rcc_language_id language_id, english_language_id, current_language_id;
+
+    char llang[RCC_MAX_LANGUAGE_CHARS];
+
+    rcc_translate trans, entrans;
+    
+    char *translated;
+
+    ctx = (*config)->ctx;
+
+    translate = rccGetOption(ctx, RCC_OPTION_TRANSLATE);
+    if (translate == RCC_OPTION_TRANSLATE_OFF) return NULL;
+
+    ctype = rccGetClassType(ctx, class_id);
+    if ((ctype != RCC_CLASS_TRANSLATE_LOCALE)&&(ctype != RCC_CLASS_TRANSLATE_CURRENT)&&(ctype != RCC_CLASS_TRANSLATE_FROM)) return NULL;
+
+    language_id = rccConfigGetLanguage(*config);	
+	
+    english_language_id = rccGetLanguageByName(ctx, rcc_english_language_sn);
+    
+    if (translate == RCC_OPTION_TRANSLATE_TO_ENGLISH) {
+	current_language_id = english_language_id ;
+    } else {
+	if (ctype == RCC_CLASS_TRANSLATE_LOCALE) {
+	    if (!rccLocaleGetLanguage(llang ,ctx->locale_variable, RCC_MAX_LANGUAGE_CHARS))
+		current_language_id = rccGetLanguageByName(ctx, llang);
+	    else 
+		current_language_id = (rcc_language_id)-1;
+	} else 
+	    current_language_id = rccGetCurrentLanguage(ctx);
+    }
+	
+    if (current_language_id == (rcc_language_id)-1) return NULL;
+    if (language_id == current_language_id) return NULL;
+
+    curconfig = rccGetConfig(ctx, current_language_id);
+    if (!curconfig) return NULL;
+
+    if (rccConfigConfigure(curconfig)) return NULL;
+    
+    if (translate == RCC_OPTION_TRANSLATE_SKIP_RELATED) {
+	if (rccAreRelatedLanguages(curconfig, *config)) return NULL;
+    }
+    
+    if (translate == RCC_OPTION_TRANSLATE_SKIP_PARRENT) {
+	if (rccIsParrentLanguage(curconfig, language_id)) return NULL;
+    }
+
+    trans = rccConfigGetTranslator(*config, current_language_id);
+    if (trans) {
+        translated = rccTranslate(trans, utfstring);
+        if (translated) {
+            if ((!((rcc_language_internal*)curconfig->language)->latin)&&(rccIsASCII(translated))) {
+	        free(translated);
+	        translated = NULL;
+	    }
+	}
+    } else translated = NULL;
+    
+    if ((!translated)&&(current_language_id != english_language_id)&&(!rccAreRelatedLanguages(*config, curconfig))) {
+	curconfig = rccGetConfig(ctx, english_language_id);
+	if (!curconfig) return NULL;
+	if (rccConfigConfigure(curconfig)) return NULL;
+	
+	entrans = rccConfigGetEnglishTranslator(*config);
+	if (entrans) translated = rccTranslate(entrans, utfstring);
+    }
+
+    if (translated) *config = curconfig;
+    return translated;
 }
 
 rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len) {
     int err;
     size_t ret;
+    rcc_language_config config;
     rcc_language_id language_id, detected_language_id;
     rcc_autocharset_id charset_id;
     rcc_iconv icnv = NULL;
     rcc_string result;
+    rcc_class_type class_type;
     rcc_option_value usedb4;
     const char *charset;
+    char *translate = NULL;
+    rcc_detect_language_confidence confidence;
     
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
@@ -318,29 +416,38 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     if (language_id == (rcc_language_id)-1) return NULL;
     if (!strcasecmp(ctx->languages[language_id]->sn, rcc_disabled_language_sn)) return NULL;
 
-
+    class_type = rccGetClassType(ctx, class_id);
     usedb4 = rccGetOption(ctx, RCC_OPTION_LEARNING_MODE);
-/*
-    if (usedb4&RCC_OPTION_LEARNING_FLAG_USE) {
-	result = rccDb4GetKey(ctx->db4ctx, buf, len);
-	if (result) {
-	     if (rccStringFixID(result, ctx)) free(result);
-	     else return result;
-	}
-    }
     
-    if (rccGetOption(ctx, RCC_OPTION_AUTODETECT_LANGUAGE)) {
-	detected_language_id = rccDetectLanguageInternal(ctx, class_id, buf, len);
-	if (detected_language_id != (rcc_language_id)-1)
-	    language_id = detected_language_id;
-    }
-*/
-    
-    detected_language_id = rccDetectLanguageInternal(ctx, class_id, buf, len, &result);
+    detected_language_id = rccDetectLanguageInternal(ctx, class_id, buf, len, &result, &confidence);
     if (detected_language_id != (rcc_language_id)-1) {
 #ifdef RCC_DEBUG_LANGDETECT
-	printf("Language %i(%s): %s\n", rccStringGetLanguage(result), rccStringGetLanguage(result)?rccGetLanguageName(ctx, rccStringGetLanguage(result)):"", result);
+	    printf("Language %i(%s): %s\n", rccStringGetLanguage(result), rccStringGetLanguage(result)?rccGetLanguageName(ctx, rccStringGetLanguage(result)):"", result);
 #endif /* RCC_DEBUG_LANGDETECT */
+
+	if ((result)&&(rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&(class_type == RCC_CLASS_TRANSLATE_FROM)) {
+	    rccMutexLock(ctx->mutex);
+	    config = rccGetCurrentConfig(ctx);
+	    translate = rccRecodeTranslate(&config, class_id, rccStringGetString(result));
+	    rccMutexUnLock(ctx->mutex);
+	    
+	    if (translate) {
+		language_id = rccConfigGetLanguage(config);
+		free(result);
+		result = rccCreateString(language_id, translate, 0);
+	    }
+	}
+
+
+	if ((result)&&
+	    (usedb4&RCC_OPTION_LEARNING_FLAG_LEARN)&&
+	    (confidence!=RCC_DETECT_LANGUAGE_CONFIDENCE_CACHED)&&
+	    ((language_id==detected_language_id)||(confidence!=RCC_DETECT_LANGUAGE_CONFIDENCE_UNSURE))&&
+	    (!rccStringSetLang(result, ctx->languages[language_id]->sn))) {
+
+	    rccDb4SetKey(ctx->db4ctx, buf, len, result);
+	}
+
 	return result;
     }
 
@@ -349,7 +456,8 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     if (err) return NULL;
     
     rccMutexLock(ctx->mutex);
-    charset_id = rccDetectCharset(ctx, class_id, buf, len);
+    if (class_type == RCC_CLASS_KNOWN) charset_id = (rcc_autocharset_id)-1;
+    else charset_id = rccDetectCharset(ctx, class_id, buf, len);
     if (charset_id != (rcc_autocharset_id)-1) {
 	icnv = ctx->iconv_auto[charset_id];
 	if (rccGetOption(ctx, RCC_OPTION_AUTOENGINE_SET_CURRENT)) {
@@ -362,10 +470,24 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
     if (icnv) {
 	ret = rccIConvInternal(ctx, icnv, buf, len);
 	if (ret == (size_t)-1) return NULL;
-	result = rccCreateString(language_id, ctx->tmpbuffer, ret);
+	
+	if ((rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&(rccGetClassType(ctx, class_id) == RCC_CLASS_TRANSLATE_FROM)) {
+	    config = rccGetCurrentConfig(ctx);
+	    translate = rccRecodeTranslate(&config , class_id, ctx->tmpbuffer);
+	    if (translate) language_id = rccConfigGetLanguage(config);
+	}
+	
+	result = rccCreateString(language_id, translate?translate:ctx->tmpbuffer, translate?0:ret);
     } else {
-	result = rccCreateString(language_id, buf, len);
+	if ((rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&(rccGetClassType(ctx, class_id) == RCC_CLASS_TRANSLATE_FROM)) {
+	    config = rccGetCurrentConfig(ctx);
+	    translate = rccRecodeTranslate(&config , class_id, buf);
+	    if (translate) language_id = rccConfigGetLanguage(config);
+	}
+
+	result = rccCreateString(language_id, translate?translate:buf, translate?0:len);
     }
+
     rccMutexUnLock(ctx->mutex);
 
     if ((result)&&(usedb4&RCC_OPTION_LEARNING_FLAG_LEARN)) {
@@ -385,13 +507,7 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
     char *translated = NULL;
     rcc_language_config config;
     rcc_language_id language_id;
-    rcc_language_id current_language_id;
-    rcc_language_id english_language_id;
     rcc_class_type class_type;
-    rcc_option_value translate;
-    rcc_translate trans, entrans;
-    const char *langname;
-    unsigned char english_source;
     rcc_iconv icnv;
 
     if (!ctx) {
@@ -414,74 +530,10 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
     if (err) return NULL;
 
     class_type = rccGetClassType(ctx, class_id);
-    translate = rccGetOption(ctx, RCC_OPTION_TRANSLATE);
     
-    langname = rccGetLanguageName(ctx, language_id);
-    if (strcasecmp(langname, rcc_english_language_sn)) english_source = 0;
-    else english_source = 1;
-    
-    if ((class_type != RCC_CLASS_FS)&&((translate==RCC_OPTION_TRANSLATE_FULL)||((translate)&&(!english_source)))) {
-	english_language_id = rccGetLanguageByName(ctx, rcc_english_language_sn);
-	
+    if (((class_type == RCC_CLASS_TRANSLATE_LOCALE)||(class_type == RCC_CLASS_TRANSLATE_CURRENT))&&(rccGetOption(ctx, RCC_OPTION_TRANSLATE))) {
 	rccMutexLock(ctx->mutex);
-	
-	current_language_id = rccGetCurrentLanguage(ctx);
-	if (current_language_id != language_id) {
-	    if (translate != RCC_OPTION_TRANSLATE_TO_ENGLISH) {
-		trans = rccConfigGetTranslator(config, current_language_id);
-		if (trans) {
-		    translated = rccTranslate(trans, utfstring);
-		    if (translated) {
-			if ((current_language_id != english_language_id)&&(rccIsASCII(translated))) {
-			    /* Ffrench to german (no umlauts) => not related
-			       english to german (no umlauts) => skiping english relations
-			       DS: Problem if we have relation between french and german  */
-			    if (rccAreLanguagesRelated(ctx, language_id, current_language_id, english_language_id)) {
-				free(translated);
-				translated = NULL;
-				translate = 0;
-			    }
-			}
-		    }
-		    if (translated) {
-			language_id = current_language_id;
-		    
-			config = rccGetConfig(ctx, language_id);
-			if (!config) {
-			    rccMutexUnLock(ctx->mutex);
-			    free(translated);
-			    return NULL;
-			}
-
-			err = rccConfigConfigure(config);
-			if (err) {
-			    rccMutexUnLock(ctx->mutex);
-			    free(translated);
-			    return NULL;
-			}
-		    } 
-		}
-	    }
-	    
-	    if ((translate == RCC_OPTION_TRANSLATE_TO_ENGLISH)||((translate)&&(!translated)&&(!english_language_id == current_language_id)&&(!rccAreLanguagesRelated(ctx, language_id, current_language_id, (rcc_language_id)-1)))) {
-		entrans = rccConfigGetEnglishTranslator(config);
-		if (entrans) {
-		    translated = rccTranslate(config->entrans, utfstring);
-/*
-		    config = rccGetConfig(ctx, language_id);
-		    if (!config) {
-			rccMutexUnLock(ctx->mutex);
-			return translated;
-		    }
-
-		    err = rccConfigConfigure(config);
-		    if (err) {
-			rccMutexUnLock(ctx->mutex);
-			return translated;
-		    }*/
-		}
-	    }
-	}
+	translated = rccRecodeTranslate(&config, class_id, utfstring);
 	rccMutexUnLock(ctx->mutex);
     }
     
@@ -492,7 +544,7 @@ char *rccSizedTo(rcc_context ctx, rcc_class_id class_id, rcc_const_string buf, s
 	    return result;
 	}
     }
-
+    
     rccMutexLock(ctx->mutex);
     rccMutexLock(config->mutex);
     icnv =  config->iconv_to[class_id];
@@ -536,10 +588,14 @@ char *rccSizedRecode(rcc_context ctx, rcc_class_id from, rcc_class_id to, const 
     if ((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_NAMES))) goto recoding;
     if (rccGetOption(ctx, RCC_OPTION_LEARNING_MODE)) goto recoding;
     if (rccGetOption(ctx, RCC_OPTION_AUTODETECT_LANGUAGE)) goto recoding;
-    if (rccGetOption(ctx, RCC_OPTION_TRANSLATE)) goto recoding;
+    if ((rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&((class_type == RCC_CLASS_TRANSLATE_LOCALE)||(class_type == RCC_CLASS_TRANSLATE_CURRENT))) goto recoding;
+
+    class_type = rccGetClassType(ctx, from);
+    if ((rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&(class_type == RCC_CLASS_TRANSLATE_FROM)) goto recoding;
 
     rccMutexLock(ctx->mutex);
-    from_charset_id = rccDetectCharset(ctx, from, buf, len);
+    if (class_type == RCC_CLASS_KNOWN) from_charset_id = (rcc_autocharset_id)-1;
+    else from_charset_id = rccDetectCharset(ctx, from, buf, len);
     if (from_charset_id != (rcc_charset_id)-1) {
 	from_charset = rccGetAutoCharsetName(ctx, from_charset_id);
 	to_charset = rccGetCurrentCharsetName(ctx, to);
@@ -606,6 +662,18 @@ char *rccFS(rcc_context ctx, rcc_class_id from, rcc_class_id to, const char *fsp
 	    rccMutexUnLock(config->mutex);
 	    rccMutexUnLock(ctx->mutex);
 	} else result = NULL;
+
+	if (!result) {
+	    config = rccGetCurrentConfig(ctx);
+	    if (config) {
+		rccMutexLock(ctx->mutex);
+		rccMutexLock(config->mutex);
+		result = rccFS3(config, to, prefix, rccStringGetString(string));
+		rccMutexUnLock(config->mutex);
+		rccMutexUnLock(ctx->mutex);
+	    }
+	}
+
 	free(string);
     } else result = NULL;
     

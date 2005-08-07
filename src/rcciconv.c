@@ -7,6 +7,8 @@
 #include "internal.h"
 #include "rcciconv.h"
 
+#define RCC_MAX_ERRORS 3
+
 static void rccIConvCopySymbol(char **in_buf, int *in_left, char **out_buf, int *out_left) {
     if ((out_left>0)&&(in_left>0)) {
 /*	(**out_buf)=(**in_buf);

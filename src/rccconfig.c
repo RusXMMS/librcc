@@ -127,7 +127,7 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
 rcc_option_value_name rcc_sn_boolean[] = { "OFF", "ON", NULL };
 rcc_option_value_name rcc_sn_learning[] = { "OFF", "ON", "RELEARN", "LEARN", NULL };
 rcc_option_value_name rcc_sn_clo[] = { "ALL", "CONFIGURED_AND_AUTO", "CONFIGURED_ONLY", NULL };
-rcc_option_value_name rcc_sn_translate[] = { "OFF", "TO_ENGLISH", "SKIP_ENGLISH", "FULL", NULL };
+rcc_option_value_name rcc_sn_translate[] = { "OFF", "TO_ENGLISH", "SKIP_RELATED", "SKIP_PARRENT", "FULL", NULL };
 
 rcc_option_description rcc_option_descriptions[RCC_MAX_OPTIONS+1];
 rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
@@ -194,6 +194,11 @@ rcc_language_id rccDefaultGetLanguageByName(const char *name) {
 
 int rccIsUTF8(const char *name) {
     if ((!name)||(strcasecmp(name, "UTF-8")&&strcasecmp(name, "UTF8"))) return 0;
+    return 1;
+}
+
+int rccIsUnicode(const char *name) {
+    if ((!name)||(strncasecmp(name, "UTF",3)&&strncasecmp(name, "UCS",3))) return 0;
     return 1;
 }
 

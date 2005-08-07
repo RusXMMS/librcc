@@ -7,8 +7,38 @@
 #include "internal.h"
 #include "fs.h"
 
+static rcc_autocharset_id rccConfigDetectCharsetInternal(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len) {
+    int err;
+    rcc_context ctx;
+    rcc_class_type class_type;
+    rcc_autocharset_id autocharset_id;
+    
+    if ((!buf)||(!config)) return (rcc_autocharset_id)-1;
+    
+    ctx = config->ctx;
+
+    err = rccConfigConfigure(config);
+    if (err) return (rcc_autocharset_id)-1;
+    
+    class_type = rccGetClassType(ctx, class_id);
+    if ((class_type != RCC_CLASS_FS)||((class_type == RCC_CLASS_FS)&&(rccGetOption(ctx, RCC_OPTION_AUTODETECT_FS_TITLES)))) {
+	rccMutexLock(config->mutex);
+	autocharset_id = rccEngineDetectCharset(&config->engine_ctx, buf, len);
+	rccMutexUnLock(config->mutex);
+	return autocharset_id;
+    }
+    
+    return (rcc_autocharset_id)-1;
+}
+
+
+rcc_autocharset_id rccConfigDetectCharset(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len) {
+    return rccConfigDetectCharsetInternal(config, class_id, buf, len);
+}
+
 rcc_string rccConfigSizedFrom(rcc_language_config config, rcc_class_id class_id, const char *buf, size_t len) {
     rcc_context ctx;
+    rcc_class_type class_type;
     rcc_string result;
     rcc_option_value usedb4;
     rcc_autocharset_id charset_id;
@@ -30,7 +60,10 @@ rcc_string rccConfigSizedFrom(rcc_language_config config, rcc_class_id class_id,
 	}
     }
 
-    charset_id = rccConfigDetectCharset(config, class_id, buf, len);
+    class_type = rccGetClassType(ctx, class_id);
+
+    if (class_type == RCC_CLASS_KNOWN) charset_id = (rcc_autocharset_id)-1;
+    else charset_id = rccConfigDetectCharset(config, class_id, buf, len);
     if (charset_id != (rcc_autocharset_id)-1)
 	charset = rccConfigGetAutoCharsetName(config, charset_id);
     else
@@ -71,6 +104,7 @@ char *rccConfigSizedTo(rcc_language_config config, rcc_class_id class_id, rcc_co
 
 char *rccConfigSizedRecode(rcc_language_config config, rcc_class_id from, rcc_class_id to, const char *buf, size_t len, size_t *rlen) {
     rcc_context ctx;
+    rcc_class_type class_type;
     rcc_string result;
     rcc_option_value usedb4;
     rcc_autocharset_id charset_id;
@@ -97,7 +131,10 @@ char *rccConfigSizedRecode(rcc_language_config config, rcc_class_id from, rcc_cl
 	}
     }
 
-    charset_id = rccConfigDetectCharset(config, from, buf, len);
+    class_type = rccGetClassType(ctx, from);
+
+    if (class_type == RCC_CLASS_KNOWN) charset_id = (rcc_autocharset_id)-1;
+    else charset_id = rccConfigDetectCharset(config, from, buf, len);
     if (charset_id != (rcc_autocharset_id)-1)
 	fromcharset = rccConfigGetAutoCharsetName(config, charset_id);
     else
@@ -115,6 +152,7 @@ char *rccConfigSizedRecode(rcc_language_config config, rcc_class_id from, rcc_cl
 
 char *rccConfigSizedRecodeToCharset(rcc_language_config config, rcc_class_id class_id, const char *charset, rcc_const_string buf, size_t len, size_t *rlen) {
     rcc_context ctx;
+    rcc_class_type class_type;
     rcc_string result;
     rcc_option_value usedb4;
     rcc_autocharset_id charset_id;
@@ -141,7 +179,10 @@ char *rccConfigSizedRecodeToCharset(rcc_language_config config, rcc_class_id cla
 	}
     }
 
-    charset_id = rccConfigDetectCharset(config, class_id, buf, len);
+    class_type = rccGetClassType(ctx, class_id);
+
+    if (class_type == RCC_CLASS_KNOWN) charset_id = (rcc_autocharset_id)-1;
+    else charset_id = rccConfigDetectCharset(config, class_id, buf, len);
     if (charset_id != (rcc_autocharset_id)-1)
 	ocharset = rccConfigGetAutoCharsetName(config, charset_id);
     else

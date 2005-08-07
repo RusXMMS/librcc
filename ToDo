@@ -10,6 +10,14 @@
     - Revise locking subsystem
     - Libtranslate can leave translated message partly in old language. This causes problems
       because of recoding from UTF8 to Current language. (With UTF-8 encoding should be Okey).
+    - Lating languages. If in the string all characters < 0x7F then we have one of the Latin
+    languages?
+    - Statistic approach of language detection.
+    - LibRCD autolearning using db4
+	+ Charset detection
+	+ Language detection (same as charsets, but for UTF8...)
+	    * Consider word recognition based on probability
+	+ Autolearning is triggered by large enough dictionary words
 
 
 1.x:

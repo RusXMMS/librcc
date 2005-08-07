@@ -13,13 +13,6 @@
 #define RCC_MAX_ALIASES 64
 #define RCC_MAX_CLASSES 16
 
-#define RCC_MAX_ERRORS 3
-
-#define RCC_MAX_CHARSET_CHARS 16
-#define RCC_MAX_LANGUAGE_CHARS 16
-#define RCC_MAX_VARIABLE_CHARS 16
-
-
 /* ID's */
 /**
   * Language ID. 
@@ -301,7 +294,10 @@ typedef enum rcc_class_type_t {
     RCC_CLASS_INVALID = 0,	/**< Invalid value */
     RCC_CLASS_STANDARD,		/**< Standard class */
     RCC_CLASS_KNOWN,		/**< Class encoding is known and no autodetection should be performed */
-    RCC_CLASS_FS		/**< Class strings are representing file names */
+    RCC_CLASS_FS,		/**< Class strings are representing file names */
+    RCC_CLASS_TRANSLATE_LOCALE,	/**< It is permited to translate class strings to current Locale Language in rccTo */
+    RCC_CLASS_TRANSLATE_CURRENT,/**< It is permited to translate class strings to Current Language in rccTo */
+    RCC_CLASS_TRANSLATE_FROM,	/**< It is permited to translate class strings to Current Language in rccFrom */
 } rcc_class_type;
 
 /**
@@ -390,22 +386,13 @@ typedef int rcc_option_value;
   */
 #define RCC_OPTION_LEARNING_FLAG_LEARN 2
 
-/**
-  * Switch translation off.
-  */
-#define RCC_OPTION_TRANSLATE_OFF 0
-/**
-  * Translate data to english language (Current language don't matter).
-  */
-#define RCC_OPTION_TRANSLATE_TO_ENGLISH 1
-/**
-  * Skip translation of the english text.
-  */
-#define RCC_OPTION_TRANSLATE_SKIP_ENGLISH 2
-/**
-  * Translate whole data to the current language.
-  */
-#define RCC_OPTION_TRANSLATE_FULL 3
+typedef enum rcc_option_translate_t {
+    RCC_OPTION_TRANSLATE_OFF = 0,  	/**< Switch translation off. */
+    RCC_OPTION_TRANSLATE_TO_ENGLISH, 	/**< Translate data to english language (Current language don't matter). */
+    RCC_OPTION_TRANSLATE_SKIP_RELATED, 	/**< Skip translation of the text's between related languages. */
+    RCC_OPTION_TRANSLATE_SKIP_PARRENT, 	/**< Skip translation of the text's from parrent languages (from english). */
+    RCC_OPTION_TRANSLATE_FULL 		/**< Translate whole data to the current language */
+} rcc_option_translate;
 
 /**
   * List of options available

@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     
     rcc_class classes[] = {
 	{ "input", RCC_CLASS_STANDARD, NULL, NULL, "Input Encoding", 0 },
-	{ "output", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, "Output Encoding", 0 },
+	{ "output", RCC_CLASS_TRANSLATE_LOCALE, "LC_CTYPE", NULL, "Output Encoding", 0 },
 	{ NULL }
     };
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     rccInit();
     rccInitDefaultContext(NULL, 0, 0, classes, 0);
     rccInitDb4(NULL, "example", 0);
-    rccSetOption(NULL, RCC_OPTION_TRANSLATE, RCC_OPTION_TRANSLATE_FULL);
+    rccSetOption(NULL, RCC_OPTION_TRANSLATE, RCC_OPTION_TRANSLATE_SKIP_PARRENT);
 
     current_language_id = rccGetCurrentLanguage(NULL);
     english_language_id = rccGetLanguageByName(NULL, "en");

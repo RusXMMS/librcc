@@ -28,10 +28,19 @@
 #include "rcciconv.h"
 #include "rccstring.h"
 #include "rccmutex.h"
+#include "rcclocale.h"
 
 
 
 typedef rcc_language_id rcc_language_parrent_list[RCC_MAX_LANGUAGE_PARRENTS];
+
+struct rcc_language_internal_t {
+    rcc_language language;
+    rcc_language_id parrents[RCC_MAX_LANGUAGE_PARRENTS + 1];
+    unsigned char latin;
+};
+typedef struct rcc_language_internal_t rcc_language_internal;
+typedef rcc_language_internal *rcc_language_internal_ptr;
 
 struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];
@@ -43,8 +52,8 @@ struct rcc_context_t {
      
     unsigned int max_languages;
     unsigned int n_languages;
+    rcc_language_internal *ilang;
     rcc_language_ptr *languages;
-    rcc_language_parrent_list *language_parrents;
     rcc_language_config configs;
     
     unsigned int max_classes;

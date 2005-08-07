@@ -353,7 +353,7 @@ rcc_speller rccConfigGetSpeller(rcc_language_config config) {
 
 	if (config->speller) language_id = rccConfigGetLanguage(config);
 	else language_id = (rcc_language_id)-1;
-	if (language_id != (rcc_language_id)-1) parrents = config->ctx->language_parrents[language_id];
+	if (language_id != (rcc_language_id)-1) parrents = ((rcc_language_internal*)config->language)->parrents;
 	else parrents = NULL;
 
 	if (parrents) {
@@ -508,10 +508,12 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
     
     if (config->default_charset[class_id]) return config->default_charset[class_id];
     
-    charset_id = rccConfigGetLocaleCharset(config, defvalue);
-    if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
-	config->default_charset[class_id] = charset_id;
-	return charset_id;
+    if (cl->defvalue) {
+	charset_id = rccConfigGetLocaleCharset(config, defvalue);
+	if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
+	    config->default_charset[class_id] = charset_id;
+	    return charset_id;
+	}
     }
     
     if (cl->defvalue) {
@@ -537,7 +539,7 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
 	    }
     }	
 
-    charset_id = rccConfigGetLocaleUnicodeCharset(config, defvalue);
+    charset_id = rccConfigGetLocaleCharset(config, defvalue);
     if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
 	config->default_charset[class_id] = charset_id;
 	return charset_id;
@@ -634,6 +636,7 @@ int rccConfigSetCharsetByName(rcc_language_config config, rcc_class_id class_id,
 rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char *locale_variable) {
     const char *lv;
     rcc_language_id language_id;
+    char lang[RCC_MAX_CHARSET_CHARS+1];
     char stmp[RCC_MAX_CHARSET_CHARS+1];
     
     if ((!config)||(!config->language)) return (rcc_charset_id)-1;
@@ -642,26 +645,14 @@ rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char 
 
     language_id = rccGetLanguageByName(config->ctx, config->language->sn);
     if (language_id != (rcc_language_id)-1) {
-	if (!rccLocaleGetLanguage(stmp, lv, RCC_MAX_CHARSET_CHARS)) {
-	    if (!strcmp(config->language->sn, stmp)) {
-		if (!rccLocaleGetCharset(stmp, lv, RCC_MAX_CHARSET_CHARS))
-		    return rccConfigGetCharsetByName(config, stmp);
-	    }
+	if (!rccLocaleGetCharset(stmp, lv, RCC_MAX_CHARSET_CHARS)) {
+	    if (rccIsUnicode(stmp)) 
+		return rccConfigGetCharsetByName(config, stmp);
+	    if ((!rccLocaleGetLanguage(lang, lv, RCC_MAX_CHARSET_CHARS))&&(!strcmp(config->language->sn, lang)))
+		return rccConfigGetCharsetByName(config, stmp);
 	}
     } 
 
-    return (rcc_charset_id)-1;
-}
-
-rcc_charset_id rccConfigGetLocaleUnicodeCharset(rcc_language_config config, const char *locale_variable) {
-    char stmp[RCC_MAX_CHARSET_CHARS+1];
-
-    if ((!config)||(!config->language)) return (rcc_charset_id)-1;
-
-    if (!rccLocaleGetCharset(stmp, locale_variable?locale_variable:config->ctx->locale_variable, RCC_MAX_CHARSET_CHARS)) {
-	if (rccIsUTF8(stmp)) return rccConfigGetCharsetByName(config, stmp);
-    } 
-	
     return (rcc_charset_id)-1;
 }
 
