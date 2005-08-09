@@ -7,6 +7,7 @@
 #undef RCC_DEBUG_LANGDETECT
 #define RCC_LOCALE_VARIABLE "LC_CTYPE"
 
+extern const char rcc_default_all[];
 extern const char rcc_default_language_sn[];
 extern const char rcc_english_language_sn[];
 extern const char rcc_disabled_language_sn[];
@@ -18,6 +19,11 @@ extern rcc_language_relation rcc_default_relations[];
 extern rcc_language_relation rcc_default_relations_embeded[];
 extern const char rcc_default_charset[];
 extern const char rcc_utf8_charset[];
+
+extern const char rcc_default_unicode_charsets[];
+extern const char rcc_default_nonunicode_charsets[];
+extern rcc_charset rcc_default_disabled_id3_charsets[];
+extern rcc_charset rcc_default_additional_id3v2_charsets[];
 
 extern const char rcc_engine_nonconfigured[];
 extern const char rcc_option_nonconfigured[];

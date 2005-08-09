@@ -83,19 +83,21 @@ static void rccGtkMenuLanguageCB(GtkWidget * w, gpointer item) {
 
 int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     unsigned int i;
+    unsigned long num;
     
     rcc_context rccctx;
     rcc_ui_context uictx;
 
     rcc_language_config config;
-    rcc_language_ptr *languages;
     rcc_language_id language_id;
 
-    rcc_charset *charsets;
-    rcc_engine_ptr *engines;
-
+    rcc_class_id class_id;
     rcc_charset_id charset_id;
     rcc_engine_id engine_id;
+
+    const char *language;    
+    const char *charset;
+    const char *engine;
     
     rcc_option_range *range;
     rcc_option_name *option_name;
@@ -111,12 +113,14 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     
     switch (ctx->type) {
 	case RCC_UI_MENU_LANGUAGE:
-	    languages=rccGetLanguageList(rccctx);
-	    if (!languages) return -1;
+	    num = rccGetLanguageNumber(rccctx);
 	    
 	    list = gtk_menu_new();
-	    for (i=0; languages[i]; i++) {
-		item = gtk_menu_item_new_with_label(rccUiGetLanguageName(uictx, languages[i]->sn));
+	    for (i=0; i<(num?num:1); i++) {
+		language = rccUiGetLanguageName(uictx, (rcc_language_id)i);
+		if (!language) continue;
+		
+		item = gtk_menu_item_new_with_label(language);
 		gtk_widget_show(item);
 		gtk_signal_connect(GTK_OBJECT(item), "activate", GTK_SIGNAL_FUNC(rccGtkMenuLanguageCB), ctx);
 		gtk_menu_append(GTK_MENU(list), item);
@@ -135,15 +139,21 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), language_id);
 	break;
 	case RCC_UI_MENU_CHARSET:
-
 	    language_id = (rcc_language_id)rccUiMenuGet(uictx->language);
-	    charsets = rccGetCharsetList(rccctx, language_id);
-	    if (!charsets) return -1;
+	    class_id = rccUiMenuGetClassId(ctx);
+	    config = rccGetConfig(rccctx, language_id);
+	    num = rccConfigGetClassCharsetNumber(config, class_id);
 	    
 	    list = gtk_menu_new();
-	    for (i=0;charsets[i];i++) {
-		item = gtk_menu_item_new_with_label(rccUiGetCharsetName(uictx,charsets[i]));
-		gtk_widget_show(item);
+	    for (i=0;i<(num?num:1);i++) {
+		charset = rccUiGetCharsetName(uictx, language_id, class_id, (rcc_charset_id)i);
+		if (!charset) continue;
+		
+		item = gtk_menu_item_new_with_label(charset);
+		if (rccIsDisabledCharsetName(rccctx, class_id, charset))
+		    gtk_widget_set_sensitive(item, 0);
+		else 
+		    gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
 	    }
 
@@ -156,20 +166,22 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    gtk_option_menu_remove_menu(GTK_OPTION_MENU(menu));
 	    gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
 
-	    config = rccGetConfig(rccctx, language_id);
-	    charset_id = rccConfigGetSelectedCharset(config, rccUiMenuGetClassId(ctx));
+	    charset_id = rccConfigGetSelectedCharset(config, class_id);
 	    if (charset_id == (rcc_charset_id)-1) charset_id = 0;
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), charset_id);
 	break;
 	case RCC_UI_MENU_ENGINE:
 
 	    language_id = (rcc_language_id)rccUiMenuGet(uictx->language);
-	    engines = rccGetEngineList(rccctx, language_id);
-	    if (!engines) return -1;
-	    
+	    config = rccGetConfig(rccctx, language_id);
+	    num = rccConfigGetEngineNumber(config);
+
 	    list = gtk_menu_new();
-	    for (i=0;engines[i];i++) {
-		item = gtk_menu_item_new_with_label(rccUiGetEngineName(uictx,engines[i]->title));
+	    for (i=0;i<(num?num:1);i++) {
+		engine = rccUiGetEngineName(uictx, language_id, (rcc_engine_id)i);
+		if (!engine) continue;
+		
+		item = gtk_menu_item_new_with_label(engine);
 		gtk_widget_show(item);
     		gtk_menu_append(GTK_MENU(list), item);
 	    }	
@@ -182,7 +194,6 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 
 	    gtk_option_menu_remove_menu(GTK_OPTION_MENU(menu));
 	    gtk_option_menu_set_menu(GTK_OPTION_MENU(menu), list);
-	    config = rccGetConfig(rccctx, language_id);
 	    engine_id = rccConfigGetCurrentEngine(config);
 	    if (engine_id == (rcc_engine_id)-1) engine_id = 0;
 	    gtk_option_menu_set_history(GTK_OPTION_MENU(menu), engine_id);

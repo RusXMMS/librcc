@@ -63,7 +63,9 @@ INPUT                  = /root/xmms/librcc--main--0.1--patch-9/src/ \
                          /root/xmms/librcc--main--0.1--patch-9/examples/
 FILE_PATTERNS          = librcc.h \
                          librccui.h \
-                         example.c
+                         example1.c \
+			 example2.c \
+			 rcc-gtk-config.c
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO

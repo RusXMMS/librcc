@@ -426,9 +426,8 @@ static void rccUiFrameFreeContext(rcc_ui_frame_context ctx) {
 
 rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
     int err = 0;
-    unsigned int i;
+    unsigned int i, n_classes;
     
-    rcc_class_ptr *classes;
     rcc_ui_context ctx;
     rcc_ui_menu_context *charsets;
     rcc_ui_menu_context *options;
@@ -440,11 +439,10 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
     err = rccLockConfiguration(rccctx, RCC_UI_LOCK_CODE);
     if (err) return NULL;
     
-    classes = rccGetClassList(rccctx);
-    for (i=0; classes[i]; i++);
+    n_classes = rccGetClassNumber(rccctx);
 
     ctx = (rcc_ui_context)malloc(sizeof(struct rcc_ui_context_t));
-    charsets = (rcc_ui_menu_context*)malloc((i+1)*sizeof(rcc_ui_menu_context));
+    charsets = (rcc_ui_menu_context*)malloc((n_classes+1)*sizeof(rcc_ui_menu_context));
     options = (rcc_ui_menu_context*)malloc((RCC_MAX_OPTIONS)*sizeof(rcc_ui_menu_context));
     if ((!ctx)||(!charsets)) {
 	if (ctx) free(ctx);
@@ -453,6 +451,8 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
 	return NULL;
     }
 
+    ctx->n_classes = n_classes;
+    
     ctx->options = options;
     ctx->charsets = charsets;
     ctx->rccctx = rccctx;
@@ -467,7 +467,7 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
 
     ctx->language = rccUiMenuCreateContext(RCC_UI_MENU_LANGUAGE, ctx);
     ctx->engine = rccUiMenuCreateContext(RCC_UI_MENU_ENGINE, ctx);
-    for (i=0; classes[i]; i++) {
+    for (i=0; i<n_classes; i++) {
         charsets[i] = rccUiCharsetMenuCreateContext(RCC_UI_MENU_CHARSET, (rcc_charset_id)i, ctx);
 	if (!charsets[i]) err = 1;
     }
@@ -495,7 +495,6 @@ rcc_ui_context rccUiCreateContext(rcc_context rccctx) {
 
 void rccUiFreeContext(rcc_ui_context ctx) {
     unsigned int i;
-    rcc_class_ptr *classes;
 
     if (!ctx) return;
     
@@ -506,8 +505,7 @@ void rccUiFreeContext(rcc_ui_context ctx) {
     if (ctx->language_frame) rccUiFrameFreeContext(ctx->language_frame);
         
     if (ctx->charsets) {
-	classes = rccGetClassList(ctx->rccctx);
-	for (i=0; classes[i]; i++)
+	for (i=0; i<ctx->n_classes; i++)
 	    if (ctx->charsets[i]) rccUiMenuFreeContext(ctx->charsets[i]);
 	free(ctx->charsets);
     }
@@ -585,19 +583,20 @@ int rccUiSetClassNames(rcc_ui_context ctx) {
 
 int rccUiRestoreLanguage(rcc_ui_context ctx) {
     unsigned int i;
-    rcc_class_ptr *classes;
+    rcc_context rccctx;
     rcc_language_id language_id;
     
     if (!ctx) return -1;
+
+    rccctx = ctx->rccctx;
 
     language_id = (rcc_language_id)rccUiMenuGet(ctx->language);
     
     rccUiMenuConfigureWidget(ctx->engine);
     //rccUiMenuSet(ctx->engine, (rcc_ui_id)rccConfigGetSelectedEngine(config));
 
-    classes = rccGetClassList(ctx->rccctx);
-    for (i=0;classes[i];i++) 
-	if (classes[i]->fullname) {
+    for (i=0;i<ctx->n_classes;i++) 
+	if (rccUiGetClassName(ctx, (rcc_class_id)i)) {
 	    rccUiMenuConfigureWidget(ctx->charsets[i]);
 //	    rccUiMenuSet(ctx->charsets[i], rccConfigGetSelectedCharset(config, (rcc_class_id)i));
 	}
@@ -629,7 +628,6 @@ int rccUiRestore(rcc_ui_context ctx) {
 
 int rccUiUpdate(rcc_ui_context ctx) {
     unsigned int i;
-    rcc_class_ptr *classes;
     rcc_context rccctx;
     
     if (!ctx) return -1;
@@ -645,9 +643,8 @@ int rccUiUpdate(rcc_ui_context ctx) {
 
     rccSetEngine(rccctx, (rcc_language_id)rccUiMenuGet(ctx->engine));
 
-    classes = rccGetClassList(rccctx);
-    for (i=0;classes[i];i++)
-	if (classes[i]->fullname)
+    for (i=0;i<ctx->n_classes;i++)
+	if (rccUiGetClassName(ctx, (rcc_class_id)i))
 	    rccSetCharset(rccctx, (rcc_class_id)i, rccUiMenuGet(ctx->charsets[i])); 
     
     return 0;
@@ -663,14 +660,9 @@ rcc_ui_widget rccUiGetLanguageMenu(rcc_ui_context ctx) {
 }
 
 rcc_ui_widget rccUiGetCharsetMenu(rcc_ui_context ctx, rcc_class_id id) {
-    rcc_class_ptr *classes;
-    unsigned int i;
-    
     if ((!ctx)||(id<0)) return NULL;
 
-    classes = rccGetClassList(ctx->rccctx);
-    for (i=0;classes[i];i++);
-    if (id>=i) return NULL;
+    if (id>=ctx->n_classes) return NULL;
     
     if (rccUiMenuConfigureWidget(ctx->charsets[id])) return NULL;
     return ctx->charsets[id]->widget;
@@ -707,15 +699,11 @@ rcc_ui_box rccUiGetLanguageBox(rcc_ui_context ctx, const char *title) {
 }
 
 rcc_ui_box rccUiGetCharsetBox(rcc_ui_context ctx, rcc_class_id id, const char *title) {
-    unsigned int i;
-    rcc_class_ptr *classes;
     rcc_ui_widget charset;
     
     if (!ctx) return NULL;
 
-    classes = rccGetClassList(ctx->rccctx);
-    for (i=0; classes[i]; i++);
-    if (id>=i) return NULL;
+    if (id>=ctx->n_classes) return NULL;
 
     if (ctx->charsets[id]->box) return ctx->charsets[id]->box;
 
@@ -781,12 +769,14 @@ rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, rcc_ui_language_frame_nam
 rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, rcc_ui_charset_frame_name *name) {
     unsigned int i;
     const char *class_name;
-    rcc_class_ptr *classes;
+    rcc_context rccctx;
     rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
     rcc_ui_box charset;
     
     if (!ctx) return NULL;
+    
+    rccctx = ctx->rccctx;
 
     framectx = ctx->charset_frame;
     if (framectx->frame) return framectx->frame;
@@ -797,11 +787,9 @@ rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, rcc_ui_charset_frame_name
     if (frame) framectx->frame = frame;
     else return NULL;
 
-    classes = rccGetClassList(ctx->rccctx);
-    for (i=0; classes[i]; i++) {
-	if (classes[i]->fullname) {
-	    class_name = rccUiGetClassName(ctx, classes[i]->name);
-	    if (!class_name) class_name = classes[i]->fullname;
+    for (i=0; i<ctx->n_classes; i++) {
+	class_name = rccUiGetClassName(ctx, (rcc_class_id)i);
+	if (class_name) {
 	    charset = rccUiGetCharsetBox(ctx, (rcc_class_id)i, class_name);
 	    rccUiFrameAdd(framectx, charset);
 	}

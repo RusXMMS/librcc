@@ -18,7 +18,7 @@
 	+ Language detection (same as charsets, but for UTF8...)
 	    * Consider word recognition based on probability
 	+ Autolearning is triggered by large enough dictionary words
-
+    - Configurable common classes
 
 1.x:
     - Common encodings:
@@ -31,6 +31,7 @@
     - Recoding options:
 	+ Skip Translation
     - Switch to Get/Ref/UnRef system
+    - Drop down 'Class' keywords in all 'ClassCharset' function. Make it default behaviour.
 
 on request:
     - Multibyte(not-UTF8) support for FS classes

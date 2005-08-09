@@ -4,8 +4,8 @@ libdir = $(pkgdatadir)/engines
 
 if HAVE_RCD
 lib_LTLIBRARIES += librcd.la
-librussian_la_SOURCES = librcd.c
-librussian_la_LDFLAGS = -module -avoid-version -export-symbols-regex "rccGetInfo"
+librcd_la_SOURCES = librcd.c
+librcd_la_LDFLAGS = -module -avoid-version -export-symbols-regex "rccGetInfo"
 endif
 
 libwestern_la_SOURCES = western.c

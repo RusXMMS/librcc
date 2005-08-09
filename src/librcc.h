@@ -365,12 +365,51 @@ typedef rcc_class_ptr rcc_class_list[RCC_MAX_CLASSES+1];
   */
 rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl);
 /**
+  * Register additional charsets for the current class.
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is class id.
+  * @param charsets is NULL terminated list of classes.
+  * @return non zero value in the case of a error.
+  */
+int rccRegisterAdditionalCharsets(rcc_context ctx, rcc_class_id class_id, rcc_charset *charsets);
+/**
+  * Register names of charsets disabled in the specified class.
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is class id.
+  * @param charsets is NULL terminated list of classes ("unicode" / "nonunicode" specifies corespondent group of charsets).
+  * @return non zero value in the case of a error.
+  */
+int rccRegisterDisabledCharsets(rcc_context ctx, rcc_class_id class_id, rcc_charset *charsets);
+/**
+  * Checks if charset is disabled for the specified class.
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is class id.
+  * @param charset is charset name.
+  * @return 1 if charset is disabled, 0 if charset is enabled, -1 in the case of error.
+  */
+int rccIsDisabledCharsetName(rcc_context ctx, rcc_class_id class_id, const char *charset);
+
+/**
   * Determines 'class type' of supplied class.
   * @param ctx is working context ( or default one if NULL supplied )
   * @param class_id is class id
   * @return class type  or -1 in case of a error.
   */
 rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id);
+/**
+  * Returns name of supplied class.
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is class id
+  * @return class name  or NULL in case of a error.
+  */
+const char *rccGetClassName(rcc_context ctx, rcc_class_id class_id);
+/**
+  * Returns full name of supplied class.
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @param class_id is class id
+  * @return class full name  or NULL in case of a error.
+  */
+const char *rccGetClassFullName(rcc_context ctx, rcc_class_id class_id);
 
 /*******************************************************************************
 ************************ Altering Configuaration *******************************
@@ -441,6 +480,21 @@ typedef struct rcc_option_range_t {
 }rcc_option_range;
 
 /* lng.c */
+
+/**
+  * Return number of configured languages
+  *
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @return number of configured languages or 0 in the case of error
+  */
+int rccGetLanguageNumber(rcc_context ctx);
+/**
+  * Return number of configured classes
+  *
+  * @param ctx is working context ( or default one if NULL supplied )
+  * @return number of configured classes or 0 in the case of error
+  */
+int rccGetClassNumber(rcc_context ctx);
 /**
   * Determines name of the supplied language.
   *
@@ -636,7 +690,7 @@ rcc_language_config rccCheckConfig(rcc_context ctx, rcc_language_id language_id)
   * @param ctx is working context ( or default one if NULL supplied )
   * @param language_id is concerned language id
   * @return configuration context. The NULL is returned in the case of errors or 
-  * dummy (Dissable LibRCC) language is selected.
+  * dummy (Disable LibRCC) language is selected.
   */
 rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id);
 /**
@@ -690,6 +744,29 @@ rcc_language_id rccConfigGetLanguage(rcc_language_config config);
 const char *rccConfigGetLanguageName(rcc_language_config config);
 
 /**
+  * Return number of configured charsets
+  *
+  * @param config is language configuration
+  * @return number of charsets available in the configuration or 0 in the case of error
+  */
+int rccConfigGetCharsetNumber(rcc_language_config config);
+/**
+  * Return number of configured charsets
+  *
+  * @param config is language configuration
+  * @param class_id is class id.
+  * @return number of charsets available in the configuration or 0 in the case of error
+  */
+int rccConfigGetClassCharsetNumber(rcc_language_config config, rcc_class_id class_id);
+/**
+  * Return number of configured encoding auto-detection engines
+  *
+  * @param config is language configuration
+  * @return number of engines or 0 in the case of error
+  */
+int rccConfigGetEngineNumber(rcc_language_config config);
+
+/**
   * Return supplied engine name
   *
   * @param config is language configuration
@@ -706,6 +783,16 @@ const char *rccConfigGetEngineName(rcc_language_config config, rcc_engine_id eng
   */
 const char *rccConfigGetCharsetName(rcc_language_config config, rcc_charset_id charset_id);
 /**
+  * Return supplied encoding name
+  *
+  * @param config is language configuration
+  * @param class_id is charset encodings
+  * @param charset_id is desired charset 
+  * @return selected encoding name or NULL in case of error.
+  */
+const char *rccConfigGetClassCharsetName(rcc_language_config config, rcc_class_id class_id, rcc_charset_id charset_id);
+
+/**
   * Function finds engine id by the supplied name.
   *
   * @param config is language configuration
@@ -721,14 +808,30 @@ rcc_engine_id rccConfigGetEngineByName(rcc_language_config config, const char *n
   * @return encoding id [0-n] or -1 if not found.
   */
 rcc_charset_id rccConfigGetCharsetByName(rcc_language_config config, const char *name);
-
+/**
+  * Function finds encoding id by the supplied name.
+  *
+  * @param config is language configuration
+  * @param class_id is encoding class
+  * @param name is encoding name
+  * @return encoding id [0-n] or -1 if not found.
+  */
+rcc_charset_id rccConfigGetClassCharsetByName(rcc_language_config config, rcc_class_id class_id, const char *name);
+/**
+  * Checks if charset is disabled for the specified class.
+  * @param config is language configuration
+  * @param class_id is class id.
+  * @param charset is charset name.
+  * @return 1 if charset is disabled, 0 if charset is enabled, -1 in the case of error.
+  */
+int rccConfigIsDisabledCharset(rcc_language_config config, rcc_class_id class_id, rcc_charset_id charset_id);
 /**
   * Return selected engin id.
   *
   * @param config is language configuration
   * @return selected engine id [-1-n]
   * 	- -1 engine is not configured and first available will be used
-  *	-  0 engines are dissabled
+  *	-  0 engines are disabled
   *	- >0 paticular engine id
   */
 rcc_engine_id rccConfigGetSelectedEngine(rcc_language_config config);
@@ -743,11 +846,11 @@ const char *rccConfigGetSelectedEngineName(rcc_language_config config);
 /**
   * Return current engine_id. The default value will be resolved to paticular engine id. Normally,
   * the id of the first available engine will be returned. If no engines registered for supplied
-  * language the 0 will be returned, indicating id of dummy(dissabled) engine.
+  * language the 0 will be returned, indicating id of dummy(disabled) engine.
   *
   * @param config is language configuration
   * @return selected engine id [0-n] or -1 in case of error
-  *	-  0 engines are dissabled
+  *	-  0 engines are disabled
   *	- >0 paticular engine id
   */
 rcc_engine_id rccConfigGetCurrentEngine(rcc_language_config config);
@@ -845,14 +948,30 @@ int rccConfigSetCharsetByName(rcc_language_config config, rcc_class_id class_id,
   * @return encoding id
   */
 rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char *locale_variable);
-
+/**
+  * Function will return encoding id of charset specified by locale configuration.
+  *
+  * @param config is language configuration
+  * @param class_id is encoding class
+  * @param locale_variable is locale variable (Default(NULL) is LC_CTYPE)
+  * @return encoding id
+  */
+rcc_charset_id rccConfigGetLocaleClassCharset(rcc_language_config config, rcc_class_id class_id, const char *locale_variable);
 
 /* curconfig.c */
+int rccGetCharsetNumber(rcc_context ctx);
+int rccGetClassCharsetNumber(rcc_context ctx, rcc_class_id class_id);
+int rccGetEngineNumber(rcc_context ctx);
+
 const char *rccGetEngineName(rcc_context ctx, rcc_engine_id engine_id);
 const char *rccGetCharsetName(rcc_context ctx, rcc_charset_id charset_id);
+const char *rccGetClassCharsetName(rcc_context ctx, rcc_class_id class_id, rcc_charset_id charset_id);
 
 rcc_engine_id rccGetEngineByName(rcc_context ctx, const char *name);
 rcc_charset_id rccGetCharsetByName(rcc_context ctx, const char *name);
+rcc_charset_id rccGetClassCharsetByName(rcc_context ctx, rcc_class_id class_id, const char *name);
+
+int rccIsDisabledCharset(rcc_context ctx, rcc_class_id class_id, rcc_charset_id charset_id);
 
 rcc_engine_id rccGetSelectedEngine(rcc_context ctx);
 const char *rccGetSelectedEngineName(rcc_context ctx);
@@ -869,20 +988,13 @@ int rccSetEngineByName(rcc_context ctx, const char *name);
 int rccSetCharsetByName(rcc_context ctx, rcc_class_id class_id, const char *name);
 
 rcc_charset_id rccGetLocaleCharset(rcc_context ctx, const char *locale_variable);
+rcc_charset_id rccGetLocaleClassCharset(rcc_context ctx, rcc_class_id class_id, const char *locale_variable);
 
 rcc_autocharset_id rccDetectCharset(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len);
 
 /*******************************************************************************
 ************************ Language Configuaration *******************************
 *******************************************************************************/
-/* rcclist.c */
-rcc_language_ptr *rccGetLanguageList(rcc_context ctx);
-rcc_charset *rccGetCharsetList(rcc_context ctx, rcc_language_id language_id);
-rcc_engine_ptr *rccGetEngineList(rcc_context ctx, rcc_language_id language_id);
-rcc_charset *rccGetCurrentCharsetList(rcc_context ctx);
-rcc_engine_ptr *rccGetCurrentEngineList(rcc_context ctx);
-rcc_charset *rccGetCurrentAutoCharsetList(rcc_context ctx);
-rcc_class_ptr *rccGetClassList(rcc_context ctx);
 
 /*******************************************************************************
 ************************ RCC_STRING Manipulations ******************************
@@ -1283,9 +1395,11 @@ char *rccConfigSizedRecode(rcc_language_config config, rcc_class_id from, rcc_cl
   * Recode string from specified encoding to #rcc_string. 
   *
   * @param config is language configuration
+  * @param class_id is encoding class
   * @param charset is source encoding
   * @param buf is original string (perhaps not zero terminated)
   * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
+  * @param rlen in rlen the size of recoded string will be returned.
   * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */
 rcc_string rccConfigSizedRecodeFromCharset(rcc_language_config config, rcc_class_id class_id, const char *charset, const char *buf, size_t len, size_t *rlen);
@@ -1293,8 +1407,10 @@ rcc_string rccConfigSizedRecodeFromCharset(rcc_language_config config, rcc_class
   * Recode string from #rcc_string to specified encoding. 
   *
   * @param config is language configuration
+  * @param class_id is encoding class
   * @param charset is destination encoding
   * @param buf is original zero terminated string
+  * @param len is exact size of string or 0. In the last case the size is determined using 'strlen' function.
   * @param rlen in rlen the size of recoded string will be returned.
   * @result is recoded string or NULL if recoding is not required or failed. It is up to the caller to free memory.
   */

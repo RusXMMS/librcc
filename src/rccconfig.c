@@ -22,6 +22,12 @@ rcc_language_relation rcc_default_relations_embeded[RCC_MAX_RELATIONS + 1] = {
     { NULL, NULL }
 };
 
+const char rcc_default_unicode_charsets[] = "unicode";
+const char rcc_default_nonunicode_charsets[] = "nonunicode";
+rcc_charset rcc_default_disabled_id3_charsets[] = { rcc_default_unicode_charsets, NULL };
+rcc_charset rcc_default_additional_id3v2_charsets[] = { "UTF-8", "UTF-16", "UTF-16BE", NULL };
+
+const char rcc_default_all[] = "all";
 const char rcc_default_language_sn[] = "default";
 const char rcc_disabled_language_sn[] = "Off";
 const char rcc_english_language_sn[] = "en";
@@ -37,11 +43,11 @@ rcc_engine rcc_default_engine = {
 };
 
 rcc_engine rcc_russian_engine = {
-    "Russian", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
+    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
 };
 
 rcc_engine rcc_ukrainian_engine = {
-    "Russian", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-U","UTF-8","IBM865", NULL}
+    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-U","UTF-8","IBM865", NULL}
 };
 
 rcc_language rcc_default_languages[RCC_MAX_LANGUAGES + 1];

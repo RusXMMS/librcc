@@ -1,6 +1,34 @@
 #include <stdio.h>
 #include "internal.h"
 
+int rccGetCharsetNumber(rcc_context ctx) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return 0;
+    }
+    
+    return rccConfigGetCharsetNumber(ctx->current_config);
+}
+
+int rccGetClassCharsetNumber(rcc_context ctx, rcc_class_id class_id) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return 0;
+    }
+
+    return rccConfigGetClassCharsetNumber(ctx->current_config, class_id);
+}
+
+int rccGetEngineNumber(rcc_context ctx) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return 0;
+    }
+    
+    return rccConfigGetEngineNumber(ctx->current_config);
+}
+
+
 const char *rccGetEngineName(rcc_context ctx, rcc_engine_id engine_id) {
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
@@ -17,6 +45,15 @@ const char *rccGetCharsetName(rcc_context ctx, rcc_charset_id charset_id) {
     }
 
     return rccConfigGetCharsetName(ctx->current_config, charset_id);
+}
+
+const char *rccGetClassCharsetName(rcc_context ctx, rcc_class_id class_id, rcc_charset_id charset_id) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
+
+    return rccConfigGetClassCharsetName(ctx->current_config, class_id, charset_id);
 }
 
 const char *rccGetAutoCharsetName(rcc_context ctx, rcc_autocharset_id charset_id) {
@@ -44,6 +81,15 @@ rcc_charset_id rccGetCharsetByName(rcc_context ctx, const char *name) {
     }
 
     return rccConfigGetCharsetByName(ctx->current_config, name);
+}
+
+rcc_charset_id rccGetClassCharsetByName(rcc_context ctx, rcc_class_id class_id, const char *name) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return (rcc_charset_id)-1;
+    }
+
+    return rccConfigGetClassCharsetByName(ctx->current_config, class_id, name);
 }
 
 rcc_autocharset_id rccGetAutoCharsetByName(rcc_context ctx, const char *name) {
@@ -161,6 +207,14 @@ rcc_charset_id rccGetLocaleCharset(rcc_context ctx, const char *locale_variable)
     return rccConfigGetLocaleCharset(ctx->current_config, locale_variable);
 }
 
+rcc_charset_id rccGetLocaleClassCharset(rcc_context ctx, rcc_class_id class_id, const char *locale_variable) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+    return rccConfigGetLocaleClassCharset(ctx->current_config, class_id, locale_variable);
+}
+
 rcc_autocharset_id rccDetectCharset(rcc_context ctx, rcc_class_id class_id, const char *buf, size_t len) {
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;
@@ -168,4 +222,13 @@ rcc_autocharset_id rccDetectCharset(rcc_context ctx, rcc_class_id class_id, cons
     }
 
     return rccConfigDetectCharset(ctx->current_config, class_id, buf, len);
+}
+
+int rccIsDisabledCharset(rcc_context ctx, rcc_class_id class_id, rcc_charset_id charset_id) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+
+    return rccConfigIsDisabledCharset(ctx->current_config, class_id, charset_id);
 }

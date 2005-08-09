@@ -5,6 +5,24 @@
 #include "rccconfig.h"
 #include "rcclocale.h"
 
+int rccGetLanguageNumber(rcc_context ctx) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return 0;
+    }
+
+    return ctx->n_languages;
+}
+
+int rccGetClassNumber(rcc_context ctx) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return 0;
+    }
+
+    return ctx->n_classes;
+}
+
 rcc_language_ptr rccGetLanguagePointer(rcc_context ctx, rcc_language_id language_id) {
     if (!ctx) {
 	if (rcc_default_ctx) ctx = rcc_default_ctx;

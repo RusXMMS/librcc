@@ -368,7 +368,7 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
     if (trans) {
         translated = rccTranslate(trans, utfstring);
         if (translated) {
-            if ((!((rcc_language_internal*)curconfig->language)->latin)&&(rccIsASCII(translated))) {
+            if (((translate != RCC_OPTION_TRANSLATE_TO_ENGLISH))&&(!((rcc_language_internal*)curconfig->language)->latin)&&(rccIsASCII(translated))) {
 	        free(translated);
 	        translated = NULL;
 	    }

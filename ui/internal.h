@@ -35,7 +35,8 @@ typedef void *rcc_ui_internal;
 
 struct rcc_ui_context_t {
     rcc_context rccctx;
-    
+
+    int n_classes;    
     rcc_ui_menu_context language;
     rcc_ui_menu_context engine;
     rcc_ui_menu_context *charsets;

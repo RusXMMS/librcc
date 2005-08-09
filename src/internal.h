@@ -30,6 +30,8 @@
 #include "rccmutex.h"
 #include "rcclocale.h"
 
+#define RCC_MAX_ADDITION_CHARSETS	8
+#define RCC_MAX_DISABLED_CHARSETS	64
 
 
 typedef rcc_language_id rcc_language_parrent_list[RCC_MAX_LANGUAGE_PARRENTS];
@@ -41,6 +43,13 @@ struct rcc_language_internal_t {
 };
 typedef struct rcc_language_internal_t rcc_language_internal;
 typedef rcc_language_internal *rcc_language_internal_ptr;
+
+struct rcc_class_internal_t {
+    rcc_class cl;
+    rcc_charset *additional;
+    rcc_charset *disabled;
+};
+typedef struct rcc_class_internal_t rcc_class_internal;
 
 struct rcc_context_t {
     char locale_variable[RCC_MAX_VARIABLE_CHARS+1];
@@ -58,6 +67,7 @@ struct rcc_context_t {
     
     unsigned int max_classes;
     unsigned int n_classes;
+    rcc_class_internal *iclass;
     rcc_class_ptr *classes;
 
     rcc_iconv *iconv_from;

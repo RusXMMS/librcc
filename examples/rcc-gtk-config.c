@@ -7,6 +7,7 @@
 
 static rcc_class classes[] = {
     { "id3", RCC_CLASS_STANDARD, NULL, NULL, "ID3 Encoding", 0 },
+    { "id3v2", RCC_CLASS_STANDARD, "id3", NULL, "ID3 v.2 Encoding", 0},
     { "pl", RCC_CLASS_STANDARD, "id3", NULL, "PlayList Title Encoding", 0},
     { "plfs", RCC_CLASS_STANDARD, "pl", NULL, "PlayList File Encoding", 0 },
     { "fs", RCC_CLASS_FS, "LC_CTYPE", NULL, "FileSystem Encoding", 0 },

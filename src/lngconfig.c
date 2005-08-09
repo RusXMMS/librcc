@@ -7,6 +7,7 @@
 #include "internal.h"
 #include "rccconfig.h"
 #include "rcclocale.h"
+#include "rcclist.h"
 #include "lng.h"
 
 rcc_language_id rccConfigGetLanguage(rcc_language_config config) {
@@ -34,19 +35,54 @@ const char *rccConfigGetLanguageName(rcc_language_config config) {
     return config->language->sn;
 }
 
+int rccConfigGetCharsetNumber(rcc_language_config config) {
+    int i;
+    rcc_charset *charsets;
 
-rcc_engine_ptr rccConfigGetEnginePointer(rcc_language_config config, rcc_engine_id engine_id) {
-    unsigned int i;
-    rcc_engine_ptr *engines;
+    if ((!config)||(!config->language)) return 0;
 
-    if ((!config)||(!config->language)) return NULL;
-    if (engine_id == (rcc_engine_id)-1) return NULL;
+    charsets = config->language->charsets;
+
+    for (i=0;charsets[i];i++);
+
+    return i;
+}
+
+int rccConfigGetClassCharsetNumber(rcc_language_config config, rcc_class_id class_id) {
+    int sum, i;
+    rcc_charset *charsets;
+
+    if ((!config)||(!config->language)) return 0;
+    if ((class_id<0)||(class_id>=config->ctx->n_classes)) return 0;
+
+    sum = rccConfigGetCharsetNumber(config);
     
+    charsets = config->ctx->iclass[class_id].additional;
+    if (charsets) {
+	for (i=0;charsets[i];i++)
+	    if (rccConfigGetCharsetByName(config, charsets[i]) == (rcc_language_id)-1) sum++;
+    }
+    
+    return sum;
+}
+
+int rccConfigGetEngineNumber(rcc_language_config config) {
+    int i;
+    rcc_engine_ptr *engines;
+    
+    if ((!config)||(!config->language)) return 0;
     engines = config->language->engines;
     for (i=0;engines[i];i++);
-    if (engine_id>=i) return NULL;
+    return i;
+}
+
+
+rcc_engine_ptr rccConfigGetEnginePointer(rcc_language_config config, rcc_engine_id engine_id) {
+    if ((!config)||(!config->language)) return NULL;
+    if (engine_id == (rcc_engine_id)-1) return NULL;
+    if (engine_id>=rccConfigGetEngineNumber(config)) return NULL;
     
-    return engines[engine_id];
+    return config->language->engines[engine_id];
 }
 
 rcc_engine_ptr rccConfigCheckEnginePointer(rcc_language_config config, rcc_engine_id engine_id) {
@@ -78,6 +114,7 @@ rcc_engine_ptr rccConfigCheckCurrentEnginePointer(rcc_language_config config) {
 const char *rccConfigGetEngineName(rcc_language_config config, rcc_engine_id engine_id) {
     rcc_engine_ptr engine;
 
+    if (!engine_id) return rcc_disabled_engine_sn;
     if ((!config)||(!config->language)) return NULL;
     
     if (engine_id == (rcc_engine_id)-1) return rcc_engine_nonconfigured;
@@ -89,17 +126,38 @@ const char *rccConfigGetEngineName(rcc_language_config config, rcc_engine_id eng
 }
 
 const char *rccConfigGetCharsetName(rcc_language_config config, rcc_charset_id charset_id) {
-    unsigned int i;
-    rcc_charset *charsets;
+    if (!charset_id) return rcc_default_charset;
     
     if ((!config)||(!config->language)) return NULL;
+    if (charset_id>=rccConfigGetCharsetNumber(config)) return NULL;
+    
+    return config->language->charsets[charset_id];
+}
 
-    charsets = config->language->charsets;
+const char *rccConfigGetClassCharsetName(rcc_language_config config, rcc_class_id class_id, rcc_charset_id charset_id) {
+    unsigned int i, pos;
+    rcc_charset *charsets;
     
-    for (i=0;charsets[i];i++);
-    if (charset_id>=i) return NULL;
+    if (!charset_id) return rcc_default_charset;
+
+    if ((!config)||(!config->language)) return NULL;
+    if ((class_id<0)||(class_id>=config->ctx->n_classes)) return NULL;
+
+    pos = rccConfigGetCharsetNumber(config);
+    if (charset_id < pos) return rccConfigGetCharsetName(config, charset_id);
+
+    charset_id -= pos;
     
-    return charsets[charset_id];
+    charsets = config->ctx->iclass[class_id].additional;
+    if (!charsets) return NULL;
+    
+    for (i=0;charsets[i];i++)
+	if (rccConfigGetCharsetByName(config, charsets[i]) == (rcc_language_id)-1) {
+	    if (!charset_id) break;
+	    charset_id--;
+	}
+    
+    return charsets[i];
 }
 
 const char *rccConfigGetAutoCharsetName(rcc_language_config config, rcc_autocharset_id charset_id) {
@@ -148,6 +206,31 @@ rcc_charset_id rccConfigGetCharsetByName(rcc_language_config config, const char 
     return (rcc_charset_id)-1;
 }
 
+rcc_charset_id rccConfigGetClassCharsetByName(rcc_language_config config, rcc_class_id class_id, const char *name) {
+    unsigned int pos, i = 0;
+    rcc_charset_id charset_id;
+    rcc_charset *charsets;
+
+    if ((!config)||(!config->language)||(!name)) return (rcc_charset_id)-1;
+    if ((class_id<0)||(class_id>=config->ctx->n_classes)) return (rcc_charset_id)-1;
+    
+    charset_id = rccConfigGetCharsetByName(config, name);
+    if (charset_id != (rcc_charset_id)-1) return charset_id;
+    
+    pos = rccConfigGetCharsetNumber(config);
+    
+    charsets = config->ctx->iclass[class_id].additional;
+    if (!charsets) return (rcc_charset_id)-1;
+    
+    for (i=0;charsets[i];i++)
+	if (rccConfigGetCharsetByName(config, charsets[i]) == (rcc_language_id)-1) {
+	    if (!strcasecmp(charsets[i], name)) return pos;
+	    pos++;
+	}
+    
+    return (rcc_charset_id)-1;
+}
+
 rcc_autocharset_id rccConfigGetAutoCharsetByName(rcc_language_config config, const char *name) {
     unsigned int i;
     rcc_engine_id engine_id;
@@ -166,6 +249,17 @@ rcc_autocharset_id rccConfigGetAutoCharsetByName(rcc_language_config config, con
 	if (!strcasecmp(charsets[i],name)) return (rcc_autocharset_id)i;
 
     return (rcc_autocharset_id)-1;
+}
+
+int rccConfigIsDisabledCharset(rcc_language_config config, rcc_class_id class_id, rcc_charset_id charset_id) {
+    rcc_charset charset;
+    
+    if ((!config)||(!config->language)) return (rcc_autocharset_id)-1;
+    
+    charset = rccConfigGetClassCharsetName(config, class_id, charset_id);
+    if (!charset) return -1;
+    
+    return rccIsDisabledCharsetName(config->ctx, class_id, charset);
 }
 
 int rccConfigInit(rcc_language_config config, rcc_context ctx) {
@@ -469,19 +563,19 @@ const char *rccConfigGetSelectedCharsetName(rcc_language_config config, rcc_clas
     charset_id = rccConfigGetSelectedCharset(config, class_id);
     if ((charset_id == (rcc_charset_id)-1)||(!config->language)) return NULL;
     
-    return rccConfigGetCharsetName(config, charset_id);
+    return rccConfigGetClassCharsetName(config, class_id, charset_id);
 }
 
 rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_id class_id) {
-    unsigned int i;
+    unsigned int i, max;
     rcc_charset_id charset_id;
+    rcc_charset_id all_charset_id = (rcc_language_id)-1;
 
     rcc_class_default_charset *defcharset;
     const char *lang;
 
     rcc_language *language;
     rcc_class_ptr *classes;
-    rcc_charset *charsets;
 
     rcc_class *cl;
 
@@ -509,7 +603,7 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
     if (config->default_charset[class_id]) return config->default_charset[class_id];
     
     if (cl->defvalue) {
-	charset_id = rccConfigGetLocaleCharset(config, defvalue);
+	charset_id = rccConfigGetLocaleClassCharset(config, class_id, defvalue);
 	if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
 	    config->default_charset[class_id] = charset_id;
 	    return charset_id;
@@ -517,7 +611,7 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
     }
     
     if (cl->defvalue) {
-	charset_id = rccConfigGetCharsetByName(config, defvalue);
+	charset_id = rccConfigGetClassCharsetByName(config, class_id, defvalue);
 	if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
 	    config->default_charset[class_id] = charset_id;
 	    return charset_id;
@@ -530,26 +624,35 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
 	    
 	    for (i = 0; cl->defcharset[i].lang; i++) {
 		if (!strcasecmp(lang, defcharset[i].lang)) {
-		    charset_id = rccConfigGetCharsetByName(config, defcharset[i].charset);
+		    charset_id = rccConfigGetClassCharsetByName(config, class_id, defcharset[i].charset);
 		    if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
 			config->default_charset[class_id] = charset_id;
 			return charset_id;
 		    } else break;
+		} else if (!strcasecmp(rcc_default_all, defcharset[i].lang)) {
+		    charset_id = rccConfigGetClassCharsetByName(config, class_id, defcharset[i].charset);
+		    if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
+			all_charset_id = charset_id;
+		    }
 		}
+	    }
+	    
+	    if (all_charset_id != (rcc_language_id)-1) {
+		config->default_charset[class_id] = all_charset_id;
+		return all_charset_id;
 	    }
     }	
 
-    charset_id = rccConfigGetLocaleCharset(config, defvalue);
+    charset_id = rccConfigGetLocaleClassCharset(config, class_id, defvalue);
     if ((charset_id != 0)&&(charset_id != (rcc_charset_id)-1)) {
 	config->default_charset[class_id] = charset_id;
 	return charset_id;
     }
 
-    charsets=language->charsets;
-    if ((charsets[0])&&(charsets[1])) {
-	config->default_charset[class_id]=(rcc_charset_id)1;
-	return (rcc_charset_id)1;
-    }
+    max = rccConfigGetClassCharsetNumber(config, class_id);
+    for (i = 1; i< max; i++)
+	if (!rccConfigIsDisabledCharset(config, class_id, (rcc_charset_id)i)) return (rcc_charset_id)i;
+
     return (rcc_charset_id)-1;
 }
 
@@ -559,7 +662,7 @@ const char *rccConfigGetCurrentCharsetName(rcc_language_config config, rcc_class
     charset_id = rccConfigGetCurrentCharset(config, class_id);
     if ((charset_id == (rcc_charset_id)-1)||(!config->language)) return NULL;
     
-    return rccConfigGetCharsetName(config, charset_id);
+    return rccConfigGetClassCharsetName(config, class_id, charset_id);
 }
 
 
@@ -601,13 +704,10 @@ int rccConfigSetEngineByName(rcc_language_config config, const char *name) {
 }
 
 int rccConfigSetCharset(rcc_language_config config, rcc_class_id class_id, rcc_charset_id charset_id) {
-    unsigned int i;
-    
     if ((!config)||(!config->language)||(class_id < 0)||(class_id >= config->ctx->n_classes)) return -1;
 
-
-    for (i=0;config->language->charsets[i];i++);
-    if (charset_id >= i) return -1;
+    if (charset_id >= rccConfigGetClassCharsetNumber(config, class_id)) return -1;
+    if (rccConfigIsDisabledCharset(config, class_id, charset_id)) return -1;
     
     if (config->charset[class_id] != charset_id) {
 	if (config->ctx->classes[class_id]->flags&RCC_CLASS_FLAG_CONST) return -1;
@@ -627,7 +727,7 @@ int rccConfigSetCharset(rcc_language_config config, rcc_class_id class_id, rcc_c
 int rccConfigSetCharsetByName(rcc_language_config config, rcc_class_id class_id, const char *name) {
     rcc_charset_id charset_id;
     
-    charset_id = rccConfigGetCharsetByName(config, name);
+    charset_id = rccConfigGetClassCharsetByName(config, class_id, name);
     if (charset_id == (rcc_charset_id)-1) return -1;
     
     return rccConfigSetCharset(config, class_id, charset_id);
@@ -655,6 +755,30 @@ rcc_charset_id rccConfigGetLocaleCharset(rcc_language_config config, const char 
 
     return (rcc_charset_id)-1;
 }
+
+rcc_charset_id rccConfigGetLocaleClassCharset(rcc_language_config config, rcc_class_id class_id, const char *locale_variable) {
+    const char *lv;
+    rcc_language_id language_id;
+    char lang[RCC_MAX_CHARSET_CHARS+1];
+    char stmp[RCC_MAX_CHARSET_CHARS+1];
+    
+    if ((!config)||(!config->language)) return (rcc_charset_id)-1;
+
+    lv = locale_variable?locale_variable:config->ctx->locale_variable;
+
+    language_id = rccGetLanguageByName(config->ctx, config->language->sn);
+    if (language_id != (rcc_language_id)-1) {
+	if (!rccLocaleGetCharset(stmp, lv, RCC_MAX_CHARSET_CHARS)) {
+	    if (rccIsUnicode(stmp)) 
+		return rccConfigGetClassCharsetByName(config, class_id, stmp);
+	    if ((!rccLocaleGetLanguage(lang, lv, RCC_MAX_CHARSET_CHARS))&&(!strcmp(config->language->sn, lang)))
+		return rccConfigGetClassCharsetByName(config, class_id, stmp);
+	}
+    } 
+
+    return (rcc_charset_id)-1;
+}
+
 
 int rccConfigConfigure(rcc_language_config config) {
     int err;

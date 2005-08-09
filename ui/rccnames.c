@@ -113,8 +113,11 @@ rcc_name *rccUiGetLanguageRccName(rcc_ui_context ctx, const char *lang) {
     return rccUiGetRccName(ctx, lang, RCC_NAME_TYPE_LANGUAGE);
 }
 
-const char *rccUiGetLanguageName(rcc_ui_context ctx, const char *lang) {
+const char *rccUiGetLanguageName(rcc_ui_context ctx, rcc_language_id language_id) {
+    const char *lang;
     rcc_name *names;
+    
+    lang = rccGetLanguageName(ctx->rccctx, language_id);
     
     names = rccUiGetLanguageRccName(ctx, lang);
     if ((names)&&(names->name)) return names->name;
@@ -126,8 +129,13 @@ rcc_name *rccUiGetCharsetRccName(rcc_ui_context ctx, const char *charset) {
     return rccUiGetRccName(ctx, charset, RCC_NAME_TYPE_CHARSET);
 }
 
-const char *rccUiGetCharsetName(rcc_ui_context ctx, const char *charset) {
+const char *rccUiGetCharsetName(rcc_ui_context ctx, rcc_language_id language_id, rcc_class_id class_id, rcc_charset_id charset_id) {
+    rcc_language_config config;
+    const char *charset;
     rcc_name *names;
+
+    config = rccGetConfig(ctx->rccctx, language_id);
+    charset = rccConfigGetClassCharsetName(config, class_id, charset_id);
     
     names = rccUiGetCharsetRccName(ctx, charset);
     if ((names)&&(names->name)) return names->name;
@@ -139,9 +147,14 @@ rcc_name *rccUiGetEngineRccName(rcc_ui_context ctx, const char *engine) {
     return rccUiGetRccName(ctx, engine, RCC_NAME_TYPE_ENGINE);
 }
 
-const char *rccUiGetEngineName(rcc_ui_context ctx, const char *engine) {
+const char *rccUiGetEngineName(rcc_ui_context ctx, rcc_language_id language_id, rcc_engine_id engine_id) {
+    rcc_language_config config;
+    const char *engine;
     rcc_name *names;
     
+    config = rccGetConfig(ctx->rccctx, language_id);
+    engine = rccConfigGetEngineName(config, engine_id);
+
     names = rccUiGetEngineRccName(ctx, engine);
     if ((names)&&(names->name)) return names->name;
     
@@ -152,13 +165,16 @@ rcc_name *rccUiGetClassRccName(rcc_ui_context ctx, const char *cl) {
     return rccUiGetRccName(ctx, cl, RCC_NAME_TYPE_CLASS);
 }
 
-const char *rccUiGetClassName(rcc_ui_context ctx, const char *cl) {
+const char *rccUiGetClassName(rcc_ui_context ctx, rcc_class_id class_id) {
+    const char *cl;
     rcc_name *names;
+    
+    cl = rccGetClassName(ctx->rccctx, class_id);
     
     names = rccUiGetClassRccName(ctx, cl);
     if ((names)&&(names->name)) return names->name;
     
-    return NULL;
+    return rccGetClassFullName(ctx->rccctx, (rcc_class_id)class_id);
 }
 
 

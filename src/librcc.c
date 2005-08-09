@@ -142,6 +142,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     rcc_language_ptr *languages;
     rcc_language_internal *ilang;
     rcc_class_ptr *classes;
+    rcc_class_internal *iclass;
     rcc_language_config configs;
     rcc_iconv *from;
     rcc_mutex mutex;
@@ -168,17 +169,19 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
     classes = (rcc_class_ptr*)malloc((max_classes+1)*sizeof(rcc_class_ptr));
     from = (rcc_iconv*)malloc((max_classes)*sizeof(rcc_iconv));
     ilang = (rcc_language_internal*)malloc((max_languages+1)*sizeof(rcc_language_internal));
+    iclass = (rcc_class_internal*)malloc((max_classes+1)*sizeof(rcc_class_internal));
     mutex = rccMutexCreate();
 
     configs = (rcc_language_config)malloc((max_languages)*sizeof(struct rcc_language_config_t));
     
-    if ((!ctx)||(!languages)||(!classes)||(!mutex)||(!from)||(!ilang)||(!mutex)) {
+    if ((!ctx)||(!languages)||(!classes)||(!mutex)||(!from)||(!ilang)||(!iclass)||(!mutex)) {
 	if (mutex) rccMutexFree(mutex);
 	if (from) free(from);
 	if (configs) free(configs);
 	if (classes) free(classes);
 	if (languages) free(languages);
 	if (ilang) free(ilang);
+	if (iclass) free(iclass);
 	if (ctx) free(ctx);
 	return NULL;
     }
@@ -194,6 +197,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 	rccRegisterLanguageAlias(ctx, rcc_default_aliases + i);
     
     ctx->ilang = ilang;
+    ctx->iclass = iclass;
     
     ctx->languages = languages;
     ctx->max_languages = max_languages;
@@ -304,6 +308,7 @@ void rccFreeContext(rcc_context ctx) {
 		rccConfigClear(ctx->configs+i);
 	    free(ctx->configs);
 	}
+	if (ctx->iclass) free(ctx->iclass);
 	if (ctx->classes) free(ctx->classes);
 	if (ctx->ilang) free(ctx->ilang);
 	if (ctx->languages) free(ctx->languages);
@@ -489,11 +494,46 @@ rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
     if (ctx->n_classes == ctx->max_classes) return (rcc_class_id)-1;
 
     ctx->configure = 1;
-    ctx->classes[ctx->n_classes++] = cl;
+    
+    memcpy(ctx->iclass + ctx->n_classes, cl, sizeof(rcc_class));
+    ctx->iclass[ctx->n_classes].disabled = NULL;
+    ctx->iclass[ctx->n_classes].additional = NULL;
+
+    ctx->classes[ctx->n_classes++] = (rcc_class_ptr)(ctx->iclass + ctx->n_classes);
     ctx->classes[ctx->n_classes] = NULL;
+    
+    if (!strcasecmp(cl->name, "id3")) {
+	rccRegisterDisabledCharsets(ctx, ctx->n_classes - 1, rcc_default_disabled_id3_charsets);
+    } else if (!strcasecmp(cl->name, "id3v2")) {
+	rccRegisterAdditionalCharsets(ctx, ctx->n_classes - 1, rcc_default_additional_id3v2_charsets);
+    }
+
     return ctx->n_classes-1;
 }
 
+int rccRegisterDisabledCharsets(rcc_context ctx, rcc_class_id class_id, rcc_charset *charsets) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+    if (ctx->configuration_lock) return -1;
+    if ((class_id == (rcc_class_id)-1)||(class_id >= ctx->n_classes)) return -1;
+
+    ctx->iclass[class_id].disabled = charsets;
+    return 0;
+}
+
+int rccRegisterAdditionalCharsets(rcc_context ctx, rcc_class_id class_id, rcc_charset *charsets) {
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return -1;
+    }
+    if (ctx->configuration_lock) return -1;
+    if ((class_id == (rcc_class_id)-1)||(class_id >= ctx->n_classes)) return -1;
+
+    ctx->iclass[class_id].additional = charsets;
+    return 0;
+}
 
 rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
     rcc_class_type clt;
@@ -513,6 +553,55 @@ rcc_class_type rccGetClassType(rcc_context ctx, rcc_class_id class_id) {
 	clt = RCC_CLASS_TRANSLATE_LOCALE;
     
     return clt;
+}
+
+const char *rccGetClassName(rcc_context ctx, rcc_class_id class_id) {
+    if ((class_id<0)||(class_id>=ctx->n_classes)) return NULL;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
+
+    return ctx->classes[class_id]->name;
+}
+
+const char *rccGetClassFullName(rcc_context ctx, rcc_class_id class_id) {
+    if ((class_id<0)||(class_id>=ctx->n_classes)) return NULL;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
+
+    return ctx->classes[class_id]->fullname;
+}
+
+
+int rccIsDisabledCharsetName(rcc_context ctx, rcc_class_id class_id, const char *charset) {
+    unsigned int i;
+    rcc_charset *charsets;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return RCC_CLASS_INVALID;
+    }
+
+    if ((!charset)||(class_id<0)||(class_id>=ctx->n_classes)) return -1;
+
+    charsets = ctx->iclass[class_id].disabled;
+    if (!charsets) return 0;
+    
+    for (i=0;charsets[i];i++) {
+	if (!strcasecmp(charsets[i], charset)) return 1;
+	else if (!strcasecmp(charsets[i], rcc_default_unicode_charsets)) {
+	    if (rccIsUnicode(charset)) return 1;
+	}
+	else if (!strcasecmp(charsets[i], rcc_default_nonunicode_charsets)) {
+	    if (!rccIsUnicode(charset)) return 1;
+	}
+    }
+    return 0;    
 }
 
 
