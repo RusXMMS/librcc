@@ -1,0 +1,198 @@
+2005-08-11 01:06:56 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-30
+
+    Summary:
+      Transliteration and Documentation Update
+    Revision:
+      librcc--main--0.1--patch-30
+
+        - Fix: Autodetection of dissabled charsets.
+        - Fix: Cleanely terminate external process if parrent thread is terminated.
+        - Transliteration for Russian, Ukrainian and using IConv.
+        - Documentation Update.
+
+
+2005-08-09 23:22:36 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-29
+
+    Summary:
+      
+    Revision:
+      librcc--main--0.1--patch-29
+
+        - Russian Engine is really renamed
+        - Translate to English is fixed
+        - Default charset for "all" languages
+        - Support for per-class additional and dissabled charsets
+        - Use 'GetSomethingNumber' instead of 'GetSomethingList'. 'GetSomethingList' functions are depricated.
+        - rccUiGetSomethingName gets id's on the input instead of names
+
+
+2005-08-07 21:41:32 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-28
+
+    Summary:
+      
+    Revision:
+      librcc--main--0.1--patch-28
+
+        - Russian autoengine is renamed to LibRCD
+        - Fix Learning with Language Autodetection switched on
+        - Attempt to perform rccFS with Language Autodetection switched off, if failed with default behaviour.
+        - Systematization of translation engine:
+    	+ Rearangement of the translation modes: OFF, TO_ENGLISH, SKIP_RELATED, SKIP_PARRENT, FULL.
+    	+ New class types: TRANSLATE_LOCALE, TRANSLATE_CURRENT, TRANSLATE_FROM.
+        - Detect "Unicode" locales for foreign languages
+        - "out" class is assumed to be TRANSLATE_LOCALE
+        - Respect RCC_CLASS_KNOWN
+        - Check for Latin UTF-8 prior to running any charset detection engine.
+
+
+2005-08-05 03:06:50 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-27
+
+    Summary:
+      Language AutoDetection Improvements
+    Revision:
+      librcc--main--0.1--patch-27
+
+        - Fix: Loading/Saving range options.
+        - Fix: Language AutoDetection. Using locale language instead of selected one.
+        - Support for range options in GTK UI.
+        - Option to control recoding timeout is provided.
+        - LibRCC.h is updated (Translate, Spell, IConv).
+        - Documentation is updated.
+        - Add 'rcc-config' alias to 'rcc-gtk2-config' in spec.
+        - Implemented concept of parrent languages
+    	+ The concept is used in language autodetection. The string in considered
+    	language is permited to have words from all it's parrent languages. 
+    	+ English is assumed to be parrent for all other languages by default.
+    	+ Russian is parrent language for Ukrainian and Belorussian.
+        - No translation to english if translation between related (one of the 
+        languages is parrent for another one) languages is failed.
+
+
+2005-08-03 18:24:08 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-26
+
+    Summary:
+      Multithreading
+    Revision:
+      librcc--main--0.1--patch-26
+
+        - Multithreaded access to recoding functions using same context
+        - Engine plugin to select between UTF-8 and ISO8859-1 for Western European Languages
+        - Fix: 'rccTo' converting FS classes
+        - FS class support in 'rccConfigSizedToCharset'
+
+
+2005-08-03 01:48:35 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-25
+
+    Summary:
+      Language Fixes and Improvements
+    Revision:
+      librcc--main--0.1--patch-25
+
+        - rccmutex
+        - Language autodetection fixes and improvements
+        - Language translation fixes and improvements
+        - The current state is near to be usable
+
+
+2005-08-02 04:43:01 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-24
+
+    Summary:
+      Language autodetection
+    Revision:
+      librcc--main--0.1--patch-24
+
+        - rccConfigRecode function's are added
+        - Language autodetection using aspell is added
+        - Translation in 3 modes: "To English Language", "Skip English Translation", "Full"
+        - Example2 to demonstrate translation possibilities
+    
+
+
+2005-07-29 03:26:28 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-23
+
+    Summary:
+      Translation
+    Revision:
+      librcc--main--0.1--patch-23
+
+        - Language Translation using libtranslate is implemented
+        - Autoengine sets current charset (option)
+
+
+2005-07-24 01:47:52 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-22
+
+    Summary:
+      Fixes
+    Revision:
+      librcc--main--0.1--patch-22
+
+        - Dummy UI plugin
+        - GTK2 UI plugin
+        - Fixed typo: 'const rcc_string' -> 'rcc_const_string'
+        - Fix: Disable BDB recoding in case if recoding switched off
+
+
+2005-07-20 16:49:08 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-21
+
+    Summary:
+      0.1.1
+    Revision:
+      librcc--main--0.1--patch-21
+
+        - Small gtkui reorganization
+
+
+2005-07-20 14:06:53 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-20
+
+    Summary:
+      Fixes
+    Revision:
+      librcc--main--0.1--patch-20
+
+        - Added 'rcc-gtk-config' program to examples
+        - Fixed problems in autoconf configuration
+        - Fixed bug in rccLocaleGetCharset
+        - Fixed visibility of all items in gtkui
+
+
+2005-07-19 22:25:43 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-19
+
+    Summary:
+      Fixes
+    Revision:
+      librcc--main--0.1--patch-19
+
+        - Fixed several errors in doxygen documentation
+        - Initializing locale in rcclocale (if setlocale return 'C')
+        - Calling Configure before anything else in rccRecode
+            
+
+
+2005-07-18 22:00:54 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-18
+
+    Summary:
+      Documentation
+    Revision:
+      librcc--main--0.1--patch-18
+
+        - Some small doxygen descriptions are added
+
+
+2005-07-18 15:22:28 GMT	Suren A. Chilingaryan <csa@dside.dyndns.org>	patch-17
+
+    Summary:
+      API Improvements
+    Revision:
+      librcc--main--0.1--patch-17
+
+        - Removed 'rlen' return parameters there not necessary for multibyte encodings
+        - Two versions of recode functions: rccRecode -> rccRecode, rccSizedRecode
+        - Class Types: CONST, SKIP_SAVELOAD
+        - New recode functions: rccToCharset, rccFromCharset
+        - More new recode functions: rccRecodeToCharset, rccRecodeFromCharset, rccRecodeCharsets
+        - New function: rccGetCompiledConfiguration
+        - All warnings are fixed
+        - Perform "File Name" search only if there are non ISO8859-1 chars in the name.
+        - Do not copy invalid characters, - skip them.
+        - Fixed error in rccRecode with 'Recoding Cache' switched On.
+        - Strip leading and trailing spaces in rccDB4 get/set
