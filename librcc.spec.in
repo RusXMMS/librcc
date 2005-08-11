@@ -1,4 +1,4 @@
-%define realrelease 1
+%define realrelease 2
 %define cvs @LIBRCC_CVS@
 
 %if %cvs
@@ -60,8 +60,8 @@ rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.a
 rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.la
 make -C examples
-install -m 755 examples/rcc-gtk*-config $RPM_BUILD_ROOT/%{prefix}/bin 
-
+make -C examples install DESTDIR=$RPM_BUILD_ROOT
+rm -f $RPM_BUILD_ROOT%{prefix}/bin/example*
 
 install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc
 
