@@ -32,7 +32,7 @@ rcc_name rcc_default_language_names_embeded[RCC_MAX_LANGUAGES+1] = {
 rcc_option_value_name rcc_default_option_boolean_names[] = { "Off", "On", NULL };
 rcc_option_value_name rcc_default_option_learning_names[] = { "Off", "On", "Relearn", "Learn", NULL };
 rcc_option_value_name rcc_default_option_clo_names[] = { "All Languages", "Configured / AutoEngine", "Configured Only", NULL };
-rcc_option_value_name rcc_default_option_translate_names[] = { "Off", "Translate to English", "Skip Translation between Related Languages", "Skip Translation from Parrent Languages", "Full", NULL };
+rcc_option_value_name rcc_default_option_translate_names[] = { "Off", "Transliterate", "Translate to English", "Skip Translation between Related Languages", "Skip Translation from Parrent Languages", "Full", NULL };
 
 rcc_option_name rcc_default_option_names[RCC_MAX_OPTIONS+1];
 rcc_option_name rcc_default_option_names_embeded[RCC_MAX_OPTIONS+1] = {

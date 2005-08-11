@@ -31,6 +31,8 @@ const char rcc_default_all[] = "all";
 const char rcc_default_language_sn[] = "default";
 const char rcc_disabled_language_sn[] = "Off";
 const char rcc_english_language_sn[] = "en";
+const char rcc_russian_language_sn[] = "ru";
+const char rcc_ukrainian_language_sn[] = "uk";
 const char rcc_disabled_engine_sn[] = "Off";
 const char rcc_default_charset[] = "Default";
 
@@ -61,18 +63,18 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
     &rcc_default_engine,
     NULL
 }},
-{"en", {rcc_default_charset, rcc_utf8_charset, NULL}, {
+{rcc_english_language_sn, {rcc_default_charset, rcc_utf8_charset, "ISO8859-1", NULL}, {
     &rcc_default_engine,
     NULL
 }},
-{"ru", {rcc_default_charset,"KOI8-R","CP1251",rcc_utf8_charset,"IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
+{rcc_russian_language_sn, {rcc_default_charset,"KOI8-R","CP1251",rcc_utf8_charset,"IBM866","MACCYRILLIC","ISO8859-5", NULL}, {
     &rcc_default_engine,
 #ifdef RCC_RCD_SUPPORT
     &rcc_russian_engine,
 #endif /* RCC_RCD_SUPPORT */
     NULL
 }},
-{"uk", {rcc_default_charset,"KOI8-U","CP1251",rcc_utf8_charset,"IBM855","MACCYRILLIC","ISO8859-5","CP1125", NULL}, {
+{rcc_ukrainian_language_sn, {rcc_default_charset,"KOI8-U","CP1251",rcc_utf8_charset,"IBM855","MACCYRILLIC","ISO8859-5","CP1125", NULL}, {
     &rcc_default_engine,
 #ifdef RCC_RCD_SUPPORT
     &rcc_ukrainian_engine,
@@ -129,11 +131,10 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
 }},
 {NULL}
 };
-
 rcc_option_value_name rcc_sn_boolean[] = { "OFF", "ON", NULL };
 rcc_option_value_name rcc_sn_learning[] = { "OFF", "ON", "RELEARN", "LEARN", NULL };
 rcc_option_value_name rcc_sn_clo[] = { "ALL", "CONFIGURED_AND_AUTO", "CONFIGURED_ONLY", NULL };
-rcc_option_value_name rcc_sn_translate[] = { "OFF", "TO_ENGLISH", "SKIP_RELATED", "SKIP_PARRENT", "FULL", NULL };
+rcc_option_value_name rcc_sn_translate[] = { "OFF", "TRANSLITERATE", "TO_ENGLISH", "SKIP_RELATED", "SKIP_PARRENT", "FULL", NULL };
 
 rcc_option_description rcc_option_descriptions[RCC_MAX_OPTIONS+1];
 rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {

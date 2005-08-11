@@ -1,0 +1,37 @@
+Dependencies
+============
+    LibRCC is dependent on LibXML2 library. However it requires some other 
+    libraries to provide considered services.
+    
+    * LibRCD and Enca libraries are used to provide encoding autodetection.
+    * DB4 is used to cache translations and recodings. 
+    * Aspell is required for language autodetection.
+    * LibTranslate is required for translation. 
+	o The Libtranslate uses online services to translate the text. In the 
+	defaultIt version there are no ways to limit translation time. The 
+	LibRCC will respect the maximum time for recoding in any case, but
+	nevertheless it will be good idea to use patched version of Libtranslate,
+	providing API call to make time limited translate. The patch can be
+	downloaded from the RusXMMS(http://RusXMMS.sf.net) project page.
+
+    The configure script will report which options are available.
+
+
+Build
+=====
+    LibRCC utilizes standard GNU autoconf build system. To build LibRCC release
+    you should type:
+	./configure
+	make
+    
+    Installation can be performed using following command:
+	make install
+    
+    The configure script accepts following options:
+    --enable-force-dynamic-engines:
+	Will force encoding autodetection to load Enca and LibRCD libraries
+	dynamically, rather than compiling them in.
+    --disable-libtranslate:
+	Will not compile support for language translation.
+	Even if Libtranslate library is available.
+	

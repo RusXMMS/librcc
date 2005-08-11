@@ -1,7 +1,161 @@
+RusXMMS Project
+===============
 
-Language Autodetection
-----------------------
+Originally, the project was aimed to provide means to work with multiple encodings 
+of the same language through adapting encoding of ID3 tags, M3U and PLS playlists 
+(including file names) to local settings on-the-fly. Both the tag reading and 
+writing back using any selected encoding was supported.
+Nowadays there are library available providing the same functionality for almost
+any program with just a few lines of code. The library is not limited to ID3 tags,
+it can be useful for any program working with small titles or file names in 
+different languages and encodings. The patches for several music players, ID3 tag
+libraries and some other programs are available on the project page.
+
+The Abilities of LibRCC Library
+===============================
+
+    * Language Autodetection
+    * On the fly translation between languages, using online-services!
+    * Encoding Autodetection for most of European Languages1
+    * Support for encoding detection plugins (besides Enca and LibRCD)
+    * Recoding/translation of multi-language playlists!
+    * Cache to speed-up re-recoding.
+    * Possibility to configure new languages and encodings.
+    * Shared configuration file. For example mentioned TagLib and LibID3 patches
+    do not have their own user interface, but will utilize the same recoding 
+    configuration as XMMS.
+    * As well the separate program for configuration adjustment is available.
+    * GTK/GTK2 UI Library: you can add properties page to your GTK application 
+    with 3 lines of code.
+    * Menu localization opportunity
+
+The Available Patches
+=====================
+
+    * RusXMMS: Visualization and editing of the whole range of ID3 tags using any
+    of eight byte or unicode encodings. Support for playlists with non-english 
+    filenames. The translation of foreign languages to english or locale one is 
+    supported as well. The embeded properties page. The patch makes XMMS the best 
+    player to  work with ID3 titles.
+    * TagLib: Visualization and editing of ID3 v.1 and v.2 titles. Any TagLib 
+    based application will correctly work with ID3 tags out of the box. The 
+    properties page can be added to application with several lines of code. 
+    Additionaly, after applying the patch, the 'tagwriter' program from the 
+    TagLib examples can be used to convert titles of all your MP3 files to 
+    unicode ID3 v.2 tags just using command: "tagwriter *.mp3".
+    * LibID3: Visualization of ID3 v.1 and v.2 titles. Any LibID3 based 
+    application will correctly display (but not edit) ID3 tags out of the box.
+    * Mpg123: Visualization of ID3 v.1 titles.
+    * GFtp: Recoding file names between FTP servers using different encodings.
+    * Unzip: Recoding file names from Windows created archives.
 
 
-Translation
------------
+Gratitudes
+==========
+    * Me ;)
+    * Michael Shigorin - Ideas and great help in wiping bugs
+    * Dmitry A. Koptev - Slackware packages
+    * IPE, ForschungsZentrum, Karlsruhe
+    * CRD, Yerevan Physics Institute
+    * Georgian and Spanish winemakers :)
+
+Important Notes
+===============
+
+1. It have much more sense to report problems here, then just claiming nothing is 
+   working on miscellaneous forums and mailing lists.
+2. If you want patches presented here to be included in the correspondent project 
+   trees, please, ask authors. The same thing should be concerned about inclusion 
+   of LibRCC and LibRCD in the official Gentoo portage tree.
+3. Most of the patches will modify configure.in and Makefile.am files, so the full
+   autoconfiguration should be performed. 
+   You should run "aclocal; automake; autoconf" prior to using configure script.
+4. Output encoding normally must correspond to current "LC_CTYPE" locale. If 
+   you would set it to another value without really knowing what are you doing, 
+   it can raise problems.
+
+Preferences
+===========
+
+    * Current Language. The English, Russian, Ukrainian, Belarussian, Bulgarian,
+    Czech, Estonian, Croatian, Hungarian, Lithuanian, Latvian, Polish, Slovak, 
+    Slovenian and Chinese are embeded in the library. To get other languages you 
+    should configure them in the "/etc/rcc.xml" or in user-defined configuration 
+    "~/.rcc/rcc.xml". By default the language will be determined using LC_CTYPE 
+    environmental variable.
+    * Current encoding for supported encoding classes. For RusXMMS the following
+    classes are defined:
+          o ID3 Encoding
+          o ID3 v.2 Encoding (uses ID3 by default)
+          o PlayList Encoding (uses ID3 by default)
+          o Encoding for Filenames in the Playlists (defaults to FS encoding)
+          o FileSystem Encoding (uses locale encoding by default)
+          o Output Encoding (uses locale encoding by default)
+    The default encoding will be resolved using:
+          o The unicode encoding selected for english language.
+          o The encoding of the parrent class if any.
+          o The unicode encoding defined by locale variable or any locale encoding 
+	  in the case of locale language is used.
+          o First available usable encoding.
+    * Encoding autodetection engine. First available is used by default.
+    * Mode for recoding cache:
+          o Off: Do not use recoding cache
+          o On: Use recoding cache to find out encoding and language
+          o ReLearn: Fill recoding cache with detected values
+          o Learn: Try to use recoding cache to find out encoding. If there are 
+	  no cached encoding for current title try to detect it and store in the 
+	  cache.
+    * Autodetect File Name: If option is switched on the encoding of the file 
+    will be resolved using search over file system.
+    * Autoengine Set Current Encoding: Encoding autodetection engine will 
+    automatically set detected encoding to be used by default.
+    * Autodetect Language: Try to autodetect used language. Quite slow.
+    * Translate Text: Translate text from detected language to the locale 
+    language. Very slow and requires internet connection. The different modes is 
+    available. In the full mode the string will be translated to the current 
+    locale language. If translation to locale language is failed, the string will
+    be translated to english. With "Skip Related" and "Skip parrent" options the
+    translation between related languages will be omited (The language is 
+    considered to be parrent language in the case then it is expected to have 
+    words from that language in the strings of child language. The english 
+    language is considered to be parrent language for any other.). 
+    With "Translate to English" option it is possible to translate all strings 
+    to english.
+    * Since the translation is slow, it is possible to limit maximum time used to
+    recode/translate string. In this case if translation in the specified amount 
+    of time is not finished, untranslated string will be returned. However, the 
+    string will be queued for translation and in the next access the translated 
+    and cached value will be returned.
+    * Additionally, for RusXMMS only it is possible to specify font used by shade
+    form of xmms playlist.
+
+Using Multi-Language Playlist
+=============================
+There are two ways of using multi-language playlists. The first is to use 
+Language autodetection:
+
+    * The UTF-8 locale should be set.
+    * The LibRCC should be compiled with aspell support.
+    * The aspell dictionaries for all languages used should be installed.
+
+However this is quite slow, and errnous in the cases then mostly non-dictionary 
+words are used. The second option, is to use recodings cache:
+
+    * The UTF-8 locale should be set.
+    * Select "Learn" mode for recoding caching policy in the preferences prior
+    to loading new files.
+    * Afterwards the titles for the loaded files will be recoded correctly 
+    whenever the recoding caching is enabled.
+
+Using Language Translation
+==========================
+It is possible to translate titles to your languages using libtranslate. 
+The LibRCC should be compiled with LibTranslate support (It will be quite good 
+idea to use patched libtranslated with posibility to limit maximum amount of 
+time spent for translation) and you should have internet connection. Since 
+libtranslate utilizes online translation services it takes a lot of time to get
+translation. To solve this problem the translation queueing and caching is used.
+If translation is failed in considered amount of time error will be returned to 
+caller and string will be queued for translation. The translated string will be
+stored in the DB4 cache and will be returned to caller on the following requests
+for translation.

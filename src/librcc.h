@@ -427,6 +427,7 @@ typedef int rcc_option_value;
 
 typedef enum rcc_option_translate_t {
     RCC_OPTION_TRANSLATE_OFF = 0,  	/**< Switch translation off. */
+    RCC_OPTION_TRANSLATE_TRANSLITERATE,	/**< Transliterate data. */
     RCC_OPTION_TRANSLATE_TO_ENGLISH, 	/**< Translate data to english language (Current language don't matter). */
     RCC_OPTION_TRANSLATE_SKIP_RELATED, 	/**< Skip translation of the text's between related languages. */
     RCC_OPTION_TRANSLATE_SKIP_PARRENT, 	/**< Skip translation of the text's from parrent languages (from english). */
@@ -821,7 +822,7 @@ rcc_charset_id rccConfigGetClassCharsetByName(rcc_language_config config, rcc_cl
   * Checks if charset is disabled for the specified class.
   * @param config is language configuration
   * @param class_id is class id.
-  * @param charset is charset name.
+  * @param charset_id is charset id.
   * @return 1 if charset is disabled, 0 if charset is enabled, -1 in the case of error.
   */
 int rccConfigIsDisabledCharset(rcc_language_config config, rcc_class_id class_id, rcc_charset_id charset_id);
@@ -885,10 +886,13 @@ const char *rccConfigGetSelectedCharsetName(rcc_language_config config, rcc_clas
 /**
   * Return current encoding_id. The default value will be resolved to paticular encoding id. 
   * The following procedure is used to detect default encoding:
+  *	- If Unicode encoding selected for the same class english language. Return this encoding.
   *	- If the parrent class is defined in #defcharset, - return current encoding of parrent class.
-  *	- If the locale variable is defined in #defcharset and config language coincide with locale language, use locale encoding.
+  *	- If the locale variable is defined in #defcharset and either config language coincide with locale language or unciode encoding defined, use locale encoding.
   *	- If the default value for config language is defined in #defvalue return that default value.
-  *	- Return language with id 0. Normally this should be dummy language which indicates that RCC library is not used.
+  *	- If the default value for all languages is defined in #defvalue return that default value.
+  *	- If either config language is coincide with locale language or unicode locale is used, return locale encoding.
+  *	- Return first by the list non-dissabled encoding.
   *
   * @param config is language configuration
   * @param class_id is encoding class

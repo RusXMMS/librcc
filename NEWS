@@ -1,0 +1,6 @@
+LibRCC-0.2.0:
+    + Language AutoDetection
+    + Language Translation
+    + Language Transliteration for Russian, Ukrainian and Languages supported by IConv.
+    + Support for per-class Charset Configuration
+

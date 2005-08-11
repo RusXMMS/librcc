@@ -1,40 +1,39 @@
 0.3.x:
     - Buffer managment:
 	+ SetBufferSize ( 0 - autogrow )
-    - Language autodetection and translation improvements
-	+ Look on ofline translation libraries and other possibilities to improove 
-	translation and language detection.
-	+ Implement ispell support
-	+ Configurable timeouts
-    - Move all recoding functionality on rccConfig level
-    - Revise locking subsystem
-    - Libtranslate can leave translated message partly in old language. This causes problems
-      because of recoding from UTF8 to Current language. (With UTF-8 encoding should be Okey).
-    - Lating languages. If in the string all characters < 0x7F then we have one of the Latin
-    languages?
-    - Statistic approach of language detection.
-    - LibRCD autolearning using db4
-	+ Charset detection
-	+ Language detection (same as charsets, but for UTF8...)
-	    * Consider word recognition based on probability
-	+ Autolearning is triggered by large enough dictionary words
-    - Configurable common classes
+    - Move all recoding functionality on the rccConfig Level
+    - Revise Locking Subsystem
+    - Load class configurations from the XML files.
 
-1.x:
-    - Common encodings:
-	+ Provide way to add to all languages several default Unicode encodings (UTF8, UTF16, UTF16BE)
-	+ Special type of classes to select only from Unicode encodings (or even just specified subset of encodings)
-	+ Special pluggable encodings. For example translate to english.
-	    * rccToEncoding(current_language, *new_language, buf, size)?
-	    * rccFromEncoding(current_language, utf8_language, buf, size)?
-	    * Code some options in charset name. (SpecialEncodingPrefix_Encoding_EncodingOptions)
-    - Recoding options:
-	+ Skip Translation
-    - Switch to Get/Ref/UnRef system
+
+0.4.x:
+    - Language and Encoding autodetection improvements.
+	+ LibRCD should use DB4 with statistic for different languages
+	+ The statistic should be gathered using:
+	    * Aspell dictionaries.
+	    * Special program getting text on the standard input.
+	    * From LibRCC when language is preciesely detected.
+	+ The LibRCD engine should be used to fast language detection as well.
+	    * Just analyze output UTF8 string
+	+ Add ispell support
+    - Translation improvemtns
+	+ Look if there are any offline translation libraries available.
+	+ Use stardict (or other dictionary) to translate on per-word basis.
+	+ Try to translate to first parrent encoding if translation to the current one is failed.
+	+ Transliterate translation mode
+
+0.5.x:
+    - Special encoding.
+	+ Instead of IConv call considered function.
+	    * For example: Transliterate
+	    * For example: Translate to English
+	+ The options for encoding should be passed as a part of encoding name.
+	    * Develope naming conventions
+	+ Pluggable special encodings.
+	
+1.0.x:
+    - Switch to Get/Ref/UnRef calls.
     - Drop down 'Class' keywords in all 'ClassCharset' function. Make it default behaviour.
 
 on request:
     - Multibyte(not-UTF8) support for FS classes
-    - If there are neccessity in western-european language relating.
-	+ Check for correctness between related western-european languages while 
-	invalid translation checking (rccTo). Can be done with rccSpeller.

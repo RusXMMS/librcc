@@ -322,7 +322,9 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
 
     rcc_translate trans, entrans;
     
+    unsigned int i;
     char *translated;
+    unsigned char change_case;
 
     ctx = (*config)->ctx;
 
@@ -336,7 +338,7 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
 	
     english_language_id = rccGetLanguageByName(ctx, rcc_english_language_sn);
     
-    if (translate == RCC_OPTION_TRANSLATE_TO_ENGLISH) {
+    if ((translate == RCC_OPTION_TRANSLATE_TO_ENGLISH)||(translate == RCC_OPTION_TRANSLATE_TRANSLITERATE)) {
 	current_language_id = english_language_id ;
     } else {
 	if (ctype == RCC_CLASS_TRANSLATE_LOCALE) {
@@ -355,6 +357,49 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
     if (!curconfig) return NULL;
 
     if (rccConfigConfigure(curconfig)) return NULL;
+    
+    if (translate == RCC_OPTION_TRANSLATE_TRANSLITERATE) {
+	if (!strcasecmp((*config)->language->sn, rcc_russian_language_sn)) {
+	    translated = rccSizedRecodeCharsets(ctx, "UTF-8", "KOI8-R", utfstring, 0, NULL);
+	    if (!translated) return NULL;
+	    for (i=0;translated[i];i++) {
+		if (translated[i]&0x80) change_case = 1;
+		else change_case = 0;
+		
+		translated[i]=translated[i]&0x7F;
+		if (change_case) {
+	    	    if ((translated[i]<'Z')&&(translated[i]>'A'))
+			translated[i]=translated[i]-'A'+'a';
+		    else if ((translated[i]<'z')&&(translated[i]>'a'))
+			translated[i]=translated[i]-'a'+'A';
+		}
+	    }
+	    *config = curconfig;
+	    return translated;
+	}
+	if (!strcasecmp((*config)->language->sn, rcc_ukrainian_language_sn)) {
+	    translated = rccSizedRecodeCharsets(ctx, "UTF-8", "KOI8-U", utfstring, 0, NULL);
+	    if (!translated) return NULL;
+	    for (i=0;translated[i];i++) {
+		if (translated[i]&0x80) change_case = 1;
+		else change_case = 0;
+		
+		translated[i]=translated[i]&0x7F;
+		if (change_case) {
+	    	    if ((translated[i]<'Z')&&(translated[i]>'A'))
+			translated[i]=translated[i]-'A'+'a';
+		    else if ((translated[i]<'z')&&(translated[i]>'a'))
+			translated[i]=translated[i]-'a'+'A';
+		}
+	    }
+	    *config = curconfig;
+	    return translated;
+	}
+
+	translated = rccSizedRecodeCharsets(ctx, "UTF-8", "US-ASCII//TRANSLIT", utfstring, 0, NULL);
+	if (translated) *config = curconfig;
+	return translated;
+    }
     
     if (translate == RCC_OPTION_TRANSLATE_SKIP_RELATED) {
 	if (rccAreRelatedLanguages(curconfig, *config)) return NULL;

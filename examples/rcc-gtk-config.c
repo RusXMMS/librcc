@@ -16,7 +16,7 @@ static rcc_class classes[] = {
     { "ftp", RCC_CLASS_STANDARD, NULL, NULL, "FTP Encoding", 0 },
     { "http", RCC_CLASS_STANDARD, NULL, NULL, "HTTP Encoding", 0 },
     { "ssh", RCC_CLASS_STANDARD, NULL, NULL, "SSH Encoding", 0 },
-    { "out", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, NULL, 0 },
+    { "out", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, "Output Encoding", 0 },
     { NULL }
 };
 

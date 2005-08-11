@@ -10,6 +10,9 @@
 extern const char rcc_default_all[];
 extern const char rcc_default_language_sn[];
 extern const char rcc_english_language_sn[];
+extern const char rcc_russian_language_sn[];
+extern const char rcc_ukrainian_language_sn[];
+
 extern const char rcc_disabled_language_sn[];
 extern const char rcc_disabled_engine_sn[];
 
