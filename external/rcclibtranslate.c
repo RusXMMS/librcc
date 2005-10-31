@@ -139,10 +139,10 @@ int rccLibTranslateInit(const char *rcc_home_dir) {
     dbname = (char*)malloc(size*sizeof(char));
     if (dbname) {
         sprintf(dbname,"%s/.rcc/",rcc_home_dir);
-	mkdir(dbname, 00644);
+	mkdir(dbname, 00755);
     
 	sprintf(dbname,"%s/.rcc/libtranslate.db/",rcc_home_dir);
-	mkdir(dbname, 00644);
+	mkdir(dbname, 00755);
 
 	db4ctx = rccDb4CreateContext(dbname, 0);
 	free(dbname);

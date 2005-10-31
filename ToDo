@@ -1,12 +1,15 @@
+0.2.1:
+    - "ctype" should be known class. In the XMMS patch just describe how the playlist patch
+    can be altered from "ctype" to "id3" in the case mpg123 patches are not applied.
+	+ Problem. Some times there are broken 'ogg' tags with CP1251 instead of unicode
+	inside. Dissabling autodetection for them will cause incorrect encoding to be
+	displayed.
+    - If autodetected charset is disabled treat the autodetection failed.
+    - If Locale Language is English, - resolve default charset to "Off".
+    - Don't try to translate if postponed translate failed (for some time)
+    - Solve mpg123 slowdown.
+
 0.3.x:
-    - Buffer managment:
-	+ SetBufferSize ( 0 - autogrow )
-    - Move all recoding functionality on the rccConfig Level
-    - Revise Locking Subsystem
-    - Load class configurations from the XML files.
-
-
-0.4.x:
     - Language and Encoding autodetection improvements.
 	+ LibRCD should use DB4 with statistic for different languages
 	+ The statistic should be gathered using:
@@ -20,7 +23,15 @@
 	+ Look if there are any offline translation libraries available.
 	+ Use stardict (or other dictionary) to translate on per-word basis.
 	+ Try to translate to first parrent encoding if translation to the current one is failed.
-	+ Transliterate translation mode
+	+ Transliterate support for more languages. 
+
+0.4.x:
+    - Buffer managment:
+	+ SetBufferSize ( 0 - autogrow )
+    - Move all recoding functionality on the rccConfig Level
+    - Revise Locking Subsystem
+    - Load class configurations from the XML files.
+
 
 0.5.x:
     - Special encoding.

@@ -19,7 +19,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     err = db_env_create(&dbe, 0);
     if (err) return NULL;
     
-    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 0);
+    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00755);
     if (err) {
 	dbe->close(dbe, 0);
 	return NULL;

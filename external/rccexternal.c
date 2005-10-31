@@ -87,7 +87,7 @@ int main() {
     rccLibTranslateInit(rcc_home_dir);
 
     sprintf(addr,"%s/.rcc/comm/",rcc_home_dir);
-    mkdir(addr, 00600);
+    mkdir(addr, 00700);
     sprintf(addr,"%s/.rcc/comm/%lu.sock", rcc_home_dir, (unsigned long)mypid);
     
     s = socket(PF_UNIX, SOCK_STREAM, 0);
