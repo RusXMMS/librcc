@@ -9,7 +9,7 @@
 
 #define RCC_MAX_ERRORS 3
 
-static void rccIConvCopySymbol(char **in_buf, int *in_left, char **out_buf, int *out_left) {
+static void rccIConvCopySymbol(char **in_buf, size_t *in_left, char **out_buf, size_t *out_left) {
     if ((out_left>0)&&(in_left>0)) {
 /*	(**out_buf)=(**in_buf);
 	(*out_buf)++;
@@ -57,7 +57,7 @@ int rccIConvGetError(rcc_iconv icnv) {
 
 size_t rccIConvRecode(rcc_iconv icnv, char *outbuf, size_t outsize, const char *buf, size_t size) {
     char *in_buf, *out_buf, err;
-    int in_left, out_left;
+    size_t in_left, out_left;
     int ub, utf_mode=0;
     int errors=0;
     

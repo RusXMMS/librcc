@@ -53,26 +53,28 @@ is part of rusxmms patch.
 rm -rf $RPM_BUILD_ROOT
 
 mkdir -p $RPM_BUILD_ROOT/etc/rcc
-mkdir -p $RPM_BUILD_ROOT/%{prefix}/lib/rcc/engines/
-mkdir -p $RPM_BUILD_ROOT/%{prefix}/bin
+mkdir -p $RPM_BUILD_ROOT/%{_libdir}/rcc/engines/
+mkdir -p $RPM_BUILD_ROOT/%{_bindir}
+
 make install DESTDIR=$RPM_BUILD_ROOT
-rm -f $RPM_BUILD_ROOT%{prefix}/lib/*.la
-rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.a
-rm -f $RPM_BUILD_ROOT%{prefix}/lib/rcc/engines/*.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
+rm -f $RPM_BUILD_ROOT%{_libdir}/rcc/engines/*.a
+rm -f $RPM_BUILD_ROOT%{_libdir}/rcc/engines/*.la
 make -C examples
 make -C examples install DESTDIR=$RPM_BUILD_ROOT
-rm -f $RPM_BUILD_ROOT%{prefix}/bin/example*
+rm -f $RPM_BUILD_ROOT%{_bindir}/example*
 
 install -m 644 examples/rcc.xml $RPM_BUILD_ROOT/etc
 
-if [ -f $RPM_BUILD_ROOT/usr/bin/rcc-gtk2-config ]; then
-    ln -s rcc-gtk2-config $RPM_BUILD_ROOT/usr/bin/rcc-config
-elif [ -f $RPM_BUILD_ROOT/usr/bin/rcc-gtk-config ]; then
-    ln -s rcc-gtk-config $RPM_BUILD_ROOT/usr/bin/rcc-config
+if [ -f $RPM_BUILD_ROOT/%{_bindir}/rcc-gtk2-config ]; then
+    ln -s rcc-gtk2-config $RPM_BUILD_ROOT/%{_bindir}/rcc-config
+elif [ -f $RPM_BUILD_ROOT/%{_bindir}/rcc-gtk-config ]; then
+    ln -s rcc-gtk-config $RPM_BUILD_ROOT/%{_bindir}/rcc-config
 else
     echo "#!/bin/bash" > $RPM_BUILD_ROOT/usr/bin/rcc-config
-    echo "echo \"Configuration UI is not available!\"" >> $RPM_BUILD_ROOT/usr/bin/rcc-config
+    echo "echo \"Configuration UI is not available!\"" >> $RPM_BUILD_ROOT/%{_bindir}/rcc-config
 fi
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -87,14 +89,15 @@ rm -rf $RPM_BUILD_ROOT
 %doc examples/rcc-example.xml
 %dir /etc/rcc
 /etc/rcc.xml
-%{prefix}/lib/lib*.so.*
-%{prefix}/lib/rcc/
-%{prefix}/bin/rcc-*config
+%{_libdir}/lib*.so.*
+%{_libdir}/rcc/
+%{_bindir}/rcc-*config
 
 %files devel
 %defattr(-, root, root)  
-%{prefix}/include/
-%{prefix}/lib/lib*.so
-%{prefix}/lib/*.a
+%{_includedir}
+%{_libdir}/lib*.so
+%{_libdir}/*.a
+
 
 %changelog

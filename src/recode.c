@@ -511,17 +511,20 @@ rcc_string rccSizedFrom(rcc_context ctx, rcc_class_id class_id, const char *buf,
 	}
     }
     else icnv = ctx->iconv_from[class_id];
-
+    
     if (icnv) {
 	ret = rccIConvInternal(ctx, icnv, buf, len);
-	if (ret == (size_t)-1) return NULL;
+	if (ret == (size_t)-1) {
+	    rccMutexUnLock(ctx->mutex);
+	    return NULL;
+	}
 	
 	if ((rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&(rccGetClassType(ctx, class_id) == RCC_CLASS_TRANSLATE_FROM)) {
 	    config = rccGetCurrentConfig(ctx);
 	    translate = rccRecodeTranslate(&config , class_id, ctx->tmpbuffer);
 	    if (translate) language_id = rccConfigGetLanguage(config);
 	}
-	
+
 	result = rccCreateString(language_id, translate?translate:ctx->tmpbuffer, translate?0:ret);
     } else {
 	if ((rccGetOption(ctx, RCC_OPTION_TRANSLATE))&&(rccGetClassType(ctx, class_id) == RCC_CLASS_TRANSLATE_FROM)) {
