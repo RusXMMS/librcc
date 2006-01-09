@@ -79,13 +79,25 @@ int rccExternalInit() {
 }
 
 void rccExternalFree() {
+    int retry;
+    pid_t res;
+    struct timespec timeout = { 0, 5000000 };
+
     if (pid == (pid_t)-1) return;
-    
-    rccExternalConnect(0);    
+
+    for (retry = 0; retry < 3; retry++) {
+	rccExternalConnect(0);    
+	
+	nanosleep(&timeout, NULL);
+	
+	res = waitpid(pid, NULL, WNOHANG);
+	if (res) break;
+	else timeout.tv_nsec*10;
+    }
+
+    pid = (pid_t)-1;
     if (addr) free(addr);
 
-    waitpid(pid, NULL, 0);
-    pid = (pid_t)-1;
 }
 
 static int rccExternalSetDeadline(struct timeval *tv, unsigned long timeout) {

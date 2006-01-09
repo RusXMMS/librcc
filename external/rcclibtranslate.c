@@ -166,7 +166,9 @@ void rccLibTranslateFree() {
     if  (session) {
 	if (thread) {
 	    exitflag = 1;
+	    g_mutex_lock(mutex);
 	    g_cond_signal(cond);
+	    g_mutex_unlock(mutex);
 	    g_thread_join(thread);
 	    thread = NULL;
 	    exitflag = 0;
