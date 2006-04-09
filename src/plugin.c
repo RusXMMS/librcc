@@ -103,6 +103,7 @@ rcc_plugin_handle rccPluginGetFreeHandle(rcc_plugin_type type) {
 }
 
 rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
+#ifdef RCC_PLUGINS
     void *res;
     void *infofunc;
     char *pluginfn;
@@ -145,7 +146,8 @@ rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
 	default:
 	    return NULL;
     }
-    
+#endif /* RCC_PLUGINS */
+
     return NULL;
 }
 

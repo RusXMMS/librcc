@@ -31,7 +31,7 @@ fi
 
 GETTEXTIZE_FLAGS=--no-changelog
 AUTOPOINT_FLAGS=
-LIBTOOLIZE_FLAGS=
+LIBTOOLIZE_FLAGS=--copy
 
 # Some OS's require /usr/local/share/aclocal
 
@@ -42,7 +42,7 @@ else
   ACLOCAL_FLAGS='-I m4 -I /usr/local/share/aclocal'
 fi
 AUTOHEADER_FLAGS=-Wall
-AUTOMAKE_FLAGS='--add-missing -Wall'
+AUTOMAKE_FLAGS='--add-missing --copy -Wall'
 AUTOCONF_FLAGS=-Wno-obsolete
 
 die()

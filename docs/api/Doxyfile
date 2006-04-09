@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 PROJECT_NAME           = LibRCC
 PROJECT_NUMBER         = 
-OUTPUT_DIRECTORY       = /root/xmms/librcc--main--0.1--patch-9/docs/api/
+OUTPUT_DIRECTORY       = ../../docs/api/
 OUTPUT_LANGUAGE        = English
 USE_WINDOWS_ENCODING   = NO
 EXTRACT_ALL            = YES
@@ -58,9 +58,9 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = /root/xmms/librcc--main--0.1--patch-9/src/ \
-                         /root/xmms/librcc--main--0.1--patch-9/ui/ \
-                         /root/xmms/librcc--main--0.1--patch-9/examples/
+INPUT                  = ../../src/ \
+                         ../../ui/ \
+                         ../../examples/
 FILE_PATTERNS          = librcc.h \
                          librccui.h \
                          example1.c \
