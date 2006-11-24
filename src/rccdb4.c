@@ -15,11 +15,35 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 #ifdef HAVE_DB_H
     DB_ENV *dbe;
     DB *db;
+
+    char stmp[160];
     
     err = db_env_create(&dbe, 0);
     if (err) return NULL;
+
+    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
+    if (err == DB_VERSION_MISMATCH) {
+
+	if (!rccLock()) {    
+	    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|DB_INIT_TXN|DB_USE_ENVIRON|DB_PRIVATE|DB_RECOVER, 0);
+	    rccUnLock();
+	} else err = -1;
+
+	dbe->close(dbe, 0);
+	if (err) return NULL;
+
+	if (strlen(dbpath)<128) {
+	    sprintf(stmp, "%s/log.0000000001", dbpath);
+	    remove(stmp);
+	}
+	    
+	err = db_env_create(&dbe, 0);
+	if (err) return NULL;
+	    
+	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
+	
+    }
     
-    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00755);
     if (err) {
 	dbe->close(dbe, 0);
 	return NULL;
