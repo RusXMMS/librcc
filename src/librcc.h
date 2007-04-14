@@ -234,17 +234,17 @@ typedef rcc_language_alias_ptr rcc_language_alias_list[RCC_MAX_ALIASES+1];
 
 /**
   * Language relations. 
-  * Meaning: sentence in considered language may contain words from all his parrents. This
+  * Meaning: sentence in considered language may contain words from all his parents. This
   * knowledge will help Autodetection Engine to guess right language. 
   * 
-  * For example: Russian is parrent language for Ukrainian. This means it is possible
+  * For example: Russian is parent language for Ukrainian. This means it is possible
   * to encounter russian words in ukrainian sentence.
   *
   * All languages by default are related to english language.
   */
 struct rcc_language_relation_t {
     const char *lang;		/**< Coresponded language ISO-639-1 name */
-    const char *parrent;	/**< Parrent language  */
+    const char *parent;		/**< Parent language  */
 };
 typedef struct rcc_language_relation_t rcc_language_relation;
 
@@ -349,7 +349,7 @@ typedef const struct rcc_class_default_charset_t rcc_class_default_charset;
 struct rcc_class_t {
     const char *name;	/**< Short class name */
     const rcc_class_type class_type; /**< specifies type of class (Standard, File System, Known) */
-    const char *defvalue; /**< locale variable name or parrent name or multibyte encoding name */
+    const char *defvalue; /**< locale variable name or parent name or multibyte encoding name */
     rcc_class_default_charset *defcharset; /**< default class encodings. Should be specified on per-language basys */
     const char *fullname; /**< Full name of the class */
     const unsigned long flags; /**< Class flags. (CONST, SKIP_SAVELOAD) */
@@ -430,7 +430,7 @@ typedef enum rcc_option_translate_t {
     RCC_OPTION_TRANSLATE_TRANSLITERATE,	/**< Transliterate data. */
     RCC_OPTION_TRANSLATE_TO_ENGLISH, 	/**< Translate data to english language (Current language don't matter). */
     RCC_OPTION_TRANSLATE_SKIP_RELATED, 	/**< Skip translation of the text's between related languages. */
-    RCC_OPTION_TRANSLATE_SKIP_PARRENT, 	/**< Skip translation of the text's from parrent languages (from english). */
+    RCC_OPTION_TRANSLATE_SKIP_PARENT, 	/**< Skip translation of the text's from parent languages (from english). */
     RCC_OPTION_TRANSLATE_FULL 		/**< Translate whole data to the current language */
 } rcc_option_translate;
 
@@ -446,6 +446,7 @@ typedef enum rcc_option_t {
     RCC_OPTION_AUTODETECT_LANGUAGE,	/**< Enables language detection */
     RCC_OPTION_TRANSLATE,		/**< Translate #rcc_string if it's language differs from current one */
     RCC_OPTION_TIMEOUT,			/**< Recoding timeout. Currently it is only used to limit translation time */
+    RCC_OPTION_OFFLINE,			/**< Allows external module to finish it's job in offline after the main program is terminated */
     RCC_MAX_OPTIONS,
     RCC_OPTION_ALL
 } rcc_option;
@@ -887,7 +888,7 @@ const char *rccConfigGetSelectedCharsetName(rcc_language_config config, rcc_clas
   * Return current encoding_id. The default value will be resolved to paticular encoding id. 
   * The following procedure is used to detect default encoding:
   *	- If Unicode encoding selected for the same class english language. Return this encoding.
-  *	- If the parrent class is defined in #defcharset, - return current encoding of parrent class.
+  *	- If the parent class is defined in #defcharset, - return current encoding of parent class.
   *	- If the locale variable is defined in #defcharset and either config language coincide with locale language or unciode encoding defined, use locale encoding.
   *	- If the default value for config language is defined in #defvalue return that default value.
   *	- If the default value for all languages is defined in #defvalue return that default value.
@@ -1146,6 +1147,15 @@ void rccTranslateClose(rcc_translate translate);
  */
 int rccTranslateSetTimeout(rcc_translate translate, unsigned long us);
 
+/*
+ * Allows translation engine to perform pending task after the main program is 
+ * being terminated
+ *
+ * @param translate is translating context 
+ * @return non-zero value is returned in the case of errror
+ */
+int rccTranslateAllowOfflineMode(rcc_translate translate);
+
 /** 
   * Translate string.
   *
@@ -1168,9 +1178,9 @@ typedef struct rcc_speller_t *rcc_speller;
   */
 typedef enum rcc_speller_result_t {
     RCC_SPELLER_INCORRECT = 0,		/**< Word not found in dictionaries */
-    RCC_SPELLER_ALMOST_PARRENT,		/**< Similliar word is found in parrents dictionary */
+    RCC_SPELLER_ALMOST_PARENT,		/**< Similliar word is found in parents dictionary */
     RCC_SPELLER_ALMOST_CORRECT,		/**< Similliar word is found in dictionary */
-    RCC_SPELLER_PARRENT,		/**< Word is found in parrent dictionary */
+    RCC_SPELLER_PARENT,			/**< Word is found in parent dictionary */
     RCC_SPELLER_CORRECT			/**< Word is found in dictionary */
 } rcc_speller_result;
 
@@ -1194,13 +1204,13 @@ rcc_speller rccSpellerCreate(const char *lang);
   */
 void rccSpellerFree(rcc_speller speller);
 /**
-  * Add parrent to the spelling context.
+  * Add parent to the spelling context.
   *
   * @param speller is spelling context
-  * @param parrent is parrent spelling context
+  * @param parent is parent spelling context
   * @return non-zero value in the case of error
   */
-int rccSpellerAddParrent(rcc_speller speller, rcc_speller parrent);
+int rccSpellerAddParent(rcc_speller speller, rcc_speller parent);
 /** 
   * Spell a word.
   *
@@ -1514,6 +1524,15 @@ rcc_compiled_configuration rccGetCompiledConfiguration();
 int rccLocaleGetClassByName(const char *locale);
 int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n);
 int rccLocaleGetCharset(char *result, const char *lv, unsigned int n);
+
+
+/**
+  * For compatibilty reasons 
+  */
+#define RCC_OPTION_TRANSLATE_SKIP_PARRENT RCC_OPTION_TRANSLATE_SKIP_PARENT
+#define RCC_SPELLER_ALMOST_PARRENT RCC_SPELLER_ALMOST_PARENT
+#define RCC_SPELLER_PARRENT RCC_SPELLER_PARENT
+#define rccSpellerAddParrent rccSpellerAddParent
 
 #ifdef __cplusplus
 }

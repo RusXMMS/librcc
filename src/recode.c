@@ -53,7 +53,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
     char *best_string = NULL;
     rcc_language_id bestfixlang = (rcc_language_id)-1;
     unsigned long k;
-    rcc_language_id *parrents;
+    rcc_language_id *parents;
     size_t chars = 0;
     char llang[RCC_MAX_LANGUAGE_CHARS];
     rcc_language_id locale_lang;
@@ -109,11 +109,11 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	
 	
 	if (bestfixlang != (rcc_language_id)-1) {
-	    parrents = ((rcc_language_internal*)config->language)->parrents;
-	    for (k = 0;parrents[k] != (rcc_language_id)-1;k++)
-		if (parrents[k] == bestfixlang) break;
+	    parents = ((rcc_language_internal*)config->language)->parents;
+	    for (k = 0;parents[k] != (rcc_language_id)-1;k++)
+		if (parents[k] == bestfixlang) break;
 
-	    if (parrents[k] != bestfixlang) continue;
+	    if (parents[k] != bestfixlang) continue;
 	}
 	
 	speller = rccConfigGetSpeller(config);
@@ -281,17 +281,17 @@ rcc_language_id rccDetectLanguage(rcc_context ctx, rcc_class_id class_id, const 
 }
 
 
-static int rccIsParrentLanguage(rcc_language_config config, rcc_language_id parrent) {
+static int rccIsParrentLanguage(rcc_language_config config, rcc_language_id parent) {
     unsigned int i;
     rcc_language_id language;
     rcc_language_id *list;
 
     language = rccConfigGetLanguage(config);
-    if (parrent == language) return 1;
+    if (parent == language) return 1;
     
-    list = ((rcc_language_internal*)config->language)->parrents;
+    list = ((rcc_language_internal*)config->language)->parents;
     for (i=0;list[i] != (rcc_language_id)-1;i++)
-        if  (list[i] == parrent) return 1;
+        if  (list[i] == parent) return 1;
 
     return 0;
 }
@@ -349,7 +349,7 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
 	} else 
 	    current_language_id = rccGetCurrentLanguage(ctx);
     }
-	
+
     if (current_language_id == (rcc_language_id)-1) return NULL;
     if (language_id == current_language_id) return NULL;
 
@@ -357,7 +357,7 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
     if (!curconfig) return NULL;
 
     if (rccConfigConfigure(curconfig)) return NULL;
-    
+
     if (translate == RCC_OPTION_TRANSLATE_TRANSLITERATE) {
 	if (!strcasecmp((*config)->language->sn, rcc_russian_language_sn)) {
 	    translated = rccSizedRecodeCharsets(ctx, "UTF-8", "KOI8-R", utfstring, 0, NULL);
@@ -405,7 +405,7 @@ static char *rccRecodeTranslate(rcc_language_config *config, rcc_class_id class_
 	if (rccAreRelatedLanguages(curconfig, *config)) return NULL;
     }
     
-    if (translate == RCC_OPTION_TRANSLATE_SKIP_PARRENT) {
+    if (translate == RCC_OPTION_TRANSLATE_SKIP_PARENT) {
 	if (rccIsParrentLanguage(curconfig, language_id)) return NULL;
     }
 
@@ -770,7 +770,7 @@ char *rccSizedToCharset(rcc_context ctx, const char *charset, rcc_const_string b
 
     res = rccStringCheck(buf);
     if (!res) return NULL;
-    
+
     icnv = rccIConvOpen(charset, "UTF-8");
     if (icnv) {
 	rccMutexLock(ctx->mutex);

@@ -31,6 +31,7 @@
 #include "internal.h"
 #include "rccconfig.h"
 #include "plugin.h"
+#include "rcchome.h"
 
 #define MAX_HOME_CHARS 96
 #define XPATH_LANGUAGE "//Language[@name]"
@@ -58,7 +59,7 @@ int rccXmlInit(int LoadConfiguration) {
     xmlAttrPtr attr;
     const char *lang, *engine_name;
     unsigned int pos, lpos, epos, cpos;
-    const char *alias, *parrent;
+    const char *alias, *parent;
     unsigned int j, apos, rpos;
     
     rcc_engine *engine;
@@ -115,9 +116,9 @@ int rccXmlInit(int LoadConfiguration) {
 	    if (pos == (rcc_language_id)-1) {
 		for (rpos=0;rcc_default_relations[rpos].lang;rpos++);
 		if (rpos < RCC_MAX_RELATIONS) {
-			rcc_default_relations[rpos].parrent = rcc_english_language_sn;
+			rcc_default_relations[rpos].parent = rcc_english_language_sn;
 			rcc_default_relations[rpos++].lang = lang;
-			rcc_default_relations[rpos].parrent = NULL;
+			rcc_default_relations[rpos].parent = NULL;
 			rcc_default_relations[rpos].lang = NULL;
 		}
 		
@@ -172,11 +173,11 @@ int rccXmlInit(int LoadConfiguration) {
 		    for (enode=node->children;enode;enode=enode->next) {
 			if (enode->type != XML_ELEMENT_NODE) continue;
 			if ((!xmlStrcmp(enode->name, "Parrent"))&&(rpos<RCC_MAX_RELATIONS)) {
-			    parrent = rccXmlGetText(enode);
-			    if (!parrent) continue;
-			    rcc_default_relations[rpos].parrent = parrent;
+			    parent = rccXmlGetText(enode);
+			    if (!parent) continue;
+			    rcc_default_relations[rpos].parent = parent;
 			    rcc_default_relations[rpos++].lang = lang;
-			    rcc_default_relations[rpos].parrent = NULL;
+			    rcc_default_relations[rpos].parent = NULL;
 			    rcc_default_relations[rpos].lang = NULL;
 			}
 		    }

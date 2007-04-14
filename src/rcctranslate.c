@@ -83,6 +83,10 @@ int rccTranslateSetTimeout(rcc_translate translate, unsigned long us) {
     return 0;
 }
 
+int rccTranslateAllowOfflineMode(rcc_translate translate) {
+    return rccExternalAllowOfflineMode();
+}
+
 #define RCC_UNLOCK_W 1
 #define RCC_UNLOCK_R 2
 #define RCC_UNLOCK_RW 3

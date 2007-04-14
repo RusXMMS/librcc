@@ -5,11 +5,7 @@
 # define LIBRCC_DATA_DIR "/usr/lib/rcc"
 #endif /* LIBRCC_DATA_DIR */
 
-#ifndef LIBRCC_LOCK_WAIT
-# define LIBRCC_LOCK_WAIT 3000 /* ms */
-#endif /* LIBRCC_LOCK_WAIT */
-
-#define RCC_MAX_LANGUAGE_PARRENTS 4
+#define RCC_MAX_LANGUAGE_PARENTS 4
 #define RCC_MAX_RELATIONS RCC_MAX_LANGUAGES
 
 #ifdef HAVE_STRNLEN
@@ -38,11 +34,11 @@
 #define RCC_MAX_DISABLED_CHARSETS	64
 
 
-typedef rcc_language_id rcc_language_parrent_list[RCC_MAX_LANGUAGE_PARRENTS];
+typedef rcc_language_id rcc_language_parent_list[RCC_MAX_LANGUAGE_PARENTS];
 
 struct rcc_language_internal_t {
     rcc_language language;
-    rcc_language_id parrents[RCC_MAX_LANGUAGE_PARRENTS + 1];
+    rcc_language_id parents[RCC_MAX_LANGUAGE_PARENTS + 1];
     unsigned char latin;
 };
 typedef struct rcc_language_internal_t rcc_language_internal;
@@ -102,6 +98,5 @@ int rccConfigure(rcc_context ctx);
 char *rccCreateResult(rcc_context ctx, size_t len);
 
 extern rcc_context rcc_default_ctx;
-extern char *rcc_home_dir;
 
 #endif /* _RCC_INTERNAL_H */

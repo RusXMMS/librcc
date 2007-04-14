@@ -35,9 +35,10 @@
 #include "rccxml.h"
 #include "rccexternal.h"
 #include "rcctranslate.h"
+#include "rcclock.h"
+#include "rcchome.h"
 
 static int initialized = 0;
-char *rcc_home_dir = NULL;
 rcc_context rcc_default_ctx = NULL;
 static rcc_compiled_configuration_s compiled_configuration;
 
@@ -64,27 +65,12 @@ rcc_compiled_configuration rccGetCompiledConfiguration() {
 
 int rccInit() {
     int err;
-    char *tmp;
     unsigned long i, rpos;
-
-#ifdef HAVE_PWD_H
-    struct passwd *pw;
-#endif /* HAVE_PWD_H */
     
     if (initialized) return 0;
     
-    tmp = getenv ("HOME");
-    if (tmp) rcc_home_dir = strdup (tmp);
-#ifdef HAVE_PWD_H
-    else {
-	setpwent ();
-	pw = getpwuid(getuid ());
-	endpwent ();
-	if ((pw)&&(pw->pw_dir)) rcc_home_dir = strdup (pw->pw_dir);
-    }
-#endif /* HAVE_PWD_H */
-    if (!rcc_home_dir) rcc_home_dir = strdup("/");
-
+    rccHomeSet();
+    
     memcpy(rcc_default_languages, rcc_default_languages_embeded, (RCC_MAX_LANGUAGES + 1)*sizeof(rcc_language));
     memcpy(rcc_default_aliases, rcc_default_aliases_embeded, (RCC_MAX_ALIASES + 1)*sizeof(rcc_language_alias));
     memcpy(rcc_default_relations, rcc_default_relations_embeded, (RCC_MAX_RELATIONS + 1)*sizeof(rcc_language_relation));
@@ -101,10 +87,10 @@ int rccInit() {
 	if (!strcasecmp(rcc_default_languages[i].sn, rcc_english_language_sn)) continue;
 
 	rcc_default_relations[rpos].lang = rcc_default_languages[i].sn;
-	rcc_default_relations[rpos++].parrent = rcc_english_language_sn;
+	rcc_default_relations[rpos++].parent = rcc_english_language_sn;
     }
     rcc_default_relations[rpos].lang = NULL;
-    rcc_default_relations[rpos].parrent = NULL;
+    rcc_default_relations[rpos].parent = NULL;
 
     err = rccPluginInit();
     if (!err) err = rccTranslateInit();
@@ -134,95 +120,9 @@ void rccFree() {
 
     rccExternalFree();
 
-    if (rcc_home_dir) {
-	free(rcc_home_dir);
-	rcc_home_dir = NULL;
-    }
+    rccHomeFree();
 
     initialized = 0;
-}
-
-static int lockfd = -1;
-
-int rccLock() {
-# ifdef HAVE_SYS_FILE_H
-    int err, i;
-    int size;
-    char *stmp;
-    struct timespec wait = { 0, 10000000 };
-    
-    if (lockfd>=0) return -1;    
-    
-    size = strlen(rcc_home_dir) + 32;
-    stmp = (char*)malloc(size*sizeof(char));
-    if (!stmp) return -1;
-
-    sprintf(stmp,"%s/.rcc/", rcc_home_dir);
-    mkdir(stmp, 00755);
-    
-    sprintf(stmp,"%s/.rcc/locks/", rcc_home_dir);
-    mkdir(stmp, 00700);
-
-    sprintf(stmp,"%s/.rcc/locks/rcc.lock", rcc_home_dir);
-
-    lockfd = open(stmp, O_RDWR|O_CREAT, 0644);
-    if (lockfd >= 0) {
-	for (err = -1, i = 0; i < (LIBRCC_LOCK_WAIT/10); i++) {
-	    err = flock(lockfd, LOCK_EX|LOCK_NB);
-	    if ((err)&&(errno == EWOULDBLOCK)) nanosleep(&wait, NULL);
-	    else break;
-	}
-
-	if (err) {
-	    close(lockfd);
-
-		// Removing invalid lock
-	    if (i == (LIBRCC_LOCK_WAIT/10)) {
-		remove(stmp);
-
-		lockfd = open(stmp, O_RDWR|O_CREAT, 0644);
-		if (lockfd >= 0) {
-		    for (err = -1, i = 0; i < (LIBRCC_LOCK_WAIT/10); i++) {
-			err = flock(lockfd, LOCK_EX|LOCK_NB);
-			if ((err)&&(errno == EWOULDBLOCK)) nanosleep(&wait, NULL);
-			else break;
-		    }
-		    
-		    if (err) close(lockfd);
-		    else return 0;
-		} 
-	    }
-	    
-	    lockfd = -1;
-	    return -1;
-	} 
-
-	return 0;
-    }
-    
-    return -1;
-# else  /* HAVE_SYS_FILE_H */
-    return 0;
-# endif /* HAVE_SYS_FILE_H */
-}
-
-void rccUnLock() {
-#ifdef HAVE_SYS_FILE_H
-    int size;
-    char *stmp;
-
-    if (lockfd<0) return;
-    
-    size = strlen(rcc_home_dir) + 32;
-    stmp = (char*)malloc(size*sizeof(char));
-    if (!stmp) return;
-
-    sprintf(stmp,"%s/.rcc/locks/rcc.lock", rcc_home_dir);
-
-    flock(lockfd, LOCK_UN);
-    close(lockfd);
-    lockfd = -1;
-#endif /* HAVE_SYS_FILE_H */
 }
 
 rcc_context rccCreateContext(const char *locale_variable, unsigned int max_languages, unsigned int max_classes, rcc_class_ptr defclasses, rcc_init_flags flags) {
@@ -470,7 +370,7 @@ rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
     if (ctx->n_languages == ctx->max_languages) return (rcc_language_id)-1;
     
     memcpy(ctx->ilang + ctx->n_languages, language, sizeof(rcc_language));
-    ctx->ilang[ctx->n_languages].parrents[0] = (rcc_language_id)-1;
+    ctx->ilang[ctx->n_languages].parents[0] = (rcc_language_id)-1;
     ctx->ilang[ctx->n_languages].latin = 0;
     
     for (i=0;language->charsets[i];i++)
@@ -539,7 +439,7 @@ rcc_relation_id rccRegisterLanguageRelation(rcc_context ctx, rcc_language_relati
     unsigned int i;
     rcc_language_id language_id;
     const char *lang;
-    const char *parrent;
+    const char *parent;
     rcc_language_id *list;
     
     if (!ctx) {
@@ -549,22 +449,22 @@ rcc_relation_id rccRegisterLanguageRelation(rcc_context ctx, rcc_language_relati
     if (!relation) return (rcc_relation_id)-1;
 
     lang = relation->lang;
-    parrent = relation->parrent;
-    if ((!lang)||(!parrent)||(!strcasecmp(lang,parrent))) return (rcc_relation_id)-1;
+    parent = relation->parent;
+    if ((!lang)||(!parent)||(!strcasecmp(lang,parent))) return (rcc_relation_id)-1;
     
     language_id = rccGetLanguageByName(ctx, lang);
     if (language_id == (rcc_language_id)-1) return (rcc_relation_id)-1;
     
 
-    list = ((rcc_language_internal*)ctx->languages[language_id])->parrents;
+    list = ((rcc_language_internal*)ctx->languages[language_id])->parents;
 
-    language_id = rccGetLanguageByName(ctx, parrent);
+    language_id = rccGetLanguageByName(ctx, parent);
     if (language_id == (rcc_language_id)-1) return (rcc_relation_id)0;
     
     for (i=0;list[i]!=(rcc_language_id)-1;i++)
 	if (list[i] == language_id) return (rcc_relation_id)0;
 
-    if (i<RCC_MAX_LANGUAGE_PARRENTS) {
+    if (i<RCC_MAX_LANGUAGE_PARENTS) {
 	list[i++] = language_id;
     	list[i] = (rcc_language_id)-1;
     } else return (rcc_relation_id)-1;

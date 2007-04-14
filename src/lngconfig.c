@@ -437,7 +437,7 @@ rcc_speller rccConfigGetSpeller(rcc_language_config config) {
     unsigned int i;
     rcc_speller speller;
     rcc_language_config pconfig;
-    rcc_language_id *parrents;
+    rcc_language_id *parents;
     rcc_language_id language_id;
     if (!config) return NULL;
     
@@ -447,12 +447,12 @@ rcc_speller rccConfigGetSpeller(rcc_language_config config) {
 
 	if (config->speller) language_id = rccConfigGetLanguage(config);
 	else language_id = (rcc_language_id)-1;
-	if (language_id != (rcc_language_id)-1) parrents = ((rcc_language_internal*)config->language)->parrents;
-	else parrents = NULL;
+	if (language_id != (rcc_language_id)-1) parents = ((rcc_language_internal*)config->language)->parents;
+	else parents = NULL;
 
-	if (parrents) {
-	    for (i = 0; parrents[i]!=(rcc_language_id)-1; i++) {
-		pconfig = rccGetConfig(config->ctx, parrents[i]);
+	if (parents) {
+	    for (i = 0; parents[i]!=(rcc_language_id)-1; i++) {
+		pconfig = rccGetConfig(config->ctx, parents[i]);
 		if (pconfig) {
 		    speller = rccConfigGetSpeller(pconfig);
 		    rccSpellerAddParrent(config->speller, speller);
@@ -467,6 +467,7 @@ rcc_speller rccConfigGetSpeller(rcc_language_config config) {
 
 rcc_translate rccConfigGetTranslator(rcc_language_config config, rcc_language_id to) {
     rcc_option_value timeout;
+    rcc_option_value offline;
     
     if (!config) return NULL;
 
@@ -482,6 +483,9 @@ rcc_translate rccConfigGetTranslator(rcc_language_config config, rcc_language_id
 	    config->translang = to;
 	    timeout = rccGetOption(config->ctx, RCC_OPTION_TIMEOUT);
 	    if (timeout) rccTranslateSetTimeout(config->trans, timeout);
+	    
+	    offline = rccGetOption(config->ctx, RCC_OPTION_OFFLINE);
+	    if (offline) rccTranslateAllowOfflineMode(config->trans);
 	}
     }
     rccMutexUnLock(config->mutex);

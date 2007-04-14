@@ -35,11 +35,14 @@
 
 #include <glib/gthread.h>
 
+#include "../src/rcchome.h"
 #include "../src/rccexternal.h"
 #include "rcclibtranslate.h"
 
 #define RCC_EXIT_CHECK_TIMEOUT 10 /* seconds */
 
+
+char rcc_external_offline = 0;
 
 int main() {
 #ifdef HAVE_SIGNAL_H
@@ -51,7 +54,6 @@ int main() {
 
     int s, sd;
     char addr[376];
-    const char *rcc_home_dir;
     struct sockaddr_un mysock, clisock;
     socklen_t socksize;
     
@@ -61,29 +63,16 @@ int main() {
     unsigned char loopflag = 1;
     
     rcc_external_info info;
+    rcc_external_option option;
+    unsigned long option_value_long;
+    
     ssize_t readed;
     unsigned char cmd;
 
-#ifdef HAVE_PWD_H
-    struct passwd *pw;
-#endif /* HAVE_PWD_H */
-
-
     parentpid = getppid();    
     mypid = getpid();
-
-    rcc_home_dir = getenv ("HOME");
-#ifdef HAVE_PWD_H
-    if (!rcc_home_dir) {
-	setpwent ();
-	pw = getpwuid(getuid ());
-	endpwent ();
-	if ((pw)&&(pw->pw_dir)) rcc_home_dir = pw->pw_dir;
-    }
-#endif /* HAVE_PWD_H */
-    if (strlen(rcc_home_dir)>256) return -1;
-    if (!rcc_home_dir) rcc_home_dir = "/";
-
+    
+    rccHomeSet();
     rccLibTranslateInit(rcc_home_dir);
 
     sprintf(addr,"%s/.rcc/comm/",rcc_home_dir);
@@ -140,6 +129,20 @@ int main() {
 	    case RCC_EXTERNAL_MODULE_CONTROL:
 		loopflag = 0;
 	    break;
+	    case RCC_EXTERNAL_MODULE_OPTIONS:
+		readed = recv(sd,&option,sizeof(rcc_external_option),0);
+		if (readed < sizeof(rcc_external_option)) break;
+		switch(option) {
+		    case RCC_EXTERNAL_OPTION_OFFLINE:
+			readed = recv (sd, &option_value_long, sizeof(unsigned long), 0);
+			if (readed < sizeof(unsigned long)) break;
+			puts("got an offline option");
+			rcc_external_offline = option_value_long?1:0;
+		    break;
+		    default:
+			break;
+		}
+	    break;
 	    case RCC_EXTERNAL_MODULE_LIBRTRANSLATE:
 		info = (rcc_external_info)malloc(sizeof(rcc_external_info_s));
 		if (info) info->s = sd;
@@ -154,6 +157,7 @@ int main() {
     unlink(addr);  
 
     rccLibTranslateFree();
-    
+    rccHomeFree();
+        
     return 0;
 }

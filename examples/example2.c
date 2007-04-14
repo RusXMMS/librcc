@@ -25,6 +25,9 @@ int main(int argc, char *argv[]) {
     rccInitDefaultContext(NULL, 0, 0, classes, 0);
     rccInitDb4(NULL, "example", 0);
     rccSetOption(NULL, RCC_OPTION_TRANSLATE, RCC_OPTION_TRANSLATE_SKIP_PARRENT);
+    rccSetOption(NULL, RCC_OPTION_AUTODETECT_LANGUAGE, 1);
+//    rccSetOption(NULL, RCC_OPTION_TIMEOUT, 5000000);
+//    rccSetOption(NULL, RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, 0);
 
     current_language_id = rccGetCurrentLanguage(NULL);
     english_language_id = rccGetLanguageByName(NULL, "en");

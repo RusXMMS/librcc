@@ -5,6 +5,7 @@
 #include "../config.h"
 
 #include "internal.h"
+#include "rcchome.h"
 #include "rccdb4.h"
 
 #define DATABASE "autolearn.db"
@@ -15,21 +16,36 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 #ifdef HAVE_DB_H
     DB_ENV *dbe;
     DB *db;
-
+    
+# if 0
     char stmp[160];
+# endif
     
     err = db_env_create(&dbe, 0);
     if (err) return NULL;
 
+# if 1
+    dbe->set_flags(dbe, DB_LOG_AUTOREMOVE, 1);
+    dbe->set_lg_max(dbe, 131072);
+    
+    err = rccLock();
+    if (!err) {
+	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_TXN|DB_USE_ENVIRON|DB_INIT_LOCK|DB_INIT_MPOOL|DB_RECOVER, 00644);
+	rccUnLock();
+    } 
+# else
     err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
     if (err == DB_VERSION_MISMATCH) {
-
 	if (!rccLock()) {    
 	    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|DB_INIT_TXN|DB_USE_ENVIRON|DB_PRIVATE|DB_RECOVER, 0);
+	    dbe->close(dbe, 0);
+	    dbe->remove(dbe, dbpath, 0);
 	    rccUnLock();
-	} else err = -1;
-
-	dbe->close(dbe, 0);
+	} else {
+	    err = -1;
+	    dbe->close(dbe, 0);
+	}
+	
 	if (err) return NULL;
 
 	if (strlen(dbpath)<128) {
@@ -43,8 +59,10 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
 	
     }
-    
+# endif
+
     if (err) {
+//	fprintf(stderr, "BerkelyDB initialization failed: %i (%s)\n", err, db_strerror(err));
 	dbe->close(dbe, 0);
 	return NULL;
     }
@@ -55,6 +73,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	return NULL;
     }
     
+
     err = db->open(db, NULL, DATABASE, NULL, DB_BTREE, DB_CREATE, 0);
     if (err) {
 	db->close(db, 0);
@@ -71,7 +90,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 #endif /* HAVE_DB_H */
 	return NULL;
     }
-    
+
 #ifdef HAVE_DB_H
     ctx->db = db;
     ctx->dbe = dbe;

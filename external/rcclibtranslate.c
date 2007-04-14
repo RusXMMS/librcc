@@ -35,6 +35,7 @@ static GCond *cond = NULL;
 static GQueue *queue = NULL;
 static GThread *thread = NULL;
 
+extern char rcc_external_offline;
 
 static char *rccCreateKey(const char *from, const char *to, const char *data, size_t *keysize) {
     char *res;
@@ -78,7 +79,7 @@ static void *rccLibPostponed(void *info) {
     to[2] = 0;
     
     g_mutex_lock(mutex);
-    while (!exitflag) {
+    while ((!exitflag)||(rcc_external_offline)) {
 	data = (char*)g_queue_pop_head(queue);
 	if (data) {
 	    g_mutex_unlock(mutex);
@@ -103,6 +104,7 @@ static void *rccLibPostponed(void *info) {
 	    free(data);
 	    g_mutex_lock(mutex);
 	} else {
+	    if (exitflag) break;
 	    g_cond_wait(cond, mutex);
 	}
     }

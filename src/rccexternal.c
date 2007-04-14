@@ -38,6 +38,7 @@
 # include <sys/wait.h>
 #endif /* HAVE_SYS_WAIT_H */
 
+#include "rcchome.h"
 #include "rccexternal.h"
 #include "internal.h"
 
@@ -92,7 +93,7 @@ void rccExternalFree() {
 	
 	res = waitpid(pid, NULL, WNOHANG);
 	if (res) break;
-	else timeout.tv_nsec*10;
+	else timeout.tv_nsec*=10;
     }
 
     pid = (pid_t)-1;
@@ -224,4 +225,20 @@ void rccExternalClose(int s) {
 	write(s, &cmd, 1);
 	close(s);
     }
+}
+
+int rccExternalAllowOfflineMode() {
+    int sock;
+    int err;
+    rcc_external_option opt = RCC_EXTERNAL_OPTION_OFFLINE; 
+    unsigned long opt_value = 1;
+    
+    sock = rccExternalConnect(RCC_EXTERNAL_MODULE_OPTIONS);
+    if (sock) {
+	err = rccExternalWrite(sock, (char*)&opt, sizeof(rcc_external_option), 0);
+	if (!err) err = rccExternalWrite(sock, (char*)&opt_value, sizeof(unsigned long), 0);
+	rccExternalClose(sock);
+	return err;
+    }
+    return -1;
 }

@@ -15,7 +15,7 @@ struct rcc_speller_t {
 #else 
     void *speller;
 #endif /* HAVE_ASPELL */
-    rcc_speller parrents[RCC_MAX_LANGUAGE_PARRENTS+1];
+    rcc_speller parents[RCC_MAX_LANGUAGE_PARENTS+1];
 };
 
 typedef struct rcc_speller_t rcc_speller_s;

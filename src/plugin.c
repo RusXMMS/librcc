@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "internal.h"
+#include "rcchome.h"
 #include "plugin.h"
 
 #ifdef RCC_PLUGINS

@@ -5,6 +5,7 @@
 
 #undef RCC_DEBUG
 #undef RCC_DEBUG_LANGDETECT
+//#define RCC_DEBUG_LANGDETECT 5
 #define RCC_LOCALE_VARIABLE "LC_CTYPE"
 
 extern const char rcc_default_all[];

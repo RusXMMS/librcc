@@ -134,7 +134,7 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
 rcc_option_value_name rcc_sn_boolean[] = { "OFF", "ON", NULL };
 rcc_option_value_name rcc_sn_learning[] = { "OFF", "ON", "RELEARN", "LEARN", NULL };
 rcc_option_value_name rcc_sn_clo[] = { "ALL", "CONFIGURED_AND_AUTO", "CONFIGURED_ONLY", NULL };
-rcc_option_value_name rcc_sn_translate[] = { "OFF", "TRANSLITERATE", "TO_ENGLISH", "SKIP_RELATED", "SKIP_PARRENT", "FULL", NULL };
+rcc_option_value_name rcc_sn_translate[] = { "OFF", "TRANSLITERATE", "TO_ENGLISH", "SKIP_RELATED", "SKIP_PARENT", "FULL", NULL };
 
 rcc_option_description rcc_option_descriptions[RCC_MAX_OPTIONS+1];
 rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
@@ -162,6 +162,7 @@ rcc_option_description rcc_option_descriptions_embeded[RCC_MAX_OPTIONS+1] = {
 #else
     {RCC_OPTION_TIMEOUT, RCC_DEFAULT_RECODING_TIMEOUT, { RCC_OPTION_RANGE_TYPE_RANGE, 0, 5000000, 50000}, RCC_OPTION_TYPE_INVISIBLE, "TIMEOUT", NULL },
 #endif /* HAVE_LIBTRANSLATE */
+    {RCC_OPTION_OFFLINE, 0, { RCC_OPTION_RANGE_TYPE_BOOLEAN, 0, 0, 0 }, RCC_OPTION_TYPE_INVISIBLE, "OFFLINE_PROCESSING", rcc_sn_boolean},
     {RCC_MAX_OPTIONS}
 };
 
@@ -215,11 +216,11 @@ unsigned int rccDefaultDropLanguageRelations(const char *lang) {
 	if (strcasecmp(lang, rcc_default_relations[i].lang)) {
 	    if (j<i) {
 		rcc_default_relations[j].lang = rcc_default_relations[i].lang;
-		rcc_default_relations[j++].parrent = rcc_default_relations[i].parrent;
+		rcc_default_relations[j++].parent = rcc_default_relations[i].parent;
 	    } else j++;
 	}
     }
     rcc_default_relations[j].lang = NULL;
-    rcc_default_relations[j].parrent = NULL;
+    rcc_default_relations[j].parent = NULL;
     return j;
 }

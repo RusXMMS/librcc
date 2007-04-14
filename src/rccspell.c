@@ -29,7 +29,7 @@ rcc_speller rccSpellerCreate(const char *lang) {
     }
     
     rccspeller->speller = speller;
-    rccspeller->parrents[0] = NULL;
+    rccspeller->parents[0] = NULL;
     return rccspeller;
 #else 
     return NULL;
@@ -49,14 +49,14 @@ int rccSpellerGetError(rcc_speller rccspeller) {
     return 0;
 }
 
-int rccSpellerAddParrent(rcc_speller speller, rcc_speller parrent) {
+int rccSpellerAddParent(rcc_speller speller, rcc_speller parent) {
     unsigned int i;
-    if ((!speller)||(!parrent)) return -1;
+    if ((!speller)||(!parent)) return -1;
     
-    for (i=0;speller->parrents[i];i++);
-    if (i >= RCC_MAX_LANGUAGE_PARRENTS) return -1;
-    speller->parrents[i++] = parrent;
-    speller->parrents[i] = NULL;
+    for (i=0;speller->parents[i];i++);
+    if (i >= RCC_MAX_LANGUAGE_PARENTS) return -1;
+    speller->parents[i++] = parent;
+    speller->parents[i] = NULL;
     
     return 0;
 }
@@ -70,10 +70,10 @@ rcc_speller_result rccSpellerSized(rcc_speller speller, const char *word, size_t
     if (rccSpellerGetError(speller)) return (rcc_speller_result)RCC_SPELLER_INCORRECT;
 
     if (recursion) {
-	for (i=0; speller->parrents[i]; i++) {
-	    result = rccSpellerSized(speller->parrents[i], word, len, 0);
-	    if ((result == RCC_SPELLER_CORRECT)||(result == RCC_SPELLER_PARRENT)) return RCC_SPELLER_PARRENT;
-	    if ((result == RCC_SPELLER_ALMOST_CORRECT)||(result == RCC_SPELLER_ALMOST_PARRENT)) saved_result = RCC_SPELLER_ALMOST_PARRENT;
+	for (i=0; speller->parents[i]; i++) {
+	    result = rccSpellerSized(speller->parents[i], word, len, 0);
+	    if ((result == RCC_SPELLER_CORRECT)||(result == RCC_SPELLER_PARENT)) return RCC_SPELLER_PARENT;
+	    if ((result == RCC_SPELLER_ALMOST_CORRECT)||(result == RCC_SPELLER_ALMOST_PARENT)) saved_result = RCC_SPELLER_ALMOST_PARENT;
 	}
     }
     
@@ -95,12 +95,12 @@ int rccSpellerResultIsOwn(rcc_speller_result res) {
 }
 
 int rccSpellerResultIsPrecise(rcc_speller_result res) {
-    if ((res == RCC_SPELLER_PARRENT)||(res == RCC_SPELLER_CORRECT)) return 1;
+    if ((res == RCC_SPELLER_PARENT)||(res == RCC_SPELLER_CORRECT)) return 1;
     return 0;
 }
 
 int rccSpellerResultIsCorrect(rcc_speller_result res) {
     if ((res == RCC_SPELLER_ALMOST_CORRECT)||(res == RCC_SPELLER_CORRECT)) return 1;
-    if ((res == RCC_SPELLER_ALMOST_PARRENT)||(res == RCC_SPELLER_PARRENT)) return 1;
+    if ((res == RCC_SPELLER_ALMOST_PARENT)||(res == RCC_SPELLER_PARENT)) return 1;
     return 0;
 }

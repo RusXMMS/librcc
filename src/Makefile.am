@@ -1,5 +1,7 @@
 lib_LTLIBRARIES = librcc.la
 librcc_la_SOURCES = librcc.c \
+    rcchome.c rcchome.h \
+    rcclock.c rcclock.h \
     rcclocale.c rcclocale.h \
     lng.c lng.h \
     opt.c opt.h \
