@@ -125,10 +125,10 @@ rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
 	    if (!pluginfn) return NULL;
 	
 	    sprintf(pluginfn, "%s/.rcc/engines/lib%s.so", rcc_home_dir, name);
-	    res = dlopen(pluginfn, RTLD_NOW);
+	    res = rccLibraryOpen(pluginfn);
 	    if (!res) {
 		sprintf(pluginfn, LIBRCC_DATA_DIR "/engines/lib%s.so", name);
-		res = dlopen(pluginfn, RTLD_NOW);
+		res = rccLibraryOpen(pluginfn);
 	    }
 	    free(pluginfn);
 	    

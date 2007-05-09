@@ -48,4 +48,6 @@ cp -a * $RDIR/$rname
     fi
     tar cjf $rname.tar.bz2 $rname
     rm -rf $rname
+
+    scp $rname.tar.bz2 csa@dside.dyndns.org:/home/csa/public_html/files/rusxmms/
 )

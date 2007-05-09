@@ -87,16 +87,17 @@ int rccTranslateAllowOfflineMode(rcc_translate translate) {
     return rccExternalAllowOfflineMode();
 }
 
-#define RCC_UNLOCK_W 1
-#define RCC_UNLOCK_R 2
-#define RCC_UNLOCK_RW 3
-#define RCC_UNLOCK_WR 3
+#ifdef HAVE_LIBTRANSLATE
+# define RCC_UNLOCK_W 1
+# define RCC_UNLOCK_R 2
+# define RCC_UNLOCK_RW 3
+# define RCC_UNLOCK_WR 3
 static char *rccTranslateReturn(rcc_translate translate, char *ret, int unlock) {
     if (unlock&RCC_UNLOCK_R) rccMutexUnLock(translate->mutex);
     if (unlock&RCC_UNLOCK_W) rccMutexUnLock(translate->wmutex);
     return ret;
 }
-#define rccTranslateReturnNULL(translate, unlock) rccTranslateReturn(translate, NULL, unlock) 
+# define rccTranslateReturnNULL(translate, unlock) rccTranslateReturn(translate, NULL, unlock) 
 
 static int rccTranslateQueue(rcc_translate translate, const char *buf) {
     size_t len, err;
@@ -109,6 +110,7 @@ static int rccTranslateQueue(rcc_translate translate, const char *buf) {
     if (!err) err = rccExternalWrite(translate->sock, buf, len + 1, 0);
     return err?1:0;
 }
+#endif /* HAVE_LIBTRANSLATE */
 
 char *rccTranslate(rcc_translate translate, const char *buf) {
 #ifdef HAVE_LIBTRANSLATE

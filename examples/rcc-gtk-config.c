@@ -11,12 +11,9 @@ static rcc_class classes[] = {
     { "pl", RCC_CLASS_STANDARD, "id3", NULL, "PlayList Title Encoding", 0},
     { "plfs", RCC_CLASS_STANDARD, "pl", NULL, "PlayList File Encoding", 0 },
     { "fs", RCC_CLASS_FS, "LC_CTYPE", NULL, "FileSystem Encoding", 0 },
-    { "arc", RCC_CLASS_STANDARD, NULL, NULL, "Archives Encoding", 0 },
     { "oem", RCC_CLASS_STANDARD, NULL, NULL, "Zip OEM Encoding", 0 },
     { "iso", RCC_CLASS_STANDARD, NULL, NULL, "Zip ISO Encoding", 0 },
     { "ftp", RCC_CLASS_STANDARD, NULL, NULL, "FTP Encoding", 0 },
-    { "http", RCC_CLASS_STANDARD, NULL, NULL, "HTTP Encoding", 0 },
-    { "ssh", RCC_CLASS_STANDARD, NULL, NULL, "SSH Encoding", 0 },
     { "in", RCC_CLASS_STANDARD, NULL, NULL, "Input Encoding", 0 },
     { "out", RCC_CLASS_STANDARD, "LC_CTYPE", NULL, "Output Encoding", 0 },
     { NULL }

@@ -37,8 +37,12 @@ AC_ARG_ENABLE( libtranslate,
     [  --disable-libtranslate		disable usage of libtranslate],,
     disable_libtranslate="yes")
 
+AC_ARG_ENABLE( bdb,
+    [  --disable-bdb			disable usage of berkeleydb for recodings caching],,
+    disable_bdb="yes")
 
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
@@ -53,7 +57,11 @@ AC_PATH_PROG(MV, mv, /bin/mv)
 AC_PATH_PROG(TAR, tar, /bin/tar)
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
+AC_CHECK_HEADERS(iconv.h,, [
+    CFLAGS+=" -I/usr/local/include"
+    LIBS+=" -L/usr/local/lib"
+    AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
+])
 AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h sys/stat.h sys/file.h sys/socket.h sys/un.h sys/time.h sys/select.h sys/wait.h signal.h unistd.h fcntl.h)
 
 AC_TRY_COMPILE([#include <langinfo.h>],
@@ -97,7 +105,12 @@ AC_CHECK_HEADER(dlfcn.h, [AC_CHECK_LIB(dl, dlopen, [
 ],[
     DLOPEN_LIBS=""
     DLOPEN_INCLUDES=""
-    HAVE_DLOPEN=no
+    
+    AC_CHECK_FUNCS(dlopen, [
+        HAVE_DLOPEN=yes
+    ],[
+        HAVE_DLOPEN=no
+    ])
 ])])
 
 RCD_LIBS=""
@@ -151,15 +164,21 @@ AC_SUBST(DLOPEN_LIBS)
 AC_SUBST(DLOPEN_INCLUDES)
 
 
-AX_PATH_BDB([4],[
-    BDB_LIBS="$BDB_LDFLAGS $BDB_LIBS"
-    BDB_INCLUDES="$BDB_CPPFLAGS"
-    HAVE_BDB=yes
-],[
+if test "x$disable_bdb" != "xyes"; then
     BDB_LIBS=""
     BDB_INCLUDES=""
     HAVE_BDB=no
-])
+else
+    AX_PATH_BDB([4],[
+	BDB_LIBS="$BDB_LDFLAGS $BDB_LIBS"
+	BDB_INCLUDES="$BDB_CPPFLAGS"
+	HAVE_BDB=yes
+    ],[
+	BDB_LIBS=""
+	BDB_INCLUDES=""
+	HAVE_BDB=no
+    ])
+fi
 AC_SUBST(BDB_LIBS)
 AC_SUBST(BDB_INCLUDES)
 

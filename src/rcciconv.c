@@ -74,7 +74,7 @@ loop_restart:
     out_left = outsize;
 
 loop:
-    err=iconv(icnv->icnv, &in_buf, &in_left, &out_buf, &out_left);
+    err=iconv(icnv->icnv, (const char**)&in_buf, &in_left, &out_buf, &out_left);
     if (err<0) {
         if (errno==E2BIG) {
     	    *(int*)(outbuf+(RCC_MAX_STRING_CHARS-sizeof(int)))=0;

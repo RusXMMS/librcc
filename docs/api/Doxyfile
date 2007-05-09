@@ -60,12 +60,14 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = ../../src/ \
                          ../../ui/ \
-                         ../../examples/
+                         ../../examples/ \
+			 ./
 FILE_PATTERNS          = librcc.h \
                          librccui.h \
                          example1.c \
 			 example2.c \
-			 rcc-gtk-config.c
+			 rcc-gtk-config.c \
+			 rcc-recode.c
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO

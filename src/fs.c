@@ -80,11 +80,14 @@ static char *rccCheckFile(const char *prefix, const char *name) {
 
 /* Converts: 'filename' to 'prefix/name' using 'fspath' */
 int rccFS0(rcc_language_config config, const char *fspath, const char *filename, char **prefix, char **name) {
+#ifdef HAVE_MNTENT_H
     FILE *mtab;
     struct mntent *fsentry;
+    char *lastprefix;
+#endif /* HAVE_MNTENT_H */
+
     const char *tmp = NULL;
     size_t len;
-    char *lastprefix;
 
     if (fspath) {
 	len = strlen(fspath);

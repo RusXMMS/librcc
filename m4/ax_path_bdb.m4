@@ -243,7 +243,7 @@ AX_PATH_BDB_STUFF DB_VERSION_MAJOR,DB_VERSION_MINOR,DB_VERSION_PATCH
       dnl # If result from _AX_COMPARE_VERSION is true we want this version.
       if test "$ax_compare_version" = "true" ; then
         ax_path_bdb_no_options_ok=yes
-        BDB_LIBS="-ldb"
+#DS        BDB_LIBS="-ldb"
 	if test "x$ax_path_bdb_path_find_highest_DIR" != x ; then
 	  BDB_CPPFLAGS="-I$ax_path_bdb_path_find_highest_DIR/include"
 	  BDB_LDFLAGS="-L$ax_path_bdb_path_find_highest_DIR/lib"
