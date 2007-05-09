@@ -1,6 +1,8 @@
 #ifndef _RCC_EXTERNAL_H
 #define _RCC_EXTERNAL_H
 
+#include "../config.h"
+
 typedef enum rcc_external_module_t {
     RCC_EXTERNAL_MODULE_CONTROL = 0,
     RCC_EXTERNAL_MODULE_OPTIONS,

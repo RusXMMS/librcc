@@ -46,10 +46,19 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_CHECK_TYPE(ssize_t, long)
+
+
 pkgdatadir=${libdir}/rcc/
 AC_SUBST(pkgdatadir)
 
 CFLAGS="$CFLAGS -Wall -Wpointer-arith"
+if test ! -f /usr/include/iconv.h  -a -f /usr/local/include/iconv.h ; then
+    CFLAGS+=" -I/usr/local/include"
+    LIBS+=" -L/usr/local/lib"
+fi
 
 dnl Checks for programs.
 AC_PATH_PROG(RM, rm, /bin/rm)
@@ -57,11 +66,7 @@ AC_PATH_PROG(MV, mv, /bin/mv)
 AC_PATH_PROG(TAR, tar, /bin/tar)
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(iconv.h,, [
-    CFLAGS+=" -I/usr/local/include"
-    LIBS+=" -L/usr/local/lib"
-    AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
-])
+AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
 AC_CHECK_HEADERS(mntent.h pwd.h sys/types.h sys/stat.h sys/file.h sys/socket.h sys/un.h sys/time.h sys/select.h sys/wait.h signal.h unistd.h fcntl.h)
 
 AC_TRY_COMPILE([#include <langinfo.h>],

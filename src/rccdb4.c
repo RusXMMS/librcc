@@ -17,14 +17,16 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     DB_ENV *dbe;
     DB *db;
     
-# if 0
+# ifndef DB_LOG_AUTOREMOVE
+#  ifdef DB_VERSION_MISMATCH
     char stmp[160];
-# endif
+#  endif /* DB_VERSION_MISMATCH */
+# endif /* DB_LOG_AUTOREMOVE */
     
     err = db_env_create(&dbe, 0);
     if (err) return NULL;
 
-# if 1
+# ifdef DB_LOG_AUTOREMOVE
     dbe->set_flags(dbe, DB_LOG_AUTOREMOVE, 1);
     dbe->set_lg_max(dbe, 131072);
     
@@ -33,8 +35,9 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_TXN|DB_USE_ENVIRON|DB_INIT_LOCK|DB_INIT_MPOOL|DB_RECOVER, 00644);
 	rccUnLock();
     } 
-# else
+# else /* DB_LOG_AUTOREMOVE */
     err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
+#  ifdef DB_VERSION_MISMATCH
     if (err == DB_VERSION_MISMATCH) {
 	if (!rccLock()) {    
 	    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|DB_INIT_TXN|DB_USE_ENVIRON|DB_PRIVATE|DB_RECOVER, 0);
@@ -59,7 +62,8 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
 	
     }
-# endif
+#  endif /* DB_VERSION_MISMATCH */
+# endif /* DB_LOG_AUTOREMOVE */
 
     if (err) {
 //	fprintf(stderr, "BerkelyDB initialization failed: %i (%s)\n", err, db_strerror(err));
