@@ -2,6 +2,9 @@
 #define _RCC_EXTERNAL_H
 
 #include "../config.h"
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
 
 typedef enum rcc_external_module_t {
     RCC_EXTERNAL_MODULE_CONTROL = 0,

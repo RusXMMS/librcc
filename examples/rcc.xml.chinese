@@ -5,24 +5,44 @@
 	    <FullName>Japanese</FullName>
 	    <Charsets>
 		<Charset>UTF-8</Charset>
+		<Charset>UTF-16</Charset>
 		<Charset>ISO-2022-JP</Charset>
 		<Charset>EUC-JP</Charset>
-		<Charset>SHIFT-JIS</Charset>
+		<Charset>SJIS</Charset>
 	    </Charsets>
+	    <Engines>
+		<Engine>libguess</Engine>
+	    </Engines>
+	</Language>
+	<Language name="ko">
+	    <FullName>Korean</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+		<Charset>UTF-16</Charset>
+		<Charset>ISO-2022-KR</Charset>
+		<Charset>EUC-KR</Charset>
+		<Charset>JOHAB</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>libguess</Engine>
+	    </Engines>
 	</Language>
 	<Language name="zh">
 	    <FullName>Chinese</FullName>
 	    <Charsets>
 		<Charset>UTF-8</Charset>
+		<Charset>UTF-16</Charset>
+		<Charset>ISO-2022-CN</Charset>
 		<Charset>GB2312</Charset>
 		<Charset>GB18030</Charset>
 		<Charset>GBK</Charset>
-		<Charset>ISO-2022-CN</Charset>		
 		<Charset>BIG5</Charset>
-		<Charset>BIG5-HKSCS</Charset>
 		<Charset>EUC-CN</Charset>
-		<Charset>EUC-TW</Charset>
+		<Charset>HZ</Charset>
 	    </Charsets>
+	    <Engines>
+		<Engine>libguess</Engine>
+	    </Engines>
 	</Language>
     </Languages>
 </LibRCC>

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<LibRCC>
+    <Languages>
+	<Language name="de">
+	    <FullName>German</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="fr">
+	    <FullName>French</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+    </Languages>
+</LibRCC>

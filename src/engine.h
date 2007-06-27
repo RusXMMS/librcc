@@ -26,6 +26,7 @@ struct rcc_engine_context_t {
     rcc_engine_function func;
     rcc_engine_free_function free_func;
 
+    rcc_engine_id id;
     rcc_engine_internal internal;
 };
 typedef struct rcc_engine_context_t rcc_engine_context_s;

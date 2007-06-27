@@ -405,7 +405,7 @@ rcc_language_config rccGetUsableConfig(rcc_context ctx, rcc_language_id language
 
 rcc_language_config rccGetConfig(rcc_context ctx, rcc_language_id language_id) {
     rcc_language_config config;
-
+    
     config = rccGetConfigPointer(ctx, language_id, &language_id);
     if (config) {
 	if ((!config->charset)&&(rccConfigInit(config, ctx))) return NULL;

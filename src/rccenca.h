@@ -20,6 +20,14 @@
 # define RCC_ENCA_SUPPORT
 #endif
 
+struct rcc_enca_corrections_t {
+    char *lang;
+    const char *enca_charset;
+    const char *iconv_charset;
+};
+typedef struct rcc_enca_corrections_t rcc_enca_corrections;
+
+
 int rccEncaInit();
 void rccEncaFree();
 

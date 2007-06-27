@@ -20,6 +20,41 @@ static rcc_library_handle enca_handle = NULL;
 #endif /* RCC_ENCA_DYNAMIC */
 static rcc_engine *enca_engines = NULL;
 
+
+/* CORK, KEYBCS2 is missing */
+rcc_enca_corrections rcc_enca_missing_corrections[] = {
+    { "be", "KOI8-UNI", "ISO-IR-111" },
+    { NULL, "macce", "MACCENTRALEUROPE" },
+    { "zh", "HZ", "HZ" },
+    { "sk", "KOI-8_CS_2", "CSKOI8R" },
+    { NULL, NULL, NULL }
+};
+
+rcc_enca_corrections rcc_enca_error_corrections[] = {
+    { NULL, "ECMA-cyrillic", "ISO-IR-111" },
+    { NULL, NULL, NULL }
+};
+
+
+static const char *rccEncaGetCorrection(const char *lang, const char *charset) {
+    int i;
+    for (i=0;rcc_enca_error_corrections[i].enca_charset;i++) {
+	if (((!rcc_enca_error_corrections[i].lang)||((lang)&&(!strcmp(lang, rcc_enca_error_corrections[i].lang))))&&(!strcmp(charset, rcc_enca_error_corrections[i].enca_charset)))
+	    return rcc_enca_error_corrections[i].iconv_charset;
+    }
+    return charset;
+}
+
+static const char *rccEncaGetMissing(const char *lang, const char *charset) {
+    int i;
+    for (i=0;rcc_enca_missing_corrections[i].enca_charset;i++) {
+	if (((!rcc_enca_missing_corrections[i].lang)||((lang)&&(!strcmp(lang, rcc_enca_missing_corrections[i].lang))))&&(!strcmp(charset, rcc_enca_missing_corrections[i].enca_charset)))
+	    return rcc_enca_missing_corrections[i].iconv_charset;
+    }
+    return charset;
+}
+
+
 rcc_engine_internal rccEncaInitContext(rcc_engine_context ctx) {
 #ifdef RCC_ENCA_SUPPORT
     EncaAnalyser enca;
@@ -65,7 +100,12 @@ rcc_autocharset_id rccEnca(rcc_engine_context ctx, const char *buf, int len) {
     if (ee.charset<0) return (rcc_charset_id)-1;
 
     charset = enca_charset_name(ee.charset, ENCA_NAME_STYLE_ICONV);
-    return rccGetAutoCharsetByName(ctx->config->ctx, charset);
+    if (charset) {
+        charset = rccEncaGetCorrection(rccEngineGetLanguage(ctx)->sn, charset);
+    } else {
+        charset = rccEncaGetMissing(rccEngineGetLanguage(ctx)->sn, enca_charset_name(ee.charset, ENCA_NAME_STYLE_ENCA));
+    }
+    return rccEngineGetAutoCharsetByName(ctx, charset);
 #else /* RCC_ENCA_SUPPORT */
     return (rcc_charset_id)-1;
 #endif /* RCC_ENCA_SUPPORT */
@@ -160,7 +200,11 @@ int rccEncaInit() {
 	    for (l=0;l<n_charsets;l++) {
 		    // Enca bug, STYLE_ICONV return's a lot of NULL's
 		charset = enca_charset_name(charsets[l], ENCA_NAME_STYLE_ICONV);
-		if (!charset) charset = enca_charset_name(charsets[l], ENCA_NAME_STYLE_ENCA);
+		if (charset) {
+		    charset = rccEncaGetCorrection(rcc_default_languages[i].sn, charset);
+		} else {
+		    charset = rccEncaGetMissing(rcc_default_languages[i].sn, enca_charset_name(charsets[l], ENCA_NAME_STYLE_ENCA));
+		}
 		enca_engines[i].charsets[k++] = charset;
 	    }
 	    enca_engines[j].charsets[k] = NULL;

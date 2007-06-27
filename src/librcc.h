@@ -1481,6 +1481,9 @@ typedef rcc_engine *(*rcc_plugin_engine_info_function)(const char *lang);
 rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx);
 rcc_language *rccEngineGetLanguage(rcc_engine_context ctx);
 rcc_context rccEngineGetRccContext(rcc_engine_context ctx);
+rcc_engine *rccEngineGetInfo(rcc_engine_context ctx);
+rcc_autocharset_id rccEngineGetAutoCharsetByName(rcc_engine_context ctx, const char *name);
+
 
 /*******************************************************************************
 **************************** Configuration *************************************

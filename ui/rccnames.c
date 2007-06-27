@@ -26,6 +26,8 @@ rcc_name rcc_default_language_names_embeded[RCC_MAX_LANGUAGES+1] = {
 {"sk","Slovak"},
 {"sl","Slovenian"},
 {"zh","Chinese"},
+{"ko","Korean"},
+{"ja","Japanese"},
 {NULL, NULL}
 };
 

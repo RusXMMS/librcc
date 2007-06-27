@@ -219,7 +219,7 @@ int rccUiInit() {
 	else icnv = rccIConvOpen(ctype_charset, "UTF-8");
     }
     
-    if (!rccLocaleGetLanguage(locale, "LANGUAGE", 32)) {
+    if (!rccLocaleGetLanguage(locale, "LC_MESSAGES", 32)) {
 	search[0] = strdup(locale);
 	if (!search[0]) goto clean;
 	lpos = strrchr(search[0], '@');

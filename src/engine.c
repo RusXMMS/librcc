@@ -125,6 +125,7 @@ int rccEngineConfigure(rcc_engine_context ctx) {
 
     engine = ctx->config->language->engines[engine_id];
     
+    ctx->id = engine_id;
     ctx->free_func = engine->free_func;
     ctx->func = engine->func;
 
@@ -132,6 +133,30 @@ int rccEngineConfigure(rcc_engine_context ctx) {
     else ctx->internal = NULL;
     
     return 0;
+}
+
+
+rcc_engine *rccEngineGetInfo(rcc_engine_context ctx) {
+    if (!ctx) return NULL;
+    return ctx->config->language->engines[ctx->id];
+}
+
+rcc_autocharset_id rccEngineGetAutoCharsetByName(rcc_engine_context ctx, const char *name) {
+    unsigned int i;
+    rcc_engine *info;
+    rcc_charset *charsets;
+
+    if ((!ctx)||(!name)) return (rcc_autocharset_id)-1;
+    
+    info = rccEngineGetInfo(ctx);
+    if (info) {
+	charsets = info->charsets;
+    
+	for (i=0;charsets[i];i++)
+	    if (!strcasecmp(charsets[i],name)) return (rcc_autocharset_id)i;
+    }
+    
+    return (rcc_autocharset_id)-1;
 }
 
 rcc_engine_internal rccEngineGetInternal(rcc_engine_context ctx) {
@@ -186,6 +211,8 @@ static int CheckWestern(const unsigned char *buf, int len) {
 rcc_autocharset_id rccEngineDetectCharset(rcc_engine_context ctx, const char *buf, size_t len) {
     rcc_autocharset_id utf;
 
+	/* DS: This should be done directly in autoengines, otherwise we will
+	fail to detect 7bit encodings */
     if (CheckWestern(buf, len)) {
 	utf=rccConfigGetAutoCharsetByName(ctx->config, "UTF-8");
 	if (utf != (rcc_autocharset_id)-1) return utf;

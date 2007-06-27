@@ -1,0 +1,2 @@
+Enca supports HZ chinese encoding which is not supported by the iconv shiped
+with GLibc. Portable iconv library seems to support it.

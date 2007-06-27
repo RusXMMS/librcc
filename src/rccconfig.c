@@ -10,8 +10,8 @@
 
 rcc_language_alias rcc_default_aliases[RCC_MAX_ALIASES + 1];
 rcc_language_alias rcc_default_aliases_embeded[RCC_MAX_ALIASES + 1] = {
-    { "cs_SK", "sk" },
-    { "ru_UA", "uk" },
+/*    { "cs_SK", "sk" },
+    { "ru_UA", "uk" },*/
     { NULL, NULL }
 };
 
@@ -45,11 +45,15 @@ rcc_engine rcc_default_engine = {
 };
 
 rcc_engine rcc_russian_engine = {
-    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", NULL}
+    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-R","UTF-8","IBM866", "ISO8859-1", NULL}
 };
 
 rcc_engine rcc_ukrainian_engine = {
-    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-U","UTF-8","IBM865", NULL}
+    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","KOI8-U","UTF-8","IBM865", "ISO8859-1", NULL}
+};
+
+rcc_engine rcc_belarussian_engine = {
+    "LibRCD", NULL, NULL, &rccAutoengineRussian, {"CP1251","ISO-IR-111","UTF-8","IBM865", "ISO8859-1", NULL}
 };
 
 rcc_language rcc_default_languages[RCC_MAX_LANGUAGES + 1];
@@ -81,11 +85,14 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
 #endif /* RCC_RCD_SUPPORT */
     NULL
 }},
-{"be", {rcc_default_charset, rcc_utf8_charset, "CP1251", "IBM866", "ISO-8859-5", "KOI8-UNI", "maccyr" "IBM855", NULL},{
+{"be", {rcc_default_charset, rcc_utf8_charset, "CP1251", "IBM866", "ISO-8859-5", "ISO-IR-111", "ISO-IR-111", "MACCYRILLIC" "IBM855", NULL},{
     &rcc_default_engine,
+#ifdef RCC_RCD_SUPPORT
+    &rcc_ukrainian_engine,
+#endif /* RCC_RCD_SUPPORT */
     NULL
 }},
-{"bg", {rcc_default_charset, rcc_utf8_charset, "CP1251", "ISO-8859-5", "IBM855", "maccyr", "ECMA-113", NULL},{
+/*{"bg", {rcc_default_charset, rcc_utf8_charset, "CP1251", "ISO-8859-5", "IBM855", "maccyr", "ECMA-113", NULL},{
     &rcc_default_engine,
     NULL
 }},
@@ -124,11 +131,7 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
 {"sl", {rcc_default_charset, rcc_utf8_charset, "ISO-8859-2", "CP1250", "IBM852", "macce", "CORK", NULL},{
     &rcc_default_engine,
     NULL
-}},
-{"zh", {rcc_default_charset, rcc_utf8_charset, "GB2312", "GBK", "GB18030", "BIG5", NULL},{
-    &rcc_default_engine,
-    NULL
-}},
+}},*/
 {NULL}
 };
 rcc_option_value_name rcc_sn_boolean[] = { "OFF", "ON", NULL };

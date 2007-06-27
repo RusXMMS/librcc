@@ -1,8 +1,189 @@
 <?xml version='1.0' encoding='UTF-8' ?>
 <LibRCC>
     <Languages>
+	<Language name="default">
+	    <FullName locale="ru">Автоопределение</FullName>
+	</Language>
+	<Language name="off">
+	    <FullName locale="ru">Отключить</FullName>
+	</Language>
+	<Language name="ru">
+	    <FullName locale="ru">Русский</FullName>
+	</Language>
+	<Language name="uk">
+	    <FullName locale="ru">Украинский</FullName>
+	</Language>
+	<Language name="be">
+	    <FullName locale="ru">Беларуский</FullName>
+	</Language>
+	<Language name="en">
+	    <FullName locale="ru">Английский</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="bg">
+	    <FullName locale="ru">Болгарский</FullName>
+	    <Charsets>
+		<Charset>CP1251</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-1</Charset>
+		<Charset>IBM855</Charset>
+		<Charset>MACCYRILLIC</Charset>
+		<Charset>ISO-IR-111</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="cz">
+	    <FullName locale="ru">Чешский</FullName>
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>CSKOI8R</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="es">
+	    <FullName locale="ru">Эстонский</FullName>
+	    <Charsets>
+		<Charset>CP1257</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-4</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>IBM755</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="hr">
+	    <FullName locale="ru">Хорватский</FullName>
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="hu">
+	    <FullName locale="ru">Венгерский</FullName>
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="lt">
+	    <FullName locale="ru">Латвийский</FullName>
+	    <Charsets>
+		<Charset>CP1257</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-4</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>IBM755</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="lv">
+	    <FullName locale="ru">Литовский</FullName>
+	    <Charsets>
+		<Charset>CP1257</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-4</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>IBM755</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="pl">
+	    <FullName locale="ru">Польский</FullName>
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>ISO-8859-16</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="sk">
+	    <FullName locale="ru">Словацкий</FullName>
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>CSKOI8R</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="sl">
+	    <FullName locale="ru">Cловенский</FullName>
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="ja">
+	    <FullName locale="ru">Японский</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+		<Charset>UTF-16</Charset>
+		<Charset>ISO-2022-JP</Charset>
+		<Charset>EUC-JP</Charset>
+		<Charset>SJIS</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>libguess</Engine>
+	    </Engines>
+	</Language>
+	<Language name="ko">
+	    <FullName locale="ru">Корейский</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+		<Charset>UTF-16</Charset>
+		<Charset>ISO-2022-KR</Charset>
+		<Charset>EUC-KR</Charset>
+		<Charset>JOHAB</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>libguess</Engine>
+	    </Engines>
+	</Language>
+	<Language name="zh">
+	    <FullName locale="ru">Китайский</FullName>
+	    <Charsets>
+		<Charset>UTF-8</Charset>
+		<Charset>UTF-16</Charset>
+		<Charset>ISO-2022-CN</Charset>
+		<Charset>GB2312</Charset>
+		<Charset>GB18030</Charset>
+		<Charset>GBK</Charset>
+		<Charset>BIG5</Charset>
+		<Charset>EUC-CN</Charset>
+		<Charset>HZ</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>libguess</Engine>
+	    </Engines>
+	</Language>
 	<Language name="de">
 	    <FullName>German</FullName>
+	    <FullName locale="ru">Немецкий</FullName>
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
@@ -13,6 +194,7 @@
 	</Language>
 	<Language name="fr">
 	    <FullName>French</FullName>
+	    <FullName locale="ru">Французский</FullName>
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
@@ -22,4 +204,118 @@
 	    </Engines>
 	</Language>
     </Languages>
+    <Options>
+	<Option name="LEARNING_MODE">
+	    <FullName locale="ru">Кэширование</FullName>
+	    <Value name="OFF">
+		<FullName locale="ru">Выключено</FullName>
+	    </Value>
+	    <Value name="ON">
+		<FullName locale="ru">Включено</FullName>
+	    </Value>
+	    <Value name="RELEARN">
+		<FullName locale="ru">Обновлять данные кэша</FullName>
+	    </Value>
+	    <Value name="LEARN">
+		<FullName locale="ru">Добовлять данные в кэш</FullName>
+	    </Value>
+	</Option>
+	<Option name="AUTODETECT_FS_NAMES">
+	    <FullName locale="ru">Поиск файлов</FullName>
+	</Option>
+	<Option name="AUTOENGINE_SET_CURRENT">
+	    <FullName locale="ru">Автоматически устанавливать текущую кодировку</FullName>
+	</Option>
+	<Option name="AUTODETECT_LANGUAGE">
+	    <FullName locale="ru">Автоопределение языка</FullName>
+	</Option>
+	<Option name="TRANSLATE">
+	    <FullName locale="ru">Перевод</FullName>
+	    <Value name="OFF">
+		<FullName locale="ru">Отключено</FullName>
+	    </Value>
+	    <Value name="TRANSLITERATE">
+		<FullName locale="ru">Транслитерация</FullName>
+	    </Value>
+	    <Value name="TO_ENGLISH">
+		<FullName locale="ru">На английский</FullName>
+	    </Value>
+	    <Value name="SKIP_RELATED">
+		<FullName locale="ru">Не переводить родственные языки</FullName>
+	    </Value>
+	    <Value name="SKIP_PARENT">
+		<FullName locale="ru">Не переводить из родительского языка</FullName>
+	    </Value>
+	    <Value name="FULL">
+		<FullName locale="ru">Переводить все</FullName>
+	    </Value>
+	</Option>
+	<Option name="TIMEOUT">
+	    <FullName locale="ru">Разрешенное время перевода (us)</FullName>
+	</Option>
+    </Options>
+    <Classes>
+	<Class name="id3">
+	    <FullName locale="ru">Кодировка ID3 Тэгов</FullName>
+	</Class>	    
+	<Class name="pl">
+	    <FullName locale="ru">Кодировка Списка Песен</FullName>
+	</Class>	    
+	<Class name="plfs">
+	    <FullName locale="ru">Кодировка Файлов в Списке</FullName>
+	</Class>	    
+	<Class name="fs">
+	    <FullName locale="ru">Кодировка Файловой Системы</FullName>
+	</Class>	    
+	<Class name="out">
+	    <FullName locale="ru">Отображение</FullName>
+	</Class>	    
+    </Classes>
+    <Charsets>
+	<Charset name="Default">
+	    <FullName locale="ru">Авто-определение</FullName>
+	</Charset>
+    </Charsets>
+    <Engines>
+	<Engine name="off">
+	    <FullName locale="ru">Отключить</FullName>
+	</Engine>
+	<Engine name="Russian">
+	    <FullName locale="ru">Библиотека LibRCD</FullName>
+	</Engine>
+	<Engine name="Enca Library">
+	    <FullName locale="ru">Библиотека Enca</FullName>
+	</Engine>
+	<Engine name="LibGUESS">
+	    <FullName locale="ru">Библиотека LibGUESS</FullName>
+	</Engine>
+    </Engines>
+    <Pages>
+	<Page name="RusXMMS">
+	    <FullName locale="ru">РусXMMS</FullName>
+	    <Frames>
+		<Frame name="Language">
+		    <FullName locale="ru">Язык</FullName>
+		    <Boxes>
+			<Box name="Language">
+		    	    <FullName locale="ru">Текущий Язык</FullName>
+			</Box>
+		    </Boxes>
+		</Frame>
+		<Frame name="Engine">
+		    <FullName locale="ru">Авто-определение</FullName>
+		    <Boxes>
+			<Box name="Engine">
+			    <FullName locale="ru">Движок</FullName>
+			</Box>
+			<Box name="">
+			</Box>
+		    </Boxes>
+		</Frame>
+		<Frame name="Charset">
+		    <FullName locale="ru">Кодировки</FullName>
+		</Frame>
+	    </Frames>
+	</Page>
+    </Pages>
 </LibRCC>

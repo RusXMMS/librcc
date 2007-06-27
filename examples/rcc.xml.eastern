@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<LibRCC>
+    <Languages>
+	<Language name="bg">
+	    <Charsets>
+		<Charset>CP1251</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-1</Charset>
+		<Charset>IBM855</Charset>
+		<Charset>MACCYRILLIC</Charset>
+		<Charset>ISO-IR-111</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="cz">
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>CSKOI8R</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="es">
+	    <Charsets>
+		<Charset>CP1257</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-4</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>IBM755</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="hr">
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="hu">
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="lt">
+	    <Charsets>
+		<Charset>CP1257</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-4</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>IBM755</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="lv">
+	    <Charsets>
+		<Charset>CP1257</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-4</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>IBM755</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="pl">
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>ISO-8859-13</Charset>
+		<Charset>ISO-8859-16</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>BALTIC</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="sk">
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+		<Charset>CSKOI8R</Charset>
+	    </Charsets>
+	</Language>
+	<Language name="sl">
+	    <Charsets>
+		<Charset>CP1250</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>ISO-8859-2</Charset>
+		<Charset>IBM852</Charset>
+		<Charset>MACCENTRALEUROPE</Charset>
+	    </Charsets>
+	</Language>
+    </Languages>
+</LibRCC>

@@ -5,9 +5,13 @@
 
 #include "../config.h"
 
+#ifdef HAVE_LIBCHARSET
+# include <libcharset.h>
+#endif /* HAVE_LIBCHARSET */
 #ifdef HAVE_CODESET
 # include <langinfo.h>
 #endif
+
 
 #include "rccconfig.h"
 
@@ -80,9 +84,12 @@ int rccLocaleGetCharset(char *result, const char *lv, unsigned int n) {
     
     if (locale_class == LC_CTYPE) {
 	l = getenv("CHARSET");
+#ifdef HAVE_LIBCHARSET
+	if (!l) l = locale_charset();
+#endif /* HAVE_LIBCHARSET */
 #ifdef HAVE_CODESET
 	if (!l) l = nl_langinfo(CODESET);
-#endif
+#endif /* HAVE_CODESET */
 	if (l) {
 	    if (strlen(l)>=n) return -1;
 	    strcpy(result, l);

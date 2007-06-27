@@ -742,7 +742,12 @@ rcc_string rccSizedFromCharset(rcc_context ctx, const char *charset, const char 
     rcc_string ret;
     
     if ((!buf)||(!charset)) return NULL;
-    
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
+
     config = rccGetCurrentConfig(ctx);
     if (!config) return NULL;
     
@@ -767,6 +772,11 @@ char *rccSizedToCharset(rcc_context ctx, const char *charset, rcc_const_string b
     size_t res;
     
     if ((!buf)||(!charset)) return NULL;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
 
     res = rccStringCheck(buf);
     if (!res) return NULL;
@@ -799,6 +809,11 @@ char *rccSizedRecodeToCharset(rcc_context ctx, rcc_class_id class_id, const char
     char *utf8, *extracted;
 
     if (!charset) return NULL;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
     
     utf8 = rccSizedFrom(ctx, class_id, buf, len);
     if (!utf8) return utf8;
@@ -839,6 +854,11 @@ char *rccSizedRecodeFromCharset(rcc_context ctx, rcc_class_id class_id, const ch
     char *extracted;
 
     if (!charset) return NULL;
+
+    if (!ctx) {
+	if (rcc_default_ctx) ctx = rcc_default_ctx;
+	else return NULL;
+    }
     
     icnv = rccIConvOpen("UTF-8", charset);
     if (icnv) {

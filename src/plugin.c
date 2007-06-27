@@ -121,13 +121,13 @@ rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
     
     switch (type) {
 	case RCC_PLUGIN_TYPE_ENGINE:
-	    pluginfn = (char*)malloc((32 + strlen(rcc_home_dir) + strlen(name))*sizeof(char));
+	    pluginfn = (char*)malloc((48 + strlen(rcc_home_dir) + strlen(name))*sizeof(char));
 	    if (!pluginfn) return NULL;
 	
-	    sprintf(pluginfn, "%s/.rcc/engines/lib%s.so", rcc_home_dir, name);
+	    sprintf(pluginfn, "%s/.rcc/engines/%s_engine.so", rcc_home_dir, name);
 	    res = rccLibraryOpen(pluginfn);
 	    if (!res) {
-		sprintf(pluginfn, LIBRCC_DATA_DIR "/engines/lib%s.so", name);
+		sprintf(pluginfn, LIBRCC_DATA_DIR "/engines/%s_engine.so", name);
 		res = rccLibraryOpen(pluginfn);
 	    }
 	    free(pluginfn);
@@ -156,7 +156,7 @@ rcc_plugin_handle rccPluginLoad(rcc_plugin_type type, const char *name) {
 rcc_engine *rccPluginEngineGetInfo(const char *name, const char *language) {
     rcc_plugin_handle handle;
     rcc_plugin_engine_info_function infofunc;
-    
+
     handle = rccPluginLoad(RCC_PLUGIN_TYPE_ENGINE, name);
     if (!handle) return NULL;
     
