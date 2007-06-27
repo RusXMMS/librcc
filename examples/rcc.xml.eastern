@@ -21,7 +21,7 @@
 		<Charset>CSKOI8R</Charset>
 	    </Charsets>
 	</Language>
-	<Language name="es">
+	<Language name="et">
 	    <Charsets>
 		<Charset>CP1257</Charset>
 		<Charset>UTF-8</Charset>

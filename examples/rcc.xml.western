@@ -6,6 +6,7 @@
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
 	    </Charsets>
 	    <Engines>
 		<Engine>western</Engine>
@@ -16,6 +17,73 @@
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="nl">
+	    <FullName>Dutch</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="it">
+	    <FullName>Italian</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="es">
+	    <FullName>Spanish</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="pt">
+	    <FullName>Portugese</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="sv">
+	    <FullName>Swedish</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="no">
+	    <FullName>Norwegian</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
 	    </Charsets>
 	    <Engines>
 		<Engine>western</Engine>

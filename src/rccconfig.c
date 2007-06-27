@@ -100,7 +100,7 @@ rcc_language rcc_default_languages_embeded[RCC_MAX_LANGUAGES + 1] = {
     &rcc_default_engine,
     NULL
 }},
-{"es", {rcc_default_charset, rcc_utf8_charset, "ISO-8859-4", "CP1257", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
+{"et", {rcc_default_charset, rcc_utf8_charset, "ISO-8859-4", "CP1257", "IBM775", "ISO-8859-13", "macce", "baltic", NULL},{
     &rcc_default_engine,
     NULL
 }},

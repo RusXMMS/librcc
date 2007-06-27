@@ -49,7 +49,7 @@ struct rcc_guess_engine_t guessJPEngine = {
  &guess_jp
 };
 
-struct rcc_guess_engine_t guessCNEngine = {
+struct rcc_guess_engine_t guessZHEngine = {
  {
     "LibGUESS",
     NULL,		/* Constructor */
@@ -59,6 +59,30 @@ struct rcc_guess_engine_t guessCNEngine = {
  },
  NULL
 };
+
+/*
+struct rcc_guess_engine_t guessCNEngine = {
+ {
+    "LibGUESS",
+    NULL,
+    NULL,
+    &guessDetect,
+    {"UTF-8", "UTF-16", "ISO-2022-CN", "GB2312", "GB18030", NULL}
+ },
+ &guess_cn
+};
+
+struct rcc_guess_engine_t guessTWEngine = {
+ {
+    "LibGUESS",
+    NULL,
+    NULL,
+    &guessDetect,
+    {"UTF-8", "UTF-16", "ISO-2022-TW", "BIG5", NULL}
+ },
+ &guess_tw
+};
+*/
 
 struct rcc_guess_engine_t guessKREngine = {
  {
@@ -73,7 +97,7 @@ struct rcc_guess_engine_t guessKREngine = {
         
     
 rcc_engine *rccGetInfo(const char *lang) {
-    if (!strcmp(lang, "zh")) return (rcc_engine*)&guessCNEngine;
+    if (!strcmp(lang, "zh")) return (rcc_engine*)&guessZHEngine;
     if (!strcmp(lang, "ja")) return (rcc_engine*)&guessJPEngine;
     if (!strcmp(lang, "ko")) return (rcc_engine*)&guessKREngine;
     return NULL;

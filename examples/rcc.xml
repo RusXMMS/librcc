@@ -21,6 +21,7 @@
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
 	    </Charsets>
 	    <Engines>
 		<Engine>western</Engine>
@@ -48,7 +49,7 @@
 		<Charset>CSKOI8R</Charset>
 	    </Charsets>
 	</Language>
-	<Language name="es">
+	<Language name="et">
 	    <FullName locale="ru">Эстонский</FullName>
 	    <Charsets>
 		<Charset>CP1257</Charset>
@@ -187,6 +188,7 @@
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
 	    </Charsets>
 	    <Engines>
 		<Engine>western</Engine>
@@ -198,6 +200,31 @@
 	    <Charsets>
 		<Charset>ISO8859-1</Charset>
 		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="es">
+	    <FullName>Spanish</FullName>
+	    <FullName locale="ru">Испанский</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
+	<Language name="it">
+	    <FullName>Italian</FullName>
+	    <FullName locale="ru">Итальянский</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
 	    </Charsets>
 	    <Engines>
 		<Engine>western</Engine>
@@ -280,8 +307,11 @@
 	<Engine name="off">
 	    <FullName locale="ru">Отключить</FullName>
 	</Engine>
-	<Engine name="Russian">
+	<Engine name="LibRCD">
 	    <FullName locale="ru">Библиотека LibRCD</FullName>
+	</Engine>
+	<Engine name="western">
+	    <FullName locale="ru">Детектор ISO8859-1/Unicode</FullName>
 	</Engine>
 	<Engine name="Enca Library">
 	    <FullName locale="ru">Библиотека Enca</FullName>
