@@ -230,6 +230,18 @@
 		<Engine>western</Engine>
 	    </Engines>
 	</Language>
+	<Language name="sv">
+	    <FullName>Swedish</FullName>
+	    <FullName locale="ru">Шведский</FullName>
+	    <Charsets>
+		<Charset>ISO8859-1</Charset>
+		<Charset>UTF-8</Charset>
+		<Charset>CP1252</Charset>
+	    </Charsets>
+	    <Engines>
+		<Engine>western</Engine>
+	    </Engines>
+	</Language>
     </Languages>
     <Options>
 	<Option name="LEARNING_MODE">

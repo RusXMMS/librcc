@@ -28,7 +28,6 @@ rcc_autocharset_id guessDetect(rcc_engine_context ctx, const char *buf, int len)
 	    if (!len) len = strlen(buf);
 	    res = guess_cn(buf, len);
 	    if (!res) res = guess_tw(buf, len);
-	    printf("%s\n",res?res:"null");
 	}
     } else 
 	res = NULL;
