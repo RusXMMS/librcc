@@ -1,0 +1,8 @@
+usr/include/*
+usr/lib/lib*.a
+usr/lib/lib*.so
+usr/lib/*.la
+usr/lib/rcc/engines/*.a
+usr/lib/rcc/engines/*.la
+usr/share/doc/librcc-dev/html/*
+usr/share/doc/librcc-dev/LibRCC.sxd.pdf

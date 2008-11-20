@@ -1,0 +1,6 @@
+librcc (0.2.6-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Ivan Borzenkov <ivan1986@list.ru>  Sun, 16 Nov 2008 03:15:55 +0300
+

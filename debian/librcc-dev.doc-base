@@ -1,0 +1,13 @@
+Document: librcc-dev
+Title: Debian librcc Manual
+Author: Suren A. Chilingaryan <darksoft@dside.dyndns.org>
+Abstract: This manual describes what librcc is
+ and how it can be used to
+ manage online manuals on Debian systems.
+Section: unknown
+
+Format: HTML
+Index: /usr/share/doc/librcc/html/index.html
+Files: /usr/share/doc/librcc/html/*.html
+
+

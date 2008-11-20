@@ -1,0 +1,1 @@
+shlibs:Depends=libaspell15 (>= 0.60), libc6 (>= 2.7-1), libdb4.6, libenca0 (>= 1.9), librcc, librcd, libxml2 (>= 2.6.27)

@@ -1,0 +1,35 @@
+Source: librcc
+Priority: extra
+Maintainer: Ivan Borzenkov <ivan1986@list.ru>
+Build-Depends: debhelper (>= 7), librcd-dev, libenca-dev, libdb-dev, libxml2-dev, libaspell-dev, doxygen
+Standards-Version: 3.7.3
+Section: libs
+Homepage: http://rusxmms.sourceforge.net/
+
+Package: librcc-dev
+Section: libdevel
+Architecture: any
+Depends: librcc (= ${binary:Version})
+Description: librcc dev files
+ librcc dev files
+
+Package: librcc
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: Library for autoconvert codepages
+ Originally, the project was aimed to provide means to work with multiple encodings
+  * Language Autodetection
+  * On the fly translation between languages, using online-services!
+  * Encoding Autodetection for most of European Languages1
+  * Support for encoding detection plugins (besides Enca and LibRCD)
+  * Recoding/translation of multi-language playlists!
+  * Cache to speed-up re-recoding.
+  * Possibility to configure new languages and encodings.
+  * Shared configuration file. For example mentioned TagLib and LibID3 patches
+    do not have their own user interface, but will utilize the same recoding 
+    configuration as XMMS.
+  * As well the separate program for configuration adjustment is available.
+  * GTK/GTK2 UI Library: you can add properties page to your GTK application 
+    with 3 lines of code.
+  * Menu localization opportunity

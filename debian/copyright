@@ -1,0 +1,19 @@
+This package was debianized by Ivan Borzenkov <ivan1986@list.ru> on
+Sun, 16 Nov 2008 03:17:57 +0300.
+
+It was downloaded from http://rusxmms.sourceforge.net/
+
+Upstream Author(s):
+
+    Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+Copyright:
+
+    Copyright (C) 2005 Suren A. Chilingaryan
+
+License:
+
+    GPL
+
+The Debian packaging is (C) 2008, Ivan Borzenkov <ivan1986@list.ru> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
