@@ -42,6 +42,7 @@ cp -a * $RDIR/$rname
     rm -rf "{arch}"
     rm -rf `find . -name .arch-ids`
     rm -rf `find . -name .deps`
+    rm -rf debian
     cd ..
     if [ -a $rname.tar.bz2 ]; then
 	rm -f $rname.tar.bz2
