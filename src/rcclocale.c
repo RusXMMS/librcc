@@ -1,3 +1,22 @@
+/*
+  LibRCC - module responsible for extracting locale information
+
+  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of version 2 of the GNU General Public License as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -85,7 +104,7 @@ int rccLocaleGetCharset(char *result, const char *lv, unsigned int n) {
     if (locale_class == LC_CTYPE) {
 	l = getenv("CHARSET");
 #ifdef HAVE_LIBCHARSET
-	if (!l) l = locale_charset();
+	if (!l) l = (char*)locale_charset();
 #endif /* HAVE_LIBCHARSET */
 #ifdef HAVE_CODESET
 	if (!l) l = nl_langinfo(CODESET);

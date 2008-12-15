@@ -36,12 +36,13 @@ cp -a * $RDIR/$rname
     cd $RDIR/$rname
     ./autogen.sh
     ./configure
-    make clean
-    make clean -C examples
+    make clean distclean distclean-am -C examples 
+    make clean distclean distclean-am
     rm -rf autom4te*.cache
     rm -rf "{arch}"
     rm -rf `find . -name .arch-ids`
-    rm -rf `find . -name .deps`
+#    rm -rf `find . -name .deps`
+#    rm -f config.log config.status
     rm -rf debian
     cd ..
     if [ -a $rname.tar.bz2 ]; then

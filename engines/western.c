@@ -1,3 +1,22 @@
+/*
+  LibRCC - ISO8859-1/UTF-8 detection engine
+
+  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of version 2 of the GNU General Public License as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+
 #include <stdio.h>
 #include <string.h>
 
@@ -13,12 +32,12 @@
  */
 
 static rcc_autocharset_id AutoengineWestern(rcc_engine_context ctx, const char *sbuf, int len) {
-    const unsigned char *buf = sbuf;
+    const unsigned char *buf = (const unsigned char*)sbuf;
     long i,j;
     int bytes=0,rflag=0;
     int res=0;
 
-    if (!len) len = strlen(buf);
+    if (!len) len = strlen((char*)buf);
     for (i=0;i<len;i++) {
 	if (buf[i]<128) continue;
 	

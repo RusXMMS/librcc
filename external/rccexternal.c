@@ -1,3 +1,26 @@
+/*
+  LibRCC - rcc external is an application helper which is intended to execute 
+  in a separate process code accessing glib library. This is necessary to be 
+  able use translation services in RusXMMS patch. XMMS is dependent on Glib v.1
+  and libtranslate utilized to provide translation uses Glib v.2. If both 
+  libraries are linked, the version conflict causes segmentation errors.
+
+  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of version 2 of the GNU General Public License as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

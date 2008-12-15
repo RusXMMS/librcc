@@ -1,3 +1,22 @@
+/*
+  LibRCC - module handling XML configuration
+
+  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of version 2 of the GNU General Public License as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -43,7 +62,7 @@ rcc_config rccGetConfiguration() {
 }
 
 static const char *rccXmlGetText(xmlNodePtr node) {
-    if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
+    if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return (const char*)node->children->content;
     return NULL;
 }
 
@@ -95,7 +114,7 @@ int rccXmlInit(int LoadConfiguration) {
 	xpathctx = xmlXPathNewContext(xmlctx);
 	if (!xpathctx) goto clear;
 	    
-	obj = xmlXPathEvalExpression(XPATH_LANGUAGE, xpathctx);
+	obj = xmlXPathEvalExpression((xmlChar*)XPATH_LANGUAGE, xpathctx);
 	if (!obj) goto clear;
 	
 	node_set = obj->nodesetval;
@@ -106,8 +125,8 @@ int rccXmlInit(int LoadConfiguration) {
 	nnodes = node_set->nodeNr;
         for (i=0;i<nnodes;i++) {
 	    pnode = node_set->nodeTab[i];
-	    attr = xmlHasProp(pnode, "name");
-	    lang = attr->children->content;
+	    attr = xmlHasProp(pnode, (xmlChar*)"name");
+	    lang = (const char*)attr->children->content;
 	    
 	    if ((!lang)||(!lang[0])) continue;
 	    
@@ -128,18 +147,18 @@ int rccXmlInit(int LoadConfiguration) {
 	    
 	    for (epos = 1, cpos = 1,node=pnode->children;node;node=node->next) {
 	    	if (node->type != XML_ELEMENT_NODE) continue;
-		if (!xmlStrcmp(node->name, "Charsets")) {
+		if (!xmlStrcmp(node->name, (xmlChar*)"Charsets")) {
 		    for (cnode=node->children;cnode;cnode=cnode->next) {
 			if (cnode->type != XML_ELEMENT_NODE) continue;
-			if ((!xmlStrcmp(cnode->name, "Charset"))&&(rccXmlGetText(cnode))&&(cpos<RCC_MAX_CHARSETS)) {
+			if ((!xmlStrcmp(cnode->name, (xmlChar*)"Charset"))&&(rccXmlGetText(cnode))&&(cpos<RCC_MAX_CHARSETS)) {
 			        rcc_default_languages[pos].charsets[cpos++] = rccXmlGetText(cnode);
 			}
 		    }
 		} 
-		else if (!xmlStrcmp(node->name, "Engines")) {
+		else if (!xmlStrcmp(node->name, (xmlChar*)"Engines")) {
 		    for (enode=node->children;enode;enode=enode->next) {
 			if (enode->type != XML_ELEMENT_NODE) continue;
-			if ((!xmlStrcmp(enode->name, "Engine"))&&(epos<RCC_MAX_ENGINES)) {
+			if ((!xmlStrcmp(enode->name, (xmlChar*)"Engine"))&&(epos<RCC_MAX_ENGINES)) {
 				engine_name = rccXmlGetText(enode);
 				if (!engine_name) continue;
 				engine = rccPluginEngineGetInfo(engine_name, lang);
@@ -149,10 +168,10 @@ int rccXmlInit(int LoadConfiguration) {
 			}
 		    }
 		}
-		else if (!xmlStrcmp(node->name, "Aliases")) {
+		else if (!xmlStrcmp(node->name, (xmlChar*)"Aliases")) {
 		    for (enode=node->children;enode;enode=enode->next) {
 			if (enode->type != XML_ELEMENT_NODE) continue;
-			if ((!xmlStrcmp(enode->name, "Alias"))&&(apos<RCC_MAX_ALIASES)) {
+			if ((!xmlStrcmp(enode->name, (xmlChar*)"Alias"))&&(apos<RCC_MAX_ALIASES)) {
 			    alias = rccXmlGetText(enode);
 			    if (!alias) continue;
 			    for (j=0;j<apos;j++)
@@ -168,11 +187,11 @@ int rccXmlInit(int LoadConfiguration) {
 			}
 		    }
 		}
-		else if (!xmlStrcmp(node->name, "Relations")) {
+		else if (!xmlStrcmp(node->name, (xmlChar*)"Relations")) {
 		    rpos = rccDefaultDropLanguageRelations(lang);
 		    for (enode=node->children;enode;enode=enode->next) {
 			if (enode->type != XML_ELEMENT_NODE) continue;
-			if ((!xmlStrcmp(enode->name, "Parrent"))&&(rpos<RCC_MAX_RELATIONS)) {
+			if ((!xmlStrcmp(enode->name, (xmlChar*)"Parrent"))&&(rpos<RCC_MAX_RELATIONS)) {
 			    parent = rccXmlGetText(enode);
 			    if (!parent) continue;
 			    rcc_default_relations[rpos].parent = parent;
@@ -254,7 +273,7 @@ static xmlNodePtr rccNodeFind(xmlXPathContextPtr xpathctx, const char *request, 
 	va_end(ap);
     } else req = (char*)request;
     
-    obj = xmlXPathEvalExpression(req, xpathctx);
+    obj = xmlXPathEvalExpression((xmlChar*)req, xpathctx);
     if (obj) {
 	node_set = obj->nodesetval;
 	if ((node_set)&&(node_set->nodeNr > 0)) {
@@ -328,7 +347,7 @@ int rccSave(rcc_context ctx, const char *name) {
     }
     
     if (!doc) {
-	doc = xmlNewDoc("1.0");
+	doc = xmlNewDoc((xmlChar*)"1.0");
 	if (!doc) goto clear;
 	pnode = NULL;
     } else {
@@ -341,17 +360,17 @@ int rccSave(rcc_context ctx, const char *name) {
 	onode = rccNodeFind(xpathctx, XPATH_SELECTED_OPTIONS);
 	llnode = rccNodeFind(xpathctx, XPATH_SELECTED_LANGS);
     } else {
-	pnode = xmlNewChild((xmlNodePtr)doc, NULL, "Config", NULL);
+	pnode = xmlNewChild((xmlNodePtr)doc, NULL, (xmlChar*)"Config", NULL);
 	lnode = NULL;
 	onode = NULL;
 	llnode = NULL;
     }
     
-    if (lnode) xmlNodeSetContent(lnode, rccGetSelectedLanguageName(ctx));
-    else lnode = xmlNewChild(pnode,NULL, "Language", rccGetSelectedLanguageName(ctx));
+    if (lnode) xmlNodeSetContent(lnode, (xmlChar*)rccGetSelectedLanguageName(ctx));
+    else lnode = xmlNewChild(pnode,NULL, (xmlChar*)"Language", (xmlChar*)rccGetSelectedLanguageName(ctx));
 
     if (onode) oflag = 1;
-    else onode = xmlNewChild(pnode, NULL, "Options", NULL);
+    else onode = xmlNewChild(pnode, NULL, (xmlChar*)"Options", NULL);
     
     for (i=0;i<RCC_MAX_OPTIONS;i++) {
 	odesc = rccGetOptionDescription(i);
@@ -372,15 +391,15 @@ int rccSave(rcc_context ctx, const char *name) {
 	    else sprintf(value, "%i", ovalue);
 	}
 	
-	if (node) xmlNodeSetContent(node, value);
+	if (node) xmlNodeSetContent(node, (xmlChar*)value);
 	else {
-	    node = xmlNewChild(onode, NULL, "Option", value);
-	    xmlSetProp(node, "name", oname);
+	    node = xmlNewChild(onode, NULL, (xmlChar*)"Option", (xmlChar*)value);
+	    xmlSetProp(node, (xmlChar*)"name", (xmlChar*)oname);
 	}
     }
 
     if (llnode) llflag = 1;
-    else llnode = xmlNewChild(pnode, NULL, "Languages", NULL);
+    else llnode = xmlNewChild(pnode, NULL, (xmlChar*)"Languages", NULL);
 
     languages = ctx->languages;
     classes = ctx->classes;
@@ -396,18 +415,18 @@ int rccSave(rcc_context ctx, const char *name) {
 	    enode = rccNodeFind(xpathctx, XPATH_SELECTED_ENGINE, language->sn);
 	    cnode = rccNodeFind(xpathctx, XPATH_SELECTED_CLASSES, language->sn);
 	} else {
-	    lnode = xmlNewChild(llnode, NULL, "Language", NULL);
-	    xmlSetProp(lnode, "name", language->sn);
+	    lnode = xmlNewChild(llnode, NULL, (xmlChar*)"Language", NULL);
+	    xmlSetProp(lnode, (xmlChar*)"name", (xmlChar*)language->sn);
 	    enode = NULL;
 	    cnode = NULL;
 	}
 	
-	if (enode) xmlNodeSetContent(enode, rccConfigGetSelectedEngineName(cfg));
-	else xmlNewChild(lnode, NULL, "Engine", rccConfigGetSelectedEngineName(cfg));
+	if (enode) xmlNodeSetContent(enode, (xmlChar*)rccConfigGetSelectedEngineName(cfg));
+	else xmlNewChild(lnode, NULL, (xmlChar*)"Engine", (xmlChar*)rccConfigGetSelectedEngineName(cfg));
 	
 	if (cnode) cflag = 1;
 	else {
-	    cnode = xmlNewChild(lnode, NULL, "Classes", NULL);
+	    cnode = xmlNewChild(lnode, NULL, (xmlChar*)"Classes", NULL);
 	    cflag = 0;
 	}
 	
@@ -418,10 +437,10 @@ int rccSave(rcc_context ctx, const char *name) {
 	    if (cflag) node = rccNodeFind(xpathctx, XPATH_SELECTED_CLASS, language->sn, cl->name);
 	    else node = NULL;
 	
-	    if (node) xmlNodeSetContent(node, rccConfigGetSelectedCharsetName(cfg, (rcc_class_id)j));
+	    if (node) xmlNodeSetContent(node, (xmlChar*)rccConfigGetSelectedCharsetName(cfg, (rcc_class_id)j));
 	    else {
-		node = xmlNewChild(cnode, NULL, "Class", rccConfigGetSelectedCharsetName(cfg, (rcc_class_id)j));
-		xmlSetProp(node, "name", cl->name);
+		node = xmlNewChild(cnode, NULL, (xmlChar*)"Class", (xmlChar*)rccConfigGetSelectedCharsetName(cfg, (rcc_class_id)j));
+		xmlSetProp(node, (xmlChar*)"name", (xmlChar*)cl->name);
 	    }
 	}
     }

@@ -1,3 +1,22 @@
+/*
+  LibRCC UI - base implmentation
+
+  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of version 2 of the GNU General Public License as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -53,7 +72,7 @@
 
 
 static const char *rccUiXmlGetText(xmlNodePtr node) {
-    if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return node->children->content;
+    if ((node)&&(node->children)&&(node->children->type == XML_TEXT_NODE)&&(node->children->content)) return (const char*)node->children->content;
     return NULL;
 }
 
@@ -87,7 +106,7 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 	va_end(ap);
     } else req = (char*)request;
     
-    obj = xmlXPathEvalExpression(req, xpathctx);
+    obj = xmlXPathEvalExpression((xmlChar*)req, xpathctx);
     if (obj) {
 	node_set = obj->nodesetval;
 	if ((node_set)&&(node_set->nodeNr > 0)) {
@@ -114,7 +133,7 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 		if (icnv) { \
 		    tmpbuf = rccIConv(icnv, fullname, 0, NULL); \
 		    if (tmpbuf) { \
-			cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf); \
+			cnode = xmlNewChild(node->parent, NULL, (xmlChar*)"Recoded", (xmlChar*)tmpbuf); \
 			fullname = rccUiXmlGetText(cnode); \
 			if (!fullname) fullname = rccUiXmlGetText(node); \
 			free(tmpbuf); \
@@ -125,7 +144,7 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 	} \
 
 #define DO_NAME(XPATH_ME, XPATH_ME_REQUEST, XPATH_ME_REQUEST_LOCALE, my_name) \
-	obj = xmlXPathEvalExpression(XPATH_ME, xpathctx); \
+	obj = xmlXPathEvalExpression((xmlChar*)XPATH_ME, xpathctx); \
 	if (obj) { \
 	    node_set = obj->nodesetval; \
 	    if (node_set) nnodes = node_set->nodeNr; \
@@ -139,8 +158,8 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 	\
         for (i=0,k=0;i<nnodes;i++) { \
 	    node = node_set->nodeTab[i]; \
-	    attr = xmlHasProp(node, "name"); \
-	    class_name = attr->children->content; \
+	    attr = xmlHasProp(node, (xmlChar*)"name"); \
+	    class_name = (const char*)attr->children->content; \
 	    \
 	    if ((!class_name)||(!class_name[0])) continue; \
 	    \
@@ -157,7 +176,7 @@ static xmlNodePtr rccUiNodeFind(xmlXPathContextPtr xpathctx, const char *request
 		    if (icnv) { \
 			tmpbuf = rccIConv(icnv, fullname, 0, NULL); \
 			if (tmpbuf) { \
-			    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf); \
+			    cnode = xmlNewChild(node->parent, NULL, (xmlChar*)"Recoded", (xmlChar*)tmpbuf); \
 			    fullname = rccUiXmlGetText(cnode); \
 			    if (!fullname) fullname = rccUiXmlGetText(node); \
 			    free(tmpbuf); \
@@ -247,7 +266,7 @@ int rccUiInit() {
     if (xmlctx) xpathctx = xmlXPathNewContext(xmlctx);
     else xpathctx = NULL;
     if (xpathctx) {
-	obj = xmlXPathEvalExpression(XPATH_LANGUAGE, xpathctx);
+	obj = xmlXPathEvalExpression((xmlChar*)XPATH_LANGUAGE, xpathctx);
 	if (obj) {
 	    node_set = obj->nodesetval;
 	    if (node_set) nnodes = node_set->nodeNr;
@@ -256,8 +275,8 @@ int rccUiInit() {
 	
         for (i=0;i<nnodes;i++) {
 	    node = node_set->nodeTab[i];
-	    attr = xmlHasProp(node, "name");
-	    lang = attr->children->content;
+	    attr = xmlHasProp(node, (xmlChar*)"name");
+	    lang = (const char*)attr->children->content;
 	    
 	    if ((!lang)||(!lang[0])) continue;
 	    
@@ -274,7 +293,7 @@ int rccUiInit() {
 	    if (icnv) {
 		tmpbuf = rccIConv(icnv, fullname, 0, NULL);
 		if (tmpbuf) {
-		    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
+		    cnode = xmlNewChild(node->parent, NULL, (xmlChar*)"Recoded", (xmlChar*)tmpbuf);
 		    fullname = rccUiXmlGetText(cnode);
 		    if (!fullname) fullname = rccUiXmlGetText(node);
 		    free(tmpbuf);
@@ -293,7 +312,7 @@ int rccUiInit() {
 	
 	if (obj) xmlXPathFreeObject(obj);
 	
-	obj = xmlXPathEvalExpression(XPATH_OPTION, xpathctx);
+	obj = xmlXPathEvalExpression((xmlChar*)XPATH_OPTION, xpathctx);
 	if (obj) {
 	    node_set = obj->nodesetval;
 	    if (node_set) nnodes = node_set->nodeNr;
@@ -302,8 +321,8 @@ int rccUiInit() {
 	
         for (i=0;i<nnodes;i++) {
 	    node = node_set->nodeTab[i];
-	    attr = xmlHasProp(node, "name");
-	    opt = attr->children->content;
+	    attr = xmlHasProp(node, (xmlChar*)"name");
+	    opt = (const char*)attr->children->content;
 
 	    if ((!opt)||(!opt[0])) continue;
 	    option = rccGetOptionByName(opt);
@@ -323,7 +342,7 @@ int rccUiInit() {
 		    if (icnv) {
 			tmpbuf = rccIConv(icnv, fullname, 0, NULL);
 			if (tmpbuf) {
-			    cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
+			    cnode = xmlNewChild(node->parent, NULL, (xmlChar*)"Recoded", (xmlChar*)tmpbuf);
 			    fullname = rccUiXmlGetText(cnode);
 			    if (!fullname) fullname = rccUiXmlGetText(node);
 			    free(tmpbuf);
@@ -351,7 +370,7 @@ int rccUiInit() {
 			if (icnv) {
 			    tmpbuf = rccIConv(icnv, fullname, 0, NULL);
 			    if (tmpbuf) {
-				cnode = xmlNewChild(node->parent, NULL, "Recoded", tmpbuf);
+				cnode = xmlNewChild(node->parent, NULL, (xmlChar*)"Recoded", (xmlChar*)tmpbuf);
 				fullname = rccUiXmlGetText(cnode);
 				if (!fullname) fullname = rccUiXmlGetText(node);
 				free(tmpbuf);

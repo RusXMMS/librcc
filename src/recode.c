@@ -1,3 +1,22 @@
+/*
+  LibRCC - module providing language autodetection and recoding
+
+  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+
+  This program is free software; you can redistribute it and/or modify it
+  under the terms of version 2 of the GNU General Public License as published
+  by the Free Software Foundation.
+
+  This program is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  more details.
+
+  You should have received a copy of the GNU General Public License along
+  with this program; if not, write to the Free Software Foundation, Inc.,
+  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -125,17 +144,17 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (!strcasecmp(config->language->sn, rcc_english_language_sn)) english_mode = 1;
 	else english_mode = 0;
 	
-	utf8 = (char*)rccStringGetString(recoded);
+	utf8 = (unsigned char*)rccStringGetString(recoded);
 	
 	for (result=0,own=0,words=0,ownlongest=0,longest=0,mode=0,j=0;utf8[j];j++) {
 	    if (isSpace(utf8[j])) {
 		if (mode) {
 		    if ((english_mode)&&(!english_word)) is_english_string = 0;
 		    
-		    spres = rccSpellerSized(speller, utf8 + mode - 1, j - mode + 1, 1);
+		    spres = rccSpellerSized(speller, (char*)utf8 + mode - 1, j - mode + 1, 1);
 		    if (rccSpellerResultIsCorrect(spres)) {
 			result++;
-			chars = rccStringSizedGetChars(utf8 + mode - 1, j - mode + 1);
+			chars = rccStringSizedGetChars((char*)utf8 + mode - 1, j - mode + 1);
 			if (chars > longest) longest = chars;
 		    }
 		    if (rccSpellerResultIsOwn(spres)) {
@@ -161,10 +180,10 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 	if (mode) {
 	    if ((english_mode)&&(!english_word)) is_english_string = 0;
 		    
-	    spres = rccSpeller(speller, utf8 + mode - 1);
+	    spres = rccSpeller(speller, (char*)utf8 + mode - 1);
 	    if (rccSpellerResultIsCorrect(spres)) {
 		result++;
-		chars = rccStringSizedGetChars(utf8 + mode - 1, 0);
+		chars = rccStringSizedGetChars((char*)utf8 + mode - 1, 0);
 		if (chars > longest) longest = chars;
 	    }
 	    if (rccSpellerResultIsOwn(spres)) {

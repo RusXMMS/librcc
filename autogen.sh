@@ -8,7 +8,7 @@ KEYFILE=src/librcc.c
 # autoconf binary
 
 AUTOCONF=`which autoconf`
-if test x"${AUTOCONF}" != x -a -f ${AUTOCONF}
+if test x"${AUTOCONF}" != x -a -f "${AUTOCONF}"
 then
     AUTOCONF=autoconf
     AUTOMAKE=automake
