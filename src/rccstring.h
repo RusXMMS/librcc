@@ -40,7 +40,7 @@ int rccStringChangeID(rcc_string string, rcc_language_id language_id);
 
 #ifdef HAVE_STRNLEN
 # ifndef strnlen
-int strnlen(const char *str, size_t size);
+size_t strnlen(const char *str, size_t size);
 # endif /* !strnlen */
 #else
 int rccStrnlen(const char *str, size_t size);
