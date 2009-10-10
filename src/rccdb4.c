@@ -36,7 +36,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     DB_ENV *dbe;
     DB *db;
     
-# ifndef DB_LOG_AUTOREMOVE
+# if ((!defined(DB_LOG_AUTOREMOVE)) && (!defined(DB_LOG_AUTO_REMOVE)))
 #  ifdef DB_VERSION_MISMATCH
     char stmp[160];
 #  endif /* DB_VERSION_MISMATCH */
@@ -45,10 +45,20 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     err = db_env_create(&dbe, 0);
     if (err) return NULL;
 
-# ifdef DB_LOG_AUTOREMOVE
+# if defined(DB_LOG_AUTOREMOVE)
     dbe->set_flags(dbe, DB_LOG_AUTOREMOVE, 1);
     dbe->set_lg_max(dbe, 131072);
     
+    err = rccLock();
+    if (!err) {
+	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_TXN|DB_USE_ENVIRON|DB_INIT_LOCK|DB_INIT_MPOOL|DB_RECOVER, 00644);
+	rccUnLock();
+    } 
+# elif defined(DB_LOG_AUTO_REMOVE)
+	// Starting from berkeleydb 4.7 API has changed
+    dbe->log_set_config(dbe, DB_LOG_AUTO_REMOVE, 1);
+    dbe->set_lg_max(dbe, 131072);
+
     err = rccLock();
     if (!err) {
 	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_TXN|DB_USE_ENVIRON|DB_INIT_LOCK|DB_INIT_MPOOL|DB_RECOVER, 00644);
@@ -58,10 +68,13 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
 #  ifdef DB_VERSION_MISMATCH
     if (err == DB_VERSION_MISMATCH) {
-	if (!rccLock()) {    
+	if (!rccLock()) {
 	    err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_LOCK|DB_INIT_LOG|DB_INIT_MPOOL|DB_INIT_TXN|DB_USE_ENVIRON|DB_PRIVATE|DB_RECOVER, 0);
 	    dbe->close(dbe, 0);
-	    dbe->remove(dbe, dbpath, 0);
+	    if (err) {
+		err = db_env_create(&dbe, 0);
+	        if (!err) dbe->remove(dbe, dbpath, 0);
+	    }
 	    rccUnLock();
 	} else {
 	    err = -1;

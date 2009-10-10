@@ -33,3 +33,7 @@ ltversion.m4
 lt~obsolete.m4
 external/rccexternal
 stamp-h.in
+example1
+example2
+rcc-gtk-config
+rcc-gtk2-config
