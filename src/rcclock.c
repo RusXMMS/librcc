@@ -40,6 +40,9 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif /* HAVE_SYS_STAT_H */
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif /* HAVE_FCNTL_H */
 
 #include "rcchome.h"
 #include "rcclock.h"
@@ -70,7 +73,14 @@ int rccLock() {
     lockfd = open(stmp, O_RDWR|O_CREAT, 0644);
     if (lockfd >= 0) {
 	for (err = -1, i = 0; i < (LIBRCC_LOCK_WAIT/10); i++) {
+#if defined(HAVE_FLOCK)
 	    err = flock(lockfd, LOCK_EX|LOCK_NB);
+#elif defined(HAVE_LOCKF)
+	    err = lockf(lockfd, F_TLOCK, 1);
+#else
+# warning "No file locking mechanism is detected"
+	    err = 0; // We must believe in best
+#endif
 	    if ((err)&&(errno == EWOULDBLOCK)) nanosleep(&wait, NULL);
 	    else break;
 	}
@@ -85,7 +95,11 @@ int rccLock() {
 		lockfd = open(stmp, O_RDWR|O_CREAT, 0644);
 		if (lockfd >= 0) {
 		    for (err = -1, i = 0; i < (LIBRCC_LOCK_WAIT/10); i++) {
+#if defined(HAVE_FLOCK)
 			err = flock(lockfd, LOCK_EX|LOCK_NB);
+#elif defined(HAVE_LOCKF)
+			err = lockf(lockfd, F_TLOCK, 1);
+#endif
 			if ((err)&&(errno == EWOULDBLOCK)) nanosleep(&wait, NULL);
 			else break;
 		    }
@@ -121,7 +135,12 @@ void rccUnLock() {
 
     sprintf(stmp,"%s/.rcc/locks/rcc.lock", rcc_home_dir);
 
+#if defined(HAVE_FLOCK)
     flock(lockfd, LOCK_UN);
+#elif defined(HAVE_LOCKF)
+    lockf(lockfd, F_ULOCK, 1);
+#endif
+
     close(lockfd);
     lockfd = -1;
 #endif /* HAVE_SYS_FILE_H */

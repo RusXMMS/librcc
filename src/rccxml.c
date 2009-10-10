@@ -340,7 +340,12 @@ int rccSave(rcc_context ctx, const char *name) {
     sprintf(config,"%s/.rcc/%s.xml",rcc_home_dir,name);
     fd = open(config, O_CREAT|O_RDWR,00644);
     if (fd == -1) goto clear;
+
+#if defined(HAVE_FLOCK)
     flock(fd, LOCK_EX);
+#elif defined(HAVE_LOCKF)
+    lockf(fd, F_LOCK, 1);
+#endif
     
     if ((!fstat(fd, &st))&&(st.st_size)) {
 	doc = xmlReadFd(fd, config, NULL, 0);
@@ -463,7 +468,13 @@ clear:
 		xmlFreeDoc(doc);
 	    }
 	    fsync(fd);
-	    flock(fd, LOCK_UN);
+
+#if defined(HAVE_FLOCK)
+    	    flock(fd, LOCK_UN);
+#elif defined(HAVE_LOCKF)
+	    lockf(fd, F_ULOCK, 1);
+#endif
+
 	    close(fd);
 	}
 	free(config);
@@ -516,11 +527,22 @@ int rccLoad(rcc_context ctx, const char *name) {
     free(config);
 
     if (fd != -1) {
+#if defined(HAVE_FLOCK)
 	flock(fd, LOCK_EX);
+#elif defined(HAVE_LOCKF)
+	lockf(fd, F_LOCK, 1);
+#endif
+
 	if ((!fstat(fd, &st))&&(st.st_size)) {
 	    doc = xmlReadFd(fd, name, NULL, 0);
 	} 
+
+#if defined(HAVE_FLOCK)
 	flock(fd, LOCK_UN);
+#elif defined(HAVE_LOCKF)
+	lockf(fd, F_ULOCK, 1);
+#endif
+
 	close(fd);
     
 	if (doc) {
@@ -533,11 +555,22 @@ int rccLoad(rcc_context ctx, const char *name) {
     }
 
     if (sysfd != -1) {
+#if defined(HAVE_FLOCK)
 	flock(sysfd, LOCK_EX);
+#elif defined(HAVE_LOCKF)
+	lockf(sysfd, F_LOCK, 1);
+#endif
+
 	if ((!fstat(sysfd, &st))&&(st.st_size)) {
 	    sysdoc = xmlReadFd(sysfd, name, NULL, 0);
 	} 
+
+#if defined(HAVE_FLOCK)
 	flock(sysfd, LOCK_UN);
+#elif defined(HAVE_LOCKF)
+	lockf(sysfd, F_ULOCK, 1);
+#endif
+
 	close(sysfd);
     
 	if (sysdoc) {

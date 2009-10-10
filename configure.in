@@ -28,7 +28,7 @@ AC_SUBST(LIBRCC_CVS)
 AC_SUBST(LIBRCC_CVS_DATE)
 
 AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
-
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_CC
 AM_PROG_CC_C_O
@@ -53,6 +53,10 @@ dnl Checks for programs.
 AC_PATH_PROG(RM, rm, /bin/rm)
 AC_PATH_PROG(MV, mv, /bin/mv)
 AC_PATH_PROG(TAR, tar, /bin/tar)
+
+dnl Fixing ugly libtool, see for details
+dnl http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=523750
+RM="$RM -f"
 
 dnl Checks for header files.
 AC_CHECK_HEADERS(iconv.h,, [AC_MSG_ERROR(Missing iconv header)])
@@ -81,16 +85,25 @@ dnl ***
 dnl *** GTK1 (Optional)
 dnl ***
 AC_PATH_PROG(GTK_CONFIG, gtk-config, no)
-AM_CONDITIONAL(HAVE_GTK, [ test $GTK_CONFIG != no ])
 if test $GTK_CONFIG = no; then
-    GTK1_LIBS=""
-    GTK1_INCLUDES=""
     HAVE_GTK=no
 else
     GTK1_LIBS="\`gtk-config --libs\`"
     GTK1_INCLUDES="\`gtk-config --cflags\`"
-    HAVE_GTK=yes
+    
+    saved_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS `gtk-config --cflags`"
+    AC_CHECK_HEADER([gtk/gtk.h], [HAVE_GTK=yes], [HAVE_GTK=no])
+    CFLAGS=$saved_CFLAGS
 fi
+
+AM_CONDITIONAL(HAVE_GTK, [ test $HAVE_GTK = yes ])
+
+if test $HAVE_GTK = no; then
+    GTK1_LIBS=""
+    GTK1_INCLUDES=""
+fi
+
 AC_SUBST(GTK1_LIBS)
 AC_SUBST(GTK1_INCLUDES)
 
@@ -361,7 +374,7 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(strcasecmp strncasecmp strdup strnlen)
+AC_CHECK_FUNCS(strcasecmp strncasecmp strdup strnlen flock lockf)
 
 AC_OUTPUT(src/Makefile engines/Makefile external/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
 

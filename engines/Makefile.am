@@ -1,6 +1,6 @@
 lib_LTLIBRARIES = western_engine.la
 
-libdir = $(pkgdatadir)/engines
+libdir = $(pkgdatadir)engines
 
 if HAVE_RCD
 lib_LTLIBRARIES += librcd_engine.la
