@@ -81,6 +81,23 @@ die() {
     exit 1
 }
 
+compare_versions() {
+    ch_min_version=$1
+    ch_actual_version=$2
+    ch_status=0
+    IFS="${IFS=         }"; ch_save_IFS="$IFS"; IFS="."
+    set $ch_actual_version
+    for ch_min in $ch_min_version; do
+        ch_cur=`echo $1 | sed 's/[^0-9].*$//'`; shift # remove letter suffixes
+        if [ -z "$ch_min" ]; then break; fi
+        if [ -z "$ch_cur" ]; then ch_status=1; break; fi
+        if [ $ch_cur -gt $ch_min ]; then break; fi
+        if [ $ch_cur -lt $ch_min ]; then ch_status=1; break; fi
+    done
+    IFS="$ch_save_IFS"
+    return $ch_status
+}
+
 REQUIRED_M4MACROS=${REQUIRED_M4MACROS:-}
 FORBIDDEN_M4MACROS=${FORBIDDEN_M4MACROS:-}
 require_m4macro() {
@@ -110,6 +127,7 @@ check_m4macros() {
     # aclocal also searches a version specific dir, eg. /usr/share/aclocal-1.9
     # but it contains only Automake's own macros, so we can ignore it.
 
+    AUTOMAKE_VERSION=`$AUTOMAKE --version | sed -e '2,$ d' -e 's/ *([^()]*)$//' -e 's/.* \(.*\)/\1/' -e 's/-p[0-9]\+//'`
     # Read the dirlist file, supported by Automake >= 1.7.
     if compare_versions 1.7 $AUTOMAKE_VERSION && [ -s $cm_macrodirs/dirlist ]; then
 	cm_dirlist=`sed 's/[ 	]*#.*//;/^$/d' $cm_macrodirs/dirlist`
