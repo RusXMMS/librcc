@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	if (rccstring) {
 	    recoded = rccTo(NULL, 1, rccstring);
 	    if (recoded) {
-		printf(recoded);
+		printf("%s", recoded);
 		free(recoded);
 	    } else printf("Recoding from UTF-8 is failed\n");
 	    free(rccstring);

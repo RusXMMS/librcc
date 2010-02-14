@@ -49,9 +49,9 @@ int main() {
 	if (strlen(buf)<2) break;
 	recoded = rccRecode(NULL, 0, 1, buf);
 	if (recoded) {
-	    printf(recoded);
+	    printf("%s", recoded);
 	    free(recoded);
-	} else printf(buf);
+	} else printf("%s", buf);
     }
 
     rccFree();
