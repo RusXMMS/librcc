@@ -70,6 +70,7 @@ static char *addr = NULL;
 int rccExternalInit() {
 #ifdef HAVE_SIGNAL_H
     struct sigaction act;
+    struct stat st;
 #endif /* HAVE_SIGNAL_H */
 
     if (pid != (pid_t)-1) return 0;
@@ -93,8 +94,12 @@ int rccExternalInit() {
 
 	return 0;
     }
-    
-    execl(LIBRCC_DATA_DIR "/" RCC_EXT_PROG_NAME, RCC_EXT_PROG_NAME, NULL);
+
+    /*if ((!stat("../external/" RCC_EXT_PROG_NAME, &st))&&(st.st_mode&S_IXOTH)) {
+	execl ("../external/" RCC_EXT_PROG_NAME, RCC_EXT_PROG_NAME, NULL);
+    } else*/ if ((!stat(LIBRCC_DATA_DIR "/" RCC_EXT_PROG_NAME, &st))&&(st.st_mode&S_IXOTH)) {
+	execl(LIBRCC_DATA_DIR "/" RCC_EXT_PROG_NAME, RCC_EXT_PROG_NAME, NULL);
+    }
     exit(1);
 }
 

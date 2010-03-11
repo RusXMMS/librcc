@@ -64,7 +64,7 @@ int rccStringFixID(rcc_string string, rcc_context ctx) {
     header = (rcc_string_header*)string;
 
 
-    memcpy(lang, header->language, 2); lang[3] = 0;
+    memcpy(lang, header->language, 2); lang[2] = 0;
     curlang = rccGetLanguageName(ctx, header->language_id);
     if ((curlang)&&(!strcasecmp(lang, curlang))) return 0;
     

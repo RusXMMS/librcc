@@ -401,8 +401,8 @@ rcc_language_id rccRegisterLanguage(rcc_context ctx, rcc_language *language) {
     if ((i==1)&&(!language->charsets[1])&&(rccIsUTF8(language->charsets[0])))
 	    ctx->ilang[ctx->n_languages].latin = 1;
 
-    ctx->languages[ctx->n_languages++] = (rcc_language_ptr)(ctx->ilang + ctx->n_languages);
-    ctx->languages[ctx->n_languages] = NULL;
+    ctx->languages[ctx->n_languages] = (rcc_language_ptr)(ctx->ilang + ctx->n_languages);
+    ctx->languages[++ctx->n_languages] = NULL;
     
     if (!ctx->current_language)
 	ctx->current_config = rccGetCurrentConfig(ctx);
