@@ -508,8 +508,8 @@ rcc_class_id rccRegisterClass(rcc_context ctx, rcc_class *cl) {
     ctx->iclass[ctx->n_classes].disabled = NULL;
     ctx->iclass[ctx->n_classes].additional = NULL;
 
-    ctx->classes[ctx->n_classes++] = (rcc_class_ptr)(ctx->iclass + ctx->n_classes);
-    ctx->classes[ctx->n_classes] = NULL;
+    ctx->classes[ctx->n_classes] = (rcc_class_ptr)(ctx->iclass + ctx->n_classes);
+    ctx->classes[++ctx->n_classes] = NULL;
     
     if (!strcasecmp(cl->name, "id3")) {
 	rccRegisterDisabledCharsets(ctx, ctx->n_classes - 1, rcc_default_disabled_id3_charsets);
