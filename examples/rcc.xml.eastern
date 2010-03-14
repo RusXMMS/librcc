@@ -11,7 +11,7 @@
 		<Charset>ISO-IR-111</Charset>
 	    </Charsets>
 	</Language>
-	<Language name="cz">
+	<Language name="cs">
 	    <Charsets>
 		<Charset>CP1250</Charset>
 		<Charset>UTF-8</Charset>
