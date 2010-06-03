@@ -82,7 +82,7 @@ rcc_compiled_configuration rccGetCompiledConfiguration() {
     return &compiled_configuration;
 }
 
-int rccInit() {
+int rccInit(void) {
     int err;
     unsigned long i, rpos;
     
@@ -126,7 +126,7 @@ int rccInit() {
     return 0;
 }
 
-void rccFree() {
+void rccFree(void) {
     if (rcc_default_ctx) {
 	rccFreeContext(rcc_default_ctx);
 	rcc_default_ctx = NULL;
@@ -233,7 +233,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 
     if (locale_variable) {
 	if (strlen(locale_variable)>=RCC_MAX_VARIABLE_CHARS) {
-	    rccFree(ctx);
+	    rccFreeContext(ctx);
 	    return NULL;
 	}
 	strcpy(ctx->locale_variable, locale_variable);
@@ -251,7 +251,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 	    rccRegisterLanguage(ctx, rcc_default_languages+i);
 
 	if (max_languages < i) {
-	    rccFree(ctx);
+	    rccFreeContext(ctx);
 	    return NULL;
 	}
 
@@ -266,7 +266,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 	    rccRegisterClass(ctx, defclasses+i);
 
 	if (max_classes < i) {
-	    rccFree(ctx);
+	    rccFreeContext(ctx);
 	    return NULL;
 	}	    
     }
