@@ -83,7 +83,13 @@ static char *rccCreateFullName(const char *path, const char *filename) {
 static int rccIsFile(const char *filename) {
     struct stat st;
 
+#ifdef HAVE_SYS_STAT_H
+# ifdef S_ISREG
     if ((!stat(filename,&st))&&(S_ISREG(st.st_mode))) return 1;
+# else /* S_ISREG */
+    if (!stat(filename,&st)) return 1;
+# endif /* S_ISREG */
+#endif /* HAVE_SYS_STAT_H */
     return 0;
 }
 

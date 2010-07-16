@@ -64,14 +64,19 @@
 #define RCC_EXT_PROG_NAME "rccexternal"
 #define RCC_EXTERNAL_TIMEOUT			250 /* 100us */
 
+#ifdef HAVE_UNISTD_H
 static pid_t pid = (pid_t)-1;
 static char *addr = NULL;
+#endif /* HAVE_UNISTD_H */
 
 int rccExternalInit() {
-#ifdef HAVE_SIGNAL_H
+#ifdef HAVE_UNISTD_H
+# ifdef HAVE_SIGNAL_H
     struct sigaction act;
+# endif /* HAVE_SIGNAL_H */
+# ifdef HAVE_SYS_STAT_H
     struct stat st;
-#endif /* HAVE_SIGNAL_H */
+# endif /* HAVE_SYS_STAT_H */
 
     if (pid != (pid_t)-1) return 0;
 
@@ -85,25 +90,32 @@ int rccExternalInit() {
 	if (pid == (pid_t)-1) return -1;
 	sprintf(addr,"%s/.rcc/comm/%lu.sock", rcc_home_dir, (unsigned long)pid);
 
-#ifdef HAVE_SIGNAL_H
+# ifdef HAVE_SIGNAL_H
 	act.sa_handler = SIG_IGN;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;
 	sigaction(SIGPIPE,&act,NULL);
-#endif /* HAVE_SIGNAL_H */
+# endif /* HAVE_SIGNAL_H */
 
 	return 0;
     }
 
     /*if ((!stat("../external/" RCC_EXT_PROG_NAME, &st))&&(st.st_mode&S_IXOTH)) {
 	execl ("../external/" RCC_EXT_PROG_NAME, RCC_EXT_PROG_NAME, NULL);
-    } else*/ if ((!stat(LIBRCC_DATA_DIR "/" RCC_EXT_PROG_NAME, &st))&&(st.st_mode&S_IXOTH)) {
+    } else*/ 
+# ifdef HAVE_SYS_STAT_H
+    if ((!stat(LIBRCC_DATA_DIR "/" RCC_EXT_PROG_NAME, &st))&&(st.st_mode&S_IXOTH)) {
+# endif /* HAVE_SYS_STAT_H */
 	execl(LIBRCC_DATA_DIR "/" RCC_EXT_PROG_NAME, RCC_EXT_PROG_NAME, NULL);
+# ifdef HAVE_SYS_STAT_H
     }
+# endif /* HAVE_SYS_STAT_H */
+#endif /* HAVE_UNISTD_H */
     exit(1);
 }
 
 void rccExternalFree() {
+#ifdef HAVE_UNISTD_H
     int retry;
     pid_t res;
     struct timespec timeout = { 0, 5000000 };
@@ -122,9 +134,10 @@ void rccExternalFree() {
 
     pid = (pid_t)-1;
     if (addr) free(addr);
-
+#endif /* HAVE_UNISTD_H */
 }
 
+#ifdef HAVE_SYS_SELECT_H
 static int rccExternalSetDeadline(struct timeval *tv, unsigned long timeout) {
 /*
     gettimeofday(tv, NULL);
@@ -135,8 +148,10 @@ static int rccExternalSetDeadline(struct timeval *tv, unsigned long timeout) {
     tv->tv_usec = (timeout + RCC_EXTERNAL_TIMEOUT) % 1000000;
     return 0;
 }
+#endif /* HAVE_SYS_SELECT_H */
 
 size_t rccExternalWrite(int s, const char *buffer, ssize_t size, unsigned long timeout) {
+#ifdef HAVE_SYS_SELECT_H
     int err;
     unsigned char connected = 1;
     ssize_t writed, res = 0;
@@ -158,9 +173,13 @@ size_t rccExternalWrite(int s, const char *buffer, ssize_t size, unsigned long t
     }
 
     return size - writed;
+#else /* HAVE_SYS_SELECT_H */
+    return -1;
+#endif /* HAVE_SYS_SELECT_H */
 }
 
 size_t rccExternalRead(int s, char *buffer, ssize_t size, unsigned long timeout) {
+#ifdef HAVE_SYS_SELECT_H
     int err;
     unsigned char connected = 1;
     ssize_t readed, res = 0;
@@ -182,9 +201,13 @@ size_t rccExternalRead(int s, char *buffer, ssize_t size, unsigned long timeout)
     }
 
     return size - readed;
+#else /* HAVE_SYS_SELECT_H */
+    return -1;
+#endif /* HAVE_SYS_SELECT_H */
 }
 
 int rccExternalConnect(unsigned char module) {
+#ifdef HAVE_SYS_SOCKET_H
     int err;
     int retries = 10;
     int sock;
@@ -241,14 +264,19 @@ again:
     }
 
     return sock;
+#else /* HAVE_SYS_SOCKET_H */
+    return -1;
+#endif /* HAVE_SYS_SOCKET_H */
 }
 
 void rccExternalClose(int s) {
+#ifdef HAVE_SYS_SOCKET_H
     unsigned char cmd = 0;
     if (s != -1) {
 	write(s, &cmd, 1);
 	close(s);
     }
+#endif /* HAVE_SYS_SOCKET_H */
 }
 
 int rccExternalAllowOfflineMode() {

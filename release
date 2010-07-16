@@ -38,6 +38,9 @@ cp -a * $RDIR/$rname
     ./configure
     make clean distclean distclean-am -C examples 
     make clean distclean distclean-am
+    find . -name CMakeFiles -print0 | xargs -0 rm -rf
+    find . -name CMakeCache.txt -print0 | xargs -0 rm -rf
+    find . -name cmake_install.cmake -print0 | xargs -0 rm -rf
     rm -rf autom4te*.cache
     rm -rf "{arch}"
     rm -rf `find . -name .arch-ids`
@@ -51,6 +54,8 @@ cp -a * $RDIR/$rname
     tar cjf $rname.tar.bz2 $rname
     rm -rf $rname
 
-    scp $rname.tar.bz2 csa@dside.dyndns.org:/home/csa/public_html/files/rusxmms/
-    ssh csa@dside.dyndns.org ln -sf $rname.tar.bz2 /home/csa/public_html/files/rusxmms/$NAME-latest.tar.bz2
+    if [ ! "$cvs" == "cvs" ]; then
+	scp $rname.tar.bz2 csa@dside.dyndns.org:/home/csa/public_html/files/rusxmms/
+	ssh csa@dside.dyndns.org ln -sf $rname.tar.bz2 /home/csa/public_html/files/rusxmms/$NAME-latest.tar.bz2
+    fi
 )

@@ -37,3 +37,7 @@ example1
 example2
 rcc-gtk-config
 rcc-gtk2-config
+CMakeFiles
+cmake_install.cmake
+cmake_install.cmake
+CMakeCache.txt

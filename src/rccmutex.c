@@ -20,7 +20,16 @@
 #include <stdlib.h>
 #include <time.h>
 
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+
+#ifdef WIN32
+# include <windows.h>
+#endif /* WIN32 */
+
 #include "rccmutex.h"
+
 
 #define RCC_MUTEX_SLEEP 500
 
@@ -49,7 +58,9 @@ void rccMutexFree(rcc_mutex mutex) {
 
 int rccMutexLock(rcc_mutex mutex) {
 #ifndef HAVE_PTHREAD
+# ifdef HAVE_NANOSLEEP
     struct timespec ts;
+# endif /* HAVE_NANOSLEEP */
 #endif /* !HAVE_PTHREAD */
 
     if (!mutex) return -1;
@@ -58,9 +69,15 @@ int rccMutexLock(rcc_mutex mutex) {
     return pthread_mutex_lock(&mutex->mutex);
 #else
     while (mutex->mutex) {
+# if defined(HAVE_NANOSLEEP)
 	    ts.tv_sec = RCC_MUTEX_SLEEP / 1000000;
 	    ts.tv_nsec = (RCC_MUTEX_SLEEP % 1000000)*1000;
 	    nanosleep(&ts, NULL);
+# elif defined (HAVE_USLEEP)
+	    usleep(RCC_MUTEX_SLEEP);
+# elif defined (WIN32)
+	    Sleep((RCC_MUTEX_SLEEP<1000)?1:RCC_MUTEX_SLEEP/1000);
+# endif /* HAVE_NANOSLEEP */
     }
     mutex->mutex = 1;
 

@@ -18,10 +18,15 @@
 */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
+
+#include <string.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif /* HAVE_STRINGS_H */
+
 
 #include "../config.h"
 

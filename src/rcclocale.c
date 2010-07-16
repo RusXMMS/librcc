@@ -19,8 +19,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <locale.h>
+
+#include <string.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif /* HAVE_STRINGS_H */
+
 
 #include "../config.h"
 
@@ -35,11 +40,17 @@
 #include "rccconfig.h"
 
 int rccLocaleGetClassByName(const char *locale) {
+#ifdef LC_CTYPE
     if (!locale) return LC_CTYPE;
-
+    
     if (!strcmp(locale, "LC_CTYPE")) return LC_CTYPE;
+#endif /* LC_CTYPE */
+#ifdef LC_MESSAGES
     if (!strcmp(locale, "LC_MESSAGES")) return LC_MESSAGES;
+#endif /* LC_MESSAGES */
+#ifdef LC_COLLATE
     if (!strcmp(locale, "LC_COLLATE")) return LC_COLLATE;
+#endif /* LC_COLLATE */
 /*
     if (!strcmp(locale, "LC_ALL")) return LC_ALL;
     if (!strcmp(locale, "LC_NUMERIC")) return LC_NUMERIC;
