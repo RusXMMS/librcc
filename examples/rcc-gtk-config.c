@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <locale.h>
 #include <gtk/gtk.h>
 
 #include <librcc.h>
@@ -66,7 +67,12 @@ int main (int argc, char *argv[])
     if (i==1)
 	printf("Usage: rcc-config [ --all ] [ <config name> ]\n");
 
+#if GTK_MAJOR_VERSION > 2
+    setlocale(LC_ALL, "");
+#else /* GTK_MAJOR_VERSION < 3 */
     gtk_set_locale ();
+#endif /* GTK_MAJOR_VERSION */
+
     gtk_init (&argc, &argv);
 
     rccInit();
@@ -77,7 +83,11 @@ int main (int argc, char *argv[])
     if (all_mode) rccUiUnHideOption(uictx, RCC_OPTION_ALL);
 
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+#if GTK_MAJOR_VERSION > 2
+    gtk_window_set_resizable(GTK_WINDOW(window1), FALSE);
+#else /* GTK_MAJOR_VERSION < 3 */
     gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);
+#endif /* GTK_MAJOR_VERSION */
     gtk_window_set_title (GTK_WINDOW (window1), "LibRCC Config");
     gtk_window_set_wmclass (GTK_WINDOW(window1), "librcc", "libRCC");
     gtk_widget_show(window1);
@@ -92,13 +102,22 @@ int main (int argc, char *argv[])
 
     close = gtk_button_new_with_label("Close");
     gtk_widget_show (close);
+#if GTK_MAJOR_VERSION > 2
+    g_signal_connect (G_OBJECT (window1), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect (G_OBJECT (close), "clicked", G_CALLBACK(gtk_main_quit), NULL);
+#else /* GTK_MAJOR_VERSION < 3 */
     gtk_signal_connect (GTK_OBJECT (window1), "destroy", GTK_SIGNAL_FUNC (gtk_main_quit), NULL);
     gtk_signal_connect (GTK_OBJECT (close), "clicked", GTK_SIGNAL_FUNC (gtk_main_quit), NULL);
+#endif /* GTK_MAJOR_VERSION */
     gtk_box_pack_start (GTK_BOX (hbox), close, FALSE, FALSE, 0);
 
     save = gtk_button_new_with_label("Save");
     gtk_widget_show (save);
+#if GTK_MAJOR_VERSION > 2
+    g_signal_connect(G_OBJECT(save), "clicked", G_CALLBACK(apply_cb), NULL);
+#else /* GTK_MAJOR_VERSION < 3 */
     gtk_signal_connect(GTK_OBJECT(save), "clicked", GTK_SIGNAL_FUNC(apply_cb), NULL);
+#endif /* GTK_MAJOR_VERSION */
     gtk_box_pack_start (GTK_BOX (hbox), save, FALSE, FALSE, 0);
 
     gtk_main ();

@@ -56,7 +56,7 @@
 # include <signal.h>
 #endif /* HAVE_SIGNAL_H */
 
-#include <glib/gthread.h>
+#include <glib.h>
 
 #include "../src/rcchome.h"
 #include "../src/rccexternal.h"

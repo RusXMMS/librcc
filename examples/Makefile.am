@@ -18,6 +18,14 @@ rcc_gtk2_config_LDADD=../ui/librccgtk2.la @GTK2_LIBS@
 rcc_gtk2_config_CPPFLAGS = @GTK2_CFLAGS@ -I../src -I../ui
 endif
 
+if HAVE_GTK3
+bin_PROGRAMS+= rcc-gtk3-config
+rcc_gtk3_config_SOURCES = rcc-gtk-config.c
+rcc_gtk3_config_LDADD=../ui/librccgtk3.la @GTK3_LIBS@
+rcc_gtk3_config_CPPFLAGS = @GTK3_CFLAGS@ -I../src -I../ui
+endif
+
+
 EXTRA_DIST= input-russian.txt rcc.xml rcc-example.xml mpg123-rcc.patch
 
 test: example2
