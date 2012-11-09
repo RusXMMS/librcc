@@ -61,7 +61,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 
     err = rccLock();
     if (!err) {
-	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_TXN|DB_USE_ENVIRON|DB_INIT_LOCK|DB_INIT_MPOOL|DB_RECOVER, 00644);
+	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_TXN|DB_USE_ENVIRON|DB_INIT_LOCK|DB_INIT_MPOOL|DB_RECOVER|DB_THREAD, 00644);
 	rccUnLock();
     } 
 # else /* DB_LOG_AUTOREMOVE */
