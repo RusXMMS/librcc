@@ -326,7 +326,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 		break;
 		case RCC_OPTION_RANGE_TYPE_RANGE:
 		    range = rccUiMenuGetRange(ctx);
-		    adjustment = gtk_adjustment_new(rccGetOption(rccctx, rccUiMenuGetOption(ctx)), range->min, range->max, range->step, range->step*5, range->step*5);
+		    adjustment = gtk_adjustment_new(rccGetOption(rccctx, rccUiMenuGetOption(ctx)), range->min, range->max, range->step, 0, 0);
 /*		    item = gtk_hscale_new(GTK_ADJUSTMENT(adjustment));
 		    gtk_scale_set_digits(GTK_SCALE(item), 0);*/
 		    item = gtk_spin_button_new(GTK_ADJUSTMENT(adjustment), range->step, 0);

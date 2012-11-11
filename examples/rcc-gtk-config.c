@@ -55,8 +55,12 @@ int main (int argc, char *argv[])
     unsigned int i;
     unsigned char all_mode = 0;
     GtkWidget *window1;
+    GtkWidget *scroll;
     GtkWidget *save, *close, *hbox;
     GtkWidget *box;
+    GdkGeometry hints;
+    GtkRequisition size;
+    char title[128];
     
     
     for (i=1;i<argc;i++) {
@@ -64,8 +68,20 @@ int main (int argc, char *argv[])
 	else if (!strcmp(argv[i], "--")) break;
 	else if ((!config)&&(strncmp(argv[i],"-",1))) config = argv[i];
     }
-    if (i==1)
+    if (i==1) {
 	printf("Usage: rcc-config [ --all ] [ <config name> ]\n");
+	printf(" Known configs: xmms, ftp, zip\n");
+    }
+    
+    if (config) {
+        if (strlen(config) > 64) {
+            fprintf(stderr, "Config name is too long...");
+            exit(-1);
+        }
+        sprintf(title, "LibRCC Config [%s]", config);
+    } else {
+        sprintf(title, "LibRCC Config [default]");
+    }
 
 #if GTK_MAJOR_VERSION > 2
     setlocale(LC_ALL, "");
@@ -84,17 +100,23 @@ int main (int argc, char *argv[])
 
     window1 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 #if GTK_MAJOR_VERSION > 2
-    gtk_window_set_resizable(GTK_WINDOW(window1), FALSE);
+//    gtk_window_set_resizable(GTK_WINDOW(window1), FALSE);
 #else /* GTK_MAJOR_VERSION < 3 */
-    gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);
+//    gtk_window_set_policy(GTK_WINDOW (window1), FALSE, FALSE, TRUE);
 #endif /* GTK_MAJOR_VERSION */
-    gtk_window_set_title (GTK_WINDOW (window1), "LibRCC Config");
+    gtk_window_set_title (GTK_WINDOW (window1), title);
     gtk_window_set_wmclass (GTK_WINDOW(window1), "librcc", "libRCC");
     gtk_widget_show(window1);
     
+    scroll = gtk_scrolled_window_new(NULL, NULL);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    gtk_widget_show(scroll);
+    gtk_container_add(GTK_CONTAINER(window1), scroll);
+    
     box = rccUiGetPage(uictx, NULL);
     gtk_widget_show (box);
-    gtk_container_add (GTK_CONTAINER (window1), box);
+//    gtk_container_add (GTK_CONTAINER (window1), box);
+    gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scroll), box);
 
     hbox = gtk_hbox_new (TRUE, 0);
     gtk_widget_show (hbox);
@@ -119,6 +141,18 @@ int main (int argc, char *argv[])
     gtk_signal_connect(GTK_OBJECT(save), "clicked", GTK_SIGNAL_FUNC(apply_cb), NULL);
 #endif /* GTK_MAJOR_VERSION */
     gtk_box_pack_start (GTK_BOX (hbox), save, FALSE, FALSE, 0);
+
+    gtk_widget_size_request(box, &size);
+
+    hints.min_width =  size.width;
+    hints.min_height = size.height;
+
+#if GTK_MAJOR_VERSION < 3
+    hints.min_width +=  25;
+    hints.min_height += 25;
+#endif /* GTK_MAJOR_VERSION */
+
+    gtk_window_set_geometry_hints(GTK_WINDOW(window1), scroll, &hints, GDK_HINT_MIN_SIZE);
 
     gtk_main ();
 
