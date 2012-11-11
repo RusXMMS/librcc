@@ -50,6 +50,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 }
 
 static int rccDb4InitContext(db4_context ctx, const char *dbpath, rcc_db4_flags flags) {
+#ifdef HAVE_DB_H
     int err;
 
     if (ctx->initialized) {
@@ -68,7 +69,6 @@ static int rccDb4InitContext(db4_context ctx, const char *dbpath, rcc_db4_flags 
     ctx->initialized = 1;
     rccUnLock();
 
-#ifdef HAVE_DB_H
     DB_ENV *dbe;
     DB *db;
     
@@ -167,8 +167,8 @@ void rccDb4FreeContext(db4_context ctx) {
 #ifdef HAVE_DB_H
 	if (ctx->db) ctx->db->close(ctx->db, 0);
 	if (ctx->dbe) ctx->dbe->close(ctx->dbe, 0);
-	if (ctx->dbpath) free(ctx->dbpath);
 #endif /* HAVE_DB_H */
+	if (ctx->dbpath) free(ctx->dbpath);
 	free(ctx);
     }
 }
@@ -197,12 +197,10 @@ static void rccDb4Strip(DBT *key) {
 int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const char *string) {
 #ifdef HAVE_DB_H
     DBT key, data;
-#endif /* HAVE_DB_H */
 
     if ((!ctx)||(!orig)||(!string)) return -1;
     if (rccDb4InitContext(ctx, ctx->dbpath, ctx->flags)) return -1;
     
-#ifdef HAVE_DB_H
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
     
@@ -223,12 +221,10 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const char *str
 char *rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
 #ifdef HAVE_DB_H
     DBT key, data;
-#endif /* HAVE_DB_H */
 
     if ((!ctx)||(!orig)) return NULL;
     if (rccDb4InitContext(ctx, ctx->dbpath, ctx->flags)) return NULL;
 
-#ifdef HAVE_DB_H
     memset(&key, 0, sizeof(key));
     memset(&data, 0, sizeof(data));
 
