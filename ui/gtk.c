@@ -134,7 +134,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     rcc_class_id class_id;
     rcc_charset_id charset_id;
     rcc_engine_id engine_id;
-    gint value_id;
+    gint value_id = 0;
 
     const char *language;    
     const char *charset;
@@ -144,9 +144,12 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     rcc_option_name *option_name;
     rcc_option_value_names optnames;
     
-    GtkWidget *menu;
+    GtkWidget *menu = NULL;
     GtkWidget *item;
 #if GTK_MAJOR_VERSION > 2
+    GtkCellRenderer *cell = NULL;
+    GtkTreeStore *store = NULL;
+    GtkTreeIter iter;
     GtkAdjustment *adjustment;
 #else /* GTK_MAJOR_VERSION < 3 */
     GtkWidget *list;
@@ -160,15 +163,17 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 
     switch (ctx->type) {
 	case RCC_UI_MENU_LANGUAGE:
+#if GTK_MAJOR_VERSION < 3
 	case RCC_UI_MENU_CHARSET:
+#endif /* GTK_MAJOR_VERSION */
 	case RCC_UI_MENU_ENGINE:
             if (ctx->widget) menu = ctx->widget;
             else
 #if GTK_MAJOR_VERSION > 2
-	        menu = gtk_combo_box_text_new();
+                menu = gtk_combo_box_text_new();
 	    gtk_combo_box_text_remove_all(GTK_COMBO_BOX_TEXT(menu));
 #else /* GTK_MAJOR_VERSION < 3 */
-	        menu = gtk_option_menu_new();
+                menu = gtk_option_menu_new();
 	    gtk_option_menu_remove_menu(GTK_OPTION_MENU(menu));
 	    list = gtk_menu_new();
 #endif /* GTK_MAJOR_VERSION */
@@ -178,6 +183,30 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
         default:
             ;
     }
+
+#if GTK_MAJOR_VERSION > 2
+    switch (ctx->type) {
+	case RCC_UI_MENU_CHARSET:
+            if (ctx->widget) {
+                menu = ctx->widget;
+                store = GTK_TREE_STORE(gtk_combo_box_get_model(GTK_COMBO_BOX(menu)));
+                gtk_tree_store_clear(store);
+            } else {
+                store = gtk_tree_store_new(2, G_TYPE_STRING, G_TYPE_BOOLEAN);
+                menu = gtk_combo_box_new_with_model(GTK_TREE_MODEL(store));
+                g_object_unref (store);
+
+                cell = gtk_cell_renderer_text_new();
+                gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(menu), cell, TRUE);
+                gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT(menu), cell, "text", 0, "sensitive", 1, NULL);
+
+                ctx->widget = menu;
+            }
+        break;
+        default:
+            ;
+    }
+#endif /* GTK_MAJOR_VERSION */
 
     switch (ctx->type) {
 	case RCC_UI_MENU_LANGUAGE:
@@ -207,13 +236,14 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 	    class_id = rccUiMenuGetClassId(ctx);
 	    config = rccGetConfig(rccctx, language_id);
 	    num = rccConfigGetClassCharsetNumber(config, class_id);
-	    
+
 	    for (i=0;i<(num?num:1);i++) {
 		charset = rccUiGetCharsetName(uictx, language_id, class_id, (rcc_charset_id)i);
 		if (!charset) continue;
 		
 #if GTK_MAJOR_VERSION > 2
-                gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(menu), NULL, charset);
+                gtk_tree_store_append(store, &iter, NULL);
+                gtk_tree_store_set(store, &iter, 0, charset, 1, !rccIsDisabledCharsetName(rccctx, class_id, charset), -1);
 #else /* GTK_MAJOR_VERSION < 3 */
 		item = gtk_menu_item_new_with_label(charset);
 		if (rccIsDisabledCharsetName(rccctx, class_id, charset))
@@ -223,6 +253,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     		gtk_menu_append(GTK_MENU(list), item);
 #endif /* GTK_MAJOR_VERSION */
 	    }
+
     
 	    charset_id = rccConfigGetSelectedCharset(config, class_id);
 	    if (charset_id == (rcc_charset_id)-1) charset_id = 0;
