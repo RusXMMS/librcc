@@ -392,7 +392,7 @@ AC_C_CONST
 dnl Checks for library functions.
 AC_CHECK_FUNCS(strcasecmp strncasecmp strdup strnlen flock lockf nanosleep usleep fsync ftruncate)
 
-AC_OUTPUT(src/Makefile engines/Makefile external/Makefile ui/Makefile examples/Makefile Makefile librcc.spec)
+AC_OUTPUT(src/Makefile engines/Makefile external/Makefile ui/Makefile examples/Makefile Makefile librcc.spec librcc.pc)
 
 dnl ***
 dnl *** Data directory
