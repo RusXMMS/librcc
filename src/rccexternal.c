@@ -111,7 +111,7 @@ int rccExternalInit() {
     }
 # endif /* HAVE_SYS_STAT_H */
 #endif /* HAVE_UNISTD_H */
-    exit(1);
+    _exit(1);
 }
 
 void rccExternalFree() {

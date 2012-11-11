@@ -30,8 +30,44 @@
 #define DATABASE "autolearn.db"
 
 db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
-    int err;
     db4_context ctx;
+
+    if (!dbpath) return NULL;
+
+    ctx = (db4_context)malloc(sizeof(db4_context_s));
+    if (!ctx) return NULL;
+
+    memset(ctx, 0, sizeof(db4_context_s));
+    ctx->dbpath = strdup(dbpath);
+    ctx->flags = flags;
+
+    if (!ctx->dbpath) {
+        free(ctx);
+        return NULL;
+    }
+
+    return ctx;
+}
+
+static int rccDb4InitContext(db4_context ctx, const char *dbpath, rcc_db4_flags flags) {
+    int err;
+
+    if (ctx->initialized) {
+        if ((ctx->dbe)&&(ctx->db)) return 0;
+        return -1;
+    }
+
+    err = rccLock();
+    if (err) return -1;
+
+    if (ctx->initialized) {
+        if ((ctx->dbe)&&(ctx->db)) return 0;
+        return -1;
+    }
+
+    ctx->initialized = 1;
+    rccUnLock();
+
 #ifdef HAVE_DB_H
     DB_ENV *dbe;
     DB *db;
@@ -41,9 +77,9 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     char stmp[160];
 #  endif /* DB_VERSION_MISMATCH */
 # endif /* DB_LOG_AUTOREMOVE */
-    
+
     err = db_env_create(&dbe, 0);
-    if (err) return NULL;
+    if (err) return -1;
 
 # if defined(DB_LOG_AUTOREMOVE)
     dbe->set_flags(dbe, DB_LOG_AUTOREMOVE, 1);
@@ -81,7 +117,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	    dbe->close(dbe, 0);
 	}
 	
-	if (err) return NULL;
+	if (err) return -1;
 
 	if (strlen(dbpath)<128) {
 	    sprintf(stmp, "%s/log.0000000001", dbpath);
@@ -89,7 +125,7 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
 	}
 	    
 	err = db_env_create(&dbe, 0);
-	if (err) return NULL;
+	if (err) return -1;
 	    
 	err = dbe->open(dbe, dbpath, DB_CREATE|DB_INIT_CDB|DB_INIT_MPOOL, 00644);
 	
@@ -100,13 +136,13 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     if (err) {
 //	fprintf(stderr, "BerkelyDB initialization failed: %i (%s)\n", err, db_strerror(err));
 	dbe->close(dbe, 0);
-	return NULL;
+	return -1;
     }
     
     err = db_create(&db, dbe, 0);
     if (err) {
 	dbe->close(dbe, 0);
-	return NULL;
+	return -1;
     }
     
 
@@ -114,32 +150,24 @@ db4_context rccDb4CreateContext(const char *dbpath, rcc_db4_flags flags) {
     if (err) {
 	db->close(db, 0);
 	dbe->close(dbe, 0);
-	return NULL;
+	return -1;
     } 
 #endif /* HAVE_DB_H */
-
-    ctx = (db4_context)malloc(sizeof(db4_context_s));
-    if (!ctx) {
-#ifdef HAVE_DB_H
-    	db->close(db, 0);
-	dbe->close(dbe, 0);
-#endif /* HAVE_DB_H */
-	return NULL;
-    }
 
 #ifdef HAVE_DB_H
     ctx->db = db;
     ctx->dbe = dbe;
 #endif /* HAVE_DB_H */
-    ctx->flags = flags;
-    return ctx;
+
+    return 0;
 }
 
 void rccDb4FreeContext(db4_context ctx) {
     if (ctx) {
 #ifdef HAVE_DB_H
-	ctx->db->close(ctx->db, 0);
-	ctx->dbe->close(ctx->dbe, 0);
+	if (ctx->db) ctx->db->close(ctx->db, 0);
+	if (ctx->dbe) ctx->dbe->close(ctx->dbe, 0);
+	if (ctx->dbpath) free(ctx->dbpath);
 #endif /* HAVE_DB_H */
 	free(ctx);
     }
@@ -172,6 +200,7 @@ int rccDb4SetKey(db4_context ctx, const char *orig, size_t olen, const char *str
 #endif /* HAVE_DB_H */
 
     if ((!ctx)||(!orig)||(!string)) return -1;
+    if (rccDb4InitContext(ctx, ctx->dbpath, ctx->flags)) return -1;
     
 #ifdef HAVE_DB_H
     memset(&key, 0, sizeof(key));
@@ -197,6 +226,7 @@ char *rccDb4GetKey(db4_context ctx, const char *orig, size_t olen) {
 #endif /* HAVE_DB_H */
 
     if ((!ctx)||(!orig)) return NULL;
+    if (rccDb4InitContext(ctx, ctx->dbpath, ctx->flags)) return NULL;
 
 #ifdef HAVE_DB_H
     memset(&key, 0, sizeof(key));

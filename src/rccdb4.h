@@ -33,7 +33,9 @@ struct db4_context_t {
     DB_ENV *dbe;
     DB *db;
 #endif /* HAVE_DB_H */
-    
+
+    int initialized;
+    char *dbpath;
     rcc_db4_flags flags;
 };
 
