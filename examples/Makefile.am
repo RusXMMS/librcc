@@ -7,14 +7,14 @@ example2_LDADD= ../src/librcc.la
 if HAVE_GTK
 bin_PROGRAMS+= rcc-gtk-config
 rcc_gtk_config_SOURCES = rcc-gtk-config.c
-rcc_gtk_config_LDADD=../ui/librccgtk.la @GTK1_LIBS@
+rcc_gtk_config_LDADD= ../src/librcc.la ../ui/librccgtk.la @GTK1_LIBS@
 rcc_gtk_config_CPPFLAGS = @GTK1_INCLUDES@ -I../src -I../ui
 endif
 
 if HAVE_GTK2
 bin_PROGRAMS+= rcc-gtk2-config
 rcc_gtk2_config_SOURCES = rcc-gtk-config.c
-rcc_gtk2_config_LDADD=../ui/librccgtk2.la @GTK2_LIBS@
+rcc_gtk2_config_LDADD= ../src/librcc.la ../ui/librccgtk2.la @GTK2_LIBS@
 rcc_gtk2_config_CPPFLAGS = @GTK2_CFLAGS@ -I../src -I../ui
 endif
 
