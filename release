@@ -14,8 +14,8 @@ if [ ! -d $RDIR ]; then
     mkdir -p $RDIR
 fi
 
-version=`cat VERSION | perl -e "while (<STDIN>) {  if (m/(\d\.\d(.\d)?)/) { print \\$1; } }"`
-cvs=`cat VERSION | perl -e "while (<STDIN>) {  if (m/\d\.\d(.\d)?.*(cvs|CVS|Cvs)/) { print 'cvs'; } }"`
+version=`cat VERSION | perl -e "while (<STDIN>) {  if (m/(\d+\.\d+(.\d+)?)/) { print \\$1; } }"`
+cvs=`cat VERSION | perl -e "while (<STDIN>) {  if (m/\d+\.\d+(.\d+)?.*(cvs|CVS|Cvs)/) { print 'cvs'; } }"`
 if [ "$cvs" == "cvs" ]; then
     rname="$NAME-`date +%y%m%d.%H`"
 else
@@ -41,6 +41,8 @@ cp -a * $RDIR/$rname
     find . -name CMakeFiles -print0 | xargs -0 rm -rf
     find . -name CMakeCache.txt -print0 | xargs -0 rm -rf
     find . -name cmake_install.cmake -print0 | xargs -0 rm -rf
+    find . -name "*~" -print0 | xargs -0 rm -rf
+
     rm -rf autom4te*.cache
     rm -rf "{arch}"
     rm -rf `find . -name .arch-ids`
