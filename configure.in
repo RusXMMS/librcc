@@ -84,7 +84,16 @@ AC_SUBST(XML_INCLUDES)
 dnl ***
 dnl *** GTK1 (Optional)
 dnl ***
-AC_PATH_PROG(GTK_CONFIG, gtk-config, no)
+AC_ARG_ENABLE(gtk1,
+	      [  --disable-gtk1        disable gtk1 [default=enabled]],,
+	      enable_gtk1="yes")
+
+if test "x$enable_gtk1" = "xyes"; then
+    AC_PATH_PROG(GTK_CONFIG, gtk-config, no)
+else
+    GTK_CONFIG="no"
+fi
+
 if test $GTK_CONFIG = no; then
     HAVE_GTK=no
 else
