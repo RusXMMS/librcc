@@ -38,7 +38,7 @@
 		<Charset>ISO-IR-111</Charset>
 	    </Charsets>
 	</Language>
-	<Language name="cz">
+	<Language name="cs">
 	    <FullName locale="ru">Чешский</FullName>
 	    <Charsets>
 		<Charset>CP1250</Charset>
