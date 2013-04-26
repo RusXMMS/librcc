@@ -172,12 +172,12 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 		    mode = 0;
 		} else continue;
 	    } else {
-		if (mode) {
-		    if (utf8[j]>0x7F) english_word = 0;
-		} else {
+		if (!mode) {
 		    mode = j + 1;
 		    english_word = 1;
 		}
+
+		if (utf8[j]>0x7F) english_word = 0;
 	    }
 	}
 
@@ -200,7 +200,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 		    
 	    words++;
 	}
-	
+
 	if (english_mode) {
 	    if (english_string) free(english_string);
 
@@ -256,7 +256,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
         return english_lang;
     }
 
-    if ((bestres > RCC_ACCEPTABLE_PROBABILITY)&&(bestlongest > RCC_ACCEPTABLE_LENGTH)) {
+    if ((bestres > RCC_ACCEPTABLE_PROBABILITY)&&(bestlongest > RCC_ACCEPTABLE_LENGTH)&&(bestown>0)) {
 	if (english_string) free(english_string);
 	if (retstring) *retstring = best_string;
 	else if (best_string) free(best_string);
@@ -265,7 +265,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
         return bestlang;
     } 
 
-    if ((is_english_string)&&(english_res > RCC_ACCEPTABLE_PROBABILITY)&&(english_longest > RCC_ACCEPTABLE_LENGTH)) {
+    if ((is_english_string)&&(((english_res > RCC_ACCEPTABLE_PROBABILITY)&&(english_longest > RCC_ACCEPTABLE_LENGTH))||(!bestown))) {
 	if (best_string) free(best_string);	
 	if (retstring) *retstring = english_string;
 	else if (english_string) free(english_string);
