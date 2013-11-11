@@ -239,12 +239,13 @@ if test "x$enable_force_dynamic_engines" != "xyes"; then
     ])])
 fi
 
-AC_CHECK_HEADER(libguess.h, [AC_CHECK_LIB(guess, guess_jp, [ 
+AC_CHECK_HEADERS([libguess/libguess.h libguess.h], [AC_CHECK_LIB(guess, guess_jp, [ 
 	AC_DEFINE(HAVE_LIBGUESS,1,[Defines if libguess is available])
 	LIBGUESS_LIBS="-lguess"
 	LIBGUESS_INCLUDES=""
 	HAVE_LIBGUESS=yes
 ])])
+
 
 AM_CONDITIONAL(HAVE_RCD, [ test "x$HAVE_RCD" = "xyes" ])
 AM_CONDITIONAL(HAVE_ENCA, [ test "x$HAVE_ENCA" = "xyes" ])

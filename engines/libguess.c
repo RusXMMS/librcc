@@ -19,9 +19,31 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "../config.h"
 
 #include <librcc.h>
-#include <libguess.h>
+
+#ifdef HAVE_LIBGUESS_LIBGUESS_H
+# include <libguess/libguess.h>
+static const char *guess_jp(const char *buf, int buflen) {
+    return libguess_determine_encoding(buf, buflen,  GUESS_REGION_JP);
+}
+
+static const char *guess_cn(const char *buf, int buflen) {
+    return libguess_determine_encoding(buf, buflen, GUESS_REGION_CN);
+}
+
+static const char *guess_tw(const char *buf, int buflen) {
+    return libguess_determine_encoding(buf, buflen, GUESS_REGION_TW);
+}
+
+static const char *guess_kr(const char *buf, int buflen) {
+    return libguess_determine_encoding(buf, buflen, GUESS_REGION_KR);
+}
+
+#else /* HAVE_LIBGUESS_H */
+# include <libguess.h>
+#endif /* HAVE_LIBGUESS_LIBGUESS_H */
 
 #define UTF8_ID 0
 #define UTF16_ID 1
