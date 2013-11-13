@@ -604,7 +604,7 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
     rcc_class_default_charset *defcharset;
     const char *lang;
 
-    rcc_language *language;
+//    rcc_language *language;
     rcc_class_ptr *classes;
 
     rcc_class *cl;
@@ -626,7 +626,7 @@ rcc_charset_id rccConfigGetCurrentCharset(rcc_language_config config, rcc_class_
     }
     
     if (!config->language) return (rcc_charset_id)-1;
-    else language = config->language;
+//    else language = config->language;
 
     classes = config->ctx->classes;
         

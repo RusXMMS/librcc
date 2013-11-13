@@ -26,7 +26,7 @@
 
 
 int main(int argc, char *argv[]) {
-    rcc_language_id language_id, current_language_id, english_language_id;
+//    rcc_language_id language_id, current_language_id, english_language_id;
     rcc_string rccstring;
     const char *language;
     char buf[255];
@@ -48,11 +48,11 @@ int main(int argc, char *argv[]) {
 //    rccSetOption(NULL, RCC_OPTION_TIMEOUT, 5000000);
 //    rccSetOption(NULL, RCC_OPTION_CONFIGURED_LANGUAGES_ONLY, 0);
 
-    current_language_id = rccGetCurrentLanguage(NULL);
-    english_language_id = rccGetLanguageByName(NULL, "en");
+//    current_language_id = rccGetCurrentLanguage(NULL);
+//    english_language_id = rccGetLanguageByName(NULL, "en");
     if (argc>1) rccSetLanguageByName(NULL, argv[1]);
     else rccSetOption(NULL, RCC_OPTION_AUTODETECT_LANGUAGE, 1);
-    language_id = rccGetCurrentLanguage(NULL);
+//    language_id = rccGetCurrentLanguage(NULL);
 
     language = rccGetCurrentLanguageName(NULL);
     if (language) printf("Current Language: %s\n\n", language);

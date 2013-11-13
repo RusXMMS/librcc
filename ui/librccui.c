@@ -602,14 +602,14 @@ int rccUiSetClassNames(rcc_ui_context ctx) {
 
 int rccUiRestoreLanguage(rcc_ui_context ctx) {
     unsigned int i;
-    rcc_context rccctx;
-    rcc_language_id language_id;
+//    rcc_context rccctx;
+//    rcc_language_id language_id;
     
     if (!ctx) return -1;
 
-    rccctx = ctx->rccctx;
+//    rccctx = ctx->rccctx;
 
-    language_id = (rcc_language_id)rccUiMenuGet(ctx->language);
+//    language_id = (rcc_language_id)rccUiMenuGet(ctx->language);
     
     rccUiMenuConfigureWidget(ctx->engine);
     //rccUiMenuSet(ctx->engine, (rcc_ui_id)rccConfigGetSelectedEngine(config));
@@ -788,14 +788,14 @@ rcc_ui_frame rccUiGetLanguageFrame(rcc_ui_context ctx, rcc_ui_language_frame_nam
 rcc_ui_frame rccUiGetCharsetsFrame(rcc_ui_context ctx, rcc_ui_charset_frame_name *name) {
     unsigned int i;
     const char *class_name;
-    rcc_context rccctx;
+//    rcc_context rccctx;
     rcc_ui_frame_context framectx;
     rcc_ui_frame frame;
     rcc_ui_box charset;
     
     if (!ctx) return NULL;
     
-    rccctx = ctx->rccctx;
+//    rccctx = ctx->rccctx;
 
     framectx = ctx->charset_frame;
     if (framectx->frame) return framectx->frame;

@@ -152,7 +152,7 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
     GtkTreeIter iter;
     GtkAdjustment *adjustment;
 #else /* GTK_MAJOR_VERSION < 3 */
-    GtkWidget *list;
+    GtkWidget *list = NULL;
     GtkObject *adjustment;
 #endif /* GTK_MAJOR_VERSION */
 

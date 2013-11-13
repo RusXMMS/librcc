@@ -70,7 +70,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
     rcc_option_value usedb4;
     rcc_language_id bestlang = (rcc_language_id)-1;
     size_t bestlongest = RCC_ACCEPTABLE_LENGTH;
-    size_t bestownlongest = RCC_ACCEPTABLE_LENGTH;
+//    size_t bestownlongest = RCC_ACCEPTABLE_LENGTH;
     unsigned long bestown = 0;
     double bestres = RCC_ACCEPTABLE_PROBABILITY;
     char *best_string = NULL;
@@ -224,7 +224,7 @@ static rcc_language_id rccDetectLanguageInternal(rcc_context ctx, rcc_class_id c
 		bestlongest = longest;
 		best_string = recoded;
 		bestown = own;
-		bestownlongest = ownlongest;
+//		bestownlongest = ownlongest;
 		
 		if ((ownres > RCC_REQUIRED_PROBABILITY)&&(ownlongest > RCC_REQUIRED_LENGTH)) {
 		    bestfixlang = bestlang;
