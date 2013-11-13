@@ -366,7 +366,12 @@ int rccUiMenuConfigureWidget(rcc_ui_menu_context ctx) {
 
 rcc_ui_box rccUiBoxCreate(rcc_ui_menu_context ctx, const char *title) {
     GtkWidget *hbox, *label;
+#if GTK_MAJOR_VERSION > 2
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, BOX_SPACING);
+#else /* GTK_MAJOR_VERSION < 3 */
     hbox = gtk_hbox_new(FALSE, BOX_SPACING);
+#endif /* GTK_MAJOR_VERSION */
+
 
     gtk_container_border_width(GTK_CONTAINER(hbox), BOX_BORDER);
     if ((ctx->type != RCC_UI_MENU_OPTION)||(rccUiMenuGetRangeType(ctx) != RCC_OPTION_RANGE_TYPE_BOOLEAN)) {
@@ -388,7 +393,11 @@ rcc_ui_frame rccUiFrameCreate(rcc_ui_frame_context ctx, const char *title) {
     frame = gtk_frame_new(title?title:"");
     gtk_container_border_width(GTK_CONTAINER(frame), FRAME_BORDER);
 
+#if GTK_MAJOR_VERSION > 2
+    box = gtk_box_new(GTK_ORIENTATION_VERTICAL, FRAME_SPACING);
+#else /* GTK_MAJOR_VERSION < 3 */
     box = gtk_vbox_new(FALSE, FRAME_SPACING);
+#endif /* GTK_MAJOR_VERSION */
     gtk_widget_show(box);
     gtk_container_add(GTK_CONTAINER(frame), box);
 
@@ -412,7 +421,11 @@ int rccUiFrameAdd(rcc_ui_frame_context ctx, rcc_ui_box box) {
 
 rcc_ui_page rccUiPageCreate(rcc_ui_context ctx, const char *title) {
     GtkWidget *vbox;
+#if GTK_MAJOR_VERSION > 2
+    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, PAGE_SPACING);
+#else /* GTK_MAJOR_VERSION < 3 */
     vbox = gtk_vbox_new(FALSE, PAGE_SPACING);
+#endif /* GTK_MAJOR_VERSION */
     return (rcc_ui_page)vbox;
 }
 

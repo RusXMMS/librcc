@@ -115,10 +115,20 @@ int main (int argc, char *argv[])
     
     box = rccUiGetPage(uictx, NULL);
     gtk_widget_show (box);
-//    gtk_container_add (GTK_CONTAINER (window1), box);
-    gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scroll), box);
 
+#if ((GTK_MAJOR_VERSION < 3) || (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION < 7) || (GTK_MAJOR_VERSION == 3 && GTK_MINOR_VERSION == 7 && GTK_MICRO_VERSION < 8))
+    gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scroll), box);
+#else
+    gtk_container_add (GTK_CONTAINER (scroll), box);
+#endif
+
+#if GTK_MAJOR_VERSION > 2
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_box_set_homogeneous(GTK_BOX(hbox), TRUE);
+#else /* GTK_MAJOR_VERSION < 3 */
     hbox = gtk_hbox_new (TRUE, 0);
+#endif /* GTK_MAJOR_VERSION */
+
     gtk_widget_show (hbox);
     gtk_box_pack_start (GTK_BOX (box), hbox, FALSE, FALSE, 0);
 
@@ -142,7 +152,11 @@ int main (int argc, char *argv[])
 #endif /* GTK_MAJOR_VERSION */
     gtk_box_pack_start (GTK_BOX (hbox), save, FALSE, FALSE, 0);
 
+#if GTK_MAJOR_VERSION > 2
+    gtk_widget_get_preferred_size (box, NULL, &size);
+#else /* GTK_MAJOR_VERSION < 3 */
     gtk_widget_size_request(box, &size);
+#endif /* GTK_MAJOR_VERSION */
 
     hints.min_width =  size.width;
     hints.min_height = size.height;
