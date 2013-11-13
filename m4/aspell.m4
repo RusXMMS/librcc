@@ -18,7 +18,7 @@ CFLAGS="$CFLAGS $ASPELL_CFLAGS"
 LIBS="$LIBS $ASPELL_LIBS"
 
 AC_MSG_CHECKING([for Aspell])
-AC_RUN_IFELSE([
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <aspell.h>
 
 int main() {
@@ -26,7 +26,7 @@ int main() {
 
   exit(0);
 }
-], [found=yes], [found=no], [found=yes])
+]])], [found=yes], [found=no], [found=yes])
 AC_MSG_RESULT($found)
 
 CFLAGS="$ac_save_CFLAGS"

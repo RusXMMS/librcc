@@ -1,8 +1,14 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/librcc.c)
-AC_CONFIG_HEADERS(config.h)
 
-PACKAGE=librcc
+
+AC_INIT(librcc, m4_esyscmd([head -n 1 VERSION | sed -e s/CVS.*$// | tr -d \\n]))
+AC_CONFIG_SRCDIR([src/librcc.c])
+AC_CONFIG_HEADERS(config.h)
+AM_INIT_AUTOMAKE([subdir-objects])
+AC_CONFIG_MACRO_DIR([m4])
+
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
+
 LIBRCC_VERSION_MAJOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 1 | sed -e s/^$/0/`
 LIBRCC_VERSION_MINOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 2 | sed -e s/^$/0/`
 LIBRCC_VERSION_SUBMINOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 3 | sed -e s/^$/0/`
@@ -27,13 +33,12 @@ fi
 AC_SUBST(LIBRCC_CVS)
 AC_SUBST(LIBRCC_CVS_DATE)
 
-AM_INIT_AUTOMAKE($PACKAGE, $VERSION)
-AC_CONFIG_MACRO_DIR([m4])
-
 AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
+
+
 
 AC_C_CONST
 AC_TYPE_SIZE_T
@@ -86,7 +91,7 @@ dnl *** GTK1 (Optional)
 dnl ***
 AC_ARG_ENABLE(gtk1,
 	      [  --disable-gtk1        disable gtk1 [default=enabled]],,
-	      enable_gtk1="yes")
+	      [enable_gtk1="yes"])
 
 if test "x$enable_gtk1" = "xyes"; then
     AC_PATH_PROG(GTK_CONFIG, gtk-config, no)
@@ -121,10 +126,10 @@ dnl *** GLIB 2.0 (Optional)
 dnl ***
 AC_ARG_ENABLE(glib2,
 	      [  --disable-glib2        disable glib2 [default=enabled]],,
-	      enable_glib2="yes")
+	      [enable_glib2="yes"])
 
 if test "x$enable_glib2" = "xyes"; then
-	PKG_CHECK_MODULES(GLIB2, glib-2.0 >= 2.0.0, HAVE_GLIB2=yes, HAVE_GLIB2=no)
+	PKG_CHECK_MODULES(GLIB2, [glib-2.0 >= 2.0.0], [HAVE_GLIB2=yes], [HAVE_GLIB2=no])
 else
         HAVE_GLIB2=no
 fi
@@ -136,10 +141,10 @@ dnl *** GTK 2.0 (Optional)
 dnl ***
 AC_ARG_ENABLE(gtk2,
 	      [  --disable-gtk2        disable gtk2 [default=enabled]],,
-	      enable_gtk2="yes")
+	      [enable_gtk2="yes"])
 
 if test "x$enable_gtk2" = "xyes"; then
-	PKG_CHECK_MODULES(GTK2, gtk+-2.0 >= 2.0.0, HAVE_GTK2=yes, HAVE_GTK2=no)
+	PKG_CHECK_MODULES(GTK2, [gtk+-2.0 >= 2.0.0], [HAVE_GTK2=yes], [HAVE_GTK2=no])
 else
         HAVE_GTK2=no
 fi
@@ -151,10 +156,10 @@ dnl *** GTK 3.0 (Optional)
 dnl ***
 AC_ARG_ENABLE(gtk3,
 	      [  --disable-gtk3        disable gtk3 [default=enabled]],,
-	      enable_gtk3="yes")
+	      [enable_gtk3="yes"])
 
 if test "x$enable_gtk3" = "xyes"; then
-	PKG_CHECK_MODULES(GTK3, gtk+-3.0 >= 3.0.0, HAVE_GTK3=yes, HAVE_GTK3=no)
+	PKG_CHECK_MODULES(GTK3, [gtk+-3.0 >= 3.0.0], [HAVE_GTK3=yes], [HAVE_GTK3=no])
 else
         HAVE_GTK3=no
 fi
