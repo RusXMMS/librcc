@@ -271,9 +271,14 @@ again:
 
 void rccExternalClose(int s) {
 #ifdef HAVE_SYS_SOCKET_H
+    ssize_t ret;
     unsigned char cmd = 0;
     if (s != -1) {
-	write(s, &cmd, 1);
+retry:
+	ret = write(s, &cmd, 1);
+	    // retry once on signal
+	if ((ret < 0)&&(errno == EINTR)) 
+	    ret = write(s, &cmd, 1);
 	close(s);
     }
 #endif /* HAVE_SYS_SOCKET_H */

@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <errno.h>
 
 #include <string.h>
 #ifdef HAVE_STRINGS_H
@@ -455,10 +456,18 @@ int rccSave(rcc_context ctx, const char *name) {
     }
 
     xmlDocDumpFormatMemory(doc,&mem,&memsize,1);
-    ftruncate(fd, 0);
-    lseek(fd, SEEK_SET, 0);
+    
+    if (ftruncate(fd, 0) < 0) 
+        goto clear;
+
+    if (lseek(fd, SEEK_SET, 0))
+        goto clear;
+
     if (mem) {
-	write(fd, mem, memsize);
+        ssize_t ret = write(fd, mem, memsize);
+            // Retry once on signals
+        if ((ret < 0)&&(errno = EINTR))
+            ret = write(fd, mem, memsize);
 	free(mem);
     }
     
