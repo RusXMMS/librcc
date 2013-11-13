@@ -5,3 +5,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = librcc.pc
 
 ACLOCAL_AMFLAGS = -I m4
+
+clean-local:
+	make -C examples clean
+
