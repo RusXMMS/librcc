@@ -62,6 +62,8 @@
 #include "../src/rccexternal.h"
 #include "rcclibtranslate.h"
 
+#include "compat.h"
+
 #define RCC_EXIT_CHECK_TIMEOUT 10 /* seconds */
 
 
@@ -170,7 +172,7 @@ int main() {
 		info = (rcc_external_info)malloc(sizeof(rcc_external_info_s));
 		if (info) info->s = sd;
 		else break;
-		if (g_thread_create(rccLibTranslate, info, FALSE, NULL)) continue;
+		if (g_thread_create_compat(rccLibTranslate, info, FALSE)) continue;
 	    break;
 	}
 	close(sd);

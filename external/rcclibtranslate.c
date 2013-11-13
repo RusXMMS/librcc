@@ -42,7 +42,7 @@
 #include "../src/rcctranslate.h"
 #include "../src/rccdb4.h"
 #include "rcclibtranslate.h"
-
+#include "compat.h"
 
 #ifdef HAVE_LIBTRANSLATE
 static TranslateSession *session = NULL;
@@ -169,12 +169,12 @@ int rccLibTranslateInit(const char *rcc_home_dir) {
 	free(dbname);
     }
     if (db4ctx) {
-	mutex = g_mutex_new();
-	cond = g_cond_new();
+	mutex = g_mutex_new_compat();
+	cond = g_cond_new_compat();
 	if ((mutex)&&(cond))
 	    queue = g_queue_new();
 	if (queue)
-	    thread = g_thread_create(rccLibPostponed, NULL, TRUE, NULL);
+	    thread = g_thread_create_compat(rccLibPostponed, NULL, TRUE);
     }
 #endif /* HAVE_LIBTRANSLATE */
 
@@ -203,11 +203,11 @@ void rccLibTranslateFree() {
 	    queue = NULL;
 	}
 	if (mutex) {
-	    g_mutex_free(mutex);
+	    g_mutex_free_compat(mutex);
 	    mutex = NULL;
 	}
 	if (cond) {
-	    g_cond_free(cond);
+	    g_cond_free_compat(cond);
 	    cond = NULL;
 	}
 	if (db4ctx) rccDb4FreeContext(db4ctx);
