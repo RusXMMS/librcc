@@ -10,6 +10,9 @@
     - Solve mpg123 slowdown.
 
 0.3.x:
+    - Shall we always return result even if recoding is not required (not a NULL as now)?
+    Currently we have no way to know if something is failed or if we just have a correct
+    string already...
     - Language and Encoding autodetection improvements.
 	+ LibRCD should use DB4 with statistic for different languages
 	+ The statistic should be gathered using:

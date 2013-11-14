@@ -65,14 +65,17 @@ int main(int argc, char *argv[]) {
 	if (strlen(buf)<2) break;
 	
 	rccstring = rccFrom(NULL, 0, buf);
+	if (!rccstring) rccstring = strdup(buf);
+
 	if (rccstring) {
 	    recoded = rccTo(NULL, 1, rccstring);
+	    if (!recoded) recoded = strdup(rccstring);
 	    if (recoded) {
 		printf("%s", recoded);
 		free(recoded);
-	    } else printf("Recoding from UTF-8 is failed\n");
+	    } 
 	    free(rccstring);
-	} else printf("Recoding to UTF-8 is failed\n");
+	} 
     }
 
     rccFree();
