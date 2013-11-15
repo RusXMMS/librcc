@@ -1,6 +1,8 @@
 #ifndef _RCC_EXTERNAL_COMPAT_H
 #define _RCC_EXTERNAL_COMPAT_H
 
+#include <glib.h>
+
 # if GLIB_CHECK_VERSION(2,32,0)
 inline static GMutex *g_mutex_new_32() {
     GMutex *res = malloc(sizeof(GMutex));
