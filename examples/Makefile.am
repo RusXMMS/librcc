@@ -1,4 +1,5 @@
-bin_PROGRAMS= example1 example2
+bin_PROGRAMS=
+noinst_PROGRAMS= example1 example2
 example1_SOURCES= example1.c
 example1_LDADD= ../src/librcc.la
 example2_SOURCES= example2.c
@@ -27,6 +28,8 @@ endif
 
 
 EXTRA_DIST= input-russian.txt rcc.xml rcc-example.xml mpg123-rcc.patch
+
+
 
 test: example2
 	cat input-russian.txt | ./example2

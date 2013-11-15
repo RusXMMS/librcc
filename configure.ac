@@ -4,7 +4,9 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(librcc, m4_esyscmd([head -n 1 VERSION | sed -e s/CVS.*$// | tr -d \\n]))
 AC_CONFIG_SRCDIR([src/librcc.c])
 AC_CONFIG_HEADERS(config.h)
-AM_INIT_AUTOMAKE([subdir-objects])
+#AM_INIT_AUTOMAKE([subdir-objects])
+XC_AUTOMAKE()
+
 AC_CONFIG_MACRO_DIR([m4])
 
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
@@ -13,7 +15,6 @@ LIBRCC_VERSION_MAJOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 1 | sed -e s/^$
 LIBRCC_VERSION_MINOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 2 | sed -e s/^$/0/`
 LIBRCC_VERSION_SUBMINOR=`cat VERSION | sed -e s/CVS// | cut -d . -f 3 | sed -e s/^$/0/`
 LIBRCC_VERSION=$LIBRCC_VERSION_MAJOR.$LIBRCC_VERSION_MINOR.$LIBRCC_VERSION_SUBMINOR
-VERSION=$LIBRCC_VERSION
 LIBRCC_VERSION_INFO=`echo $LIBRCC_VERSION | awk -F. '{ printf "%d:%d:%d", $1+$2, $3, $2 }'`
 
 AC_SUBST(LIBRCC_VERSION)
@@ -37,7 +38,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
-
+AC_PROG_MAKE_SET
 
 
 AC_C_CONST
@@ -408,6 +409,10 @@ dnl Checks for library functions.
 AC_CHECK_FUNCS(strcasecmp strncasecmp strdup strnlen flock lockf nanosleep usleep fsync ftruncate)
 
 AC_OUTPUT(src/Makefile engines/Makefile external/Makefile ui/Makefile examples/Makefile Makefile librcc.spec librcc.pc)
+
+dnl This is a remedy of distclean in src destroying .deps directory and while distcleaning external it fails to include the dependencies
+dnl Stolen from curl and slightly adapted
+XC_AMEND_DISTCLEAN([external src])
 
 dnl ***
 dnl *** Data directory

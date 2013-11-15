@@ -1,11 +1,20 @@
 SUBDIRS = src engines external ui
-EXTRA_DIST = librcd.spec
+DIST_SUBDIRS = ${SUBDIRS} examples
+EXTRA_DIST = librcc.spec
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = librcc.pc
 
 ACLOCAL_AMFLAGS = -I m4
 
-clean-local:
-	make -C examples clean
+@SET_MAKE@
 
+.PHONY: examples
+
+examples:
+	${MAKE} -C examples
+
+clean-local:
+	if [ -f examples/Makefile ]; then\
+	    ${MAKE} -C examples clean;\
+	fi

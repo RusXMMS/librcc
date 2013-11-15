@@ -14,8 +14,8 @@ if [ ! -d $RDIR ]; then
     mkdir -p $RDIR
 fi
 
-version=`cat VERSION | perl -e "while (<STDIN>) {  if (m/(\d+\.\d+(.\d+)?)/) { print \\$1; } }"`
-cvs=`cat VERSION | perl -e "while (<STDIN>) {  if (m/\d+\.\d+(.\d+)?.*(cvs|CVS|Cvs)/) { print 'cvs'; } }"`
+version=`cat VERSION | perl -e "while (<STDIN>) {  if (m/(\d+\.\d+(.\d+)*)/) { print \\$1; } }"`
+cvs=`cat VERSION | perl -e "while (<STDIN>) {  if (m/\d+\.\d+(.\d+)*.*(cvs|CVS|Cvs)/) { print 'cvs'; } }"`
 if [ "$cvs" == "cvs" ]; then
     rname="$NAME-`date +%y%m%d.%H`"
 else
