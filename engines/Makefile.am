@@ -21,4 +21,4 @@ western_engine_la_LDFLAGS = -module -avoid-version -export-symbols-regex "rccGet
 western_engine_la_LIBADD = ../src/librcc.la
 
 
-AM_CPPFLAGS = -I../src @RCD_INCLUDES@ @LIBGUESS_INCLUDES@
+AM_CPPFLAGS = -I${top_srcdir}/src @RCD_INCLUDES@ @LIBGUESS_INCLUDES@

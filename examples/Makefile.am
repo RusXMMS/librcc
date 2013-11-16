@@ -9,21 +9,21 @@ if HAVE_GTK
 bin_PROGRAMS+= rcc-gtk-config
 rcc_gtk_config_SOURCES = rcc-gtk-config.c
 rcc_gtk_config_LDADD= ../src/librcc.la ../ui/librccgtk.la @GTK1_LIBS@
-rcc_gtk_config_CPPFLAGS = @GTK1_INCLUDES@ -I../src -I../ui
+rcc_gtk_config_CPPFLAGS = @GTK1_INCLUDES@ -I${top_srcdir}/src -I${top_srcdir}/ui
 endif
 
 if HAVE_GTK2
 bin_PROGRAMS+= rcc-gtk2-config
 rcc_gtk2_config_SOURCES = rcc-gtk-config.c
 rcc_gtk2_config_LDADD= ../src/librcc.la ../ui/librccgtk2.la @GTK2_LIBS@
-rcc_gtk2_config_CPPFLAGS = @GTK2_CFLAGS@ -I../src -I../ui
+rcc_gtk2_config_CPPFLAGS = @GTK2_CFLAGS@ -I${top_srcdir}/src -I${top_srcdir}/ui
 endif
 
 if HAVE_GTK3
 bin_PROGRAMS+= rcc-gtk3-config
 rcc_gtk3_config_SOURCES = rcc-gtk-config.c
 rcc_gtk3_config_LDADD=../ui/librccgtk3.la @GTK3_LIBS@
-rcc_gtk3_config_CPPFLAGS = @GTK3_CFLAGS@ -I../src -I../ui
+rcc_gtk3_config_CPPFLAGS = @GTK3_CFLAGS@ -I${top_srcdir}/src -I${top_srcdir}/ui
 endif
 
 

@@ -16,7 +16,7 @@ librccgtk_la_SOURCES = librccui.c \
     gtk.c    
 librccgtk_la_LIBADD = ../src/librcc.la @GTK1_LIBS@ @XML_LIBS@
 librccgtk_la_LDFLAGS = -version-info @LIBRCC_VERSION_INFO@
-librccgtk_la_CPPFLAGS = -I../src @XML_INCLUDES@ @GTK1_INCLUDES@
+librccgtk_la_CPPFLAGS = -I${top_srcdir}/src @XML_INCLUDES@ @GTK1_INCLUDES@
 endif
 
 if HAVE_GTK2
@@ -28,7 +28,7 @@ librccgtk2_la_SOURCES = librccui.c \
     gtk.c    
 librccgtk2_la_LIBADD = ../src/librcc.la @GTK2_LIBS@ @XML_LIBS@
 librccgtk2_la_LDFLAGS = -version-info @LIBRCC_VERSION_INFO@
-librccgtk2_la_CPPFLAGS = -I../src @XML_INCLUDES@ @GTK2_CFLAGS@
+librccgtk2_la_CPPFLAGS = -I${top_srcdir}/src @XML_INCLUDES@ @GTK2_CFLAGS@
 endif
 
 if HAVE_GTK3
@@ -40,8 +40,8 @@ librccgtk3_la_SOURCES = librccui.c \
     gtk.c    
 librccgtk3_la_LIBADD = ../src/librcc.la @GTK3_LIBS@ @XML_LIBS@
 librccgtk3_la_LDFLAGS = -version-info @LIBRCC_VERSION_INFO@
-librccgtk3_la_CPPFLAGS = -I../src @XML_INCLUDES@ @GTK3_CFLAGS@
+librccgtk3_la_CPPFLAGS = -I${top_srcdir}/src @XML_INCLUDES@ @GTK3_CFLAGS@
 endif
 
-AM_CPPFLAGS = -I../src @XML_INCLUDES@
+AM_CPPFLAGS = -I${top_srcdir}/src @XML_INCLUDES@
 include_HEADERS = librccui.h
