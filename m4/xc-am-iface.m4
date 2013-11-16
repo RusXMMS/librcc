@@ -229,7 +229,7 @@ dnl
 m4_if([$#], [1], [], [m4_fatal([$0: wrong number of arguments])])dnl
 m4_if([$1], [], [m4_fatal([$0: missing argument])])dnl
 dnl
-#AC_REQUIRE([XC_CONFIGURE_PREAMBLE])dnl
+dnl AC_REQUIRE([XC_CONFIGURE_PREAMBLE])dnl
 dnl
 m4_ifdef([_AM_PROG_CC_C_O],
 [

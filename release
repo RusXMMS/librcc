@@ -34,9 +34,10 @@ cp -a * $RDIR/$rname
 
 (
     cd $RDIR/$rname
-    ./autogen.sh
+    rm -f missing compile depcomp install-sh mkinstalldirs ar-lib
+    WANT_AUTOMAKE=1.9 WANT_AUTOCONF=2.5 ./autogen.sh
     ./configure
-    make clean distclean distclean-am -C examples 
+#    make clean distclean distclean-am -C examples 
     make clean distclean distclean-am
     find . -name CMakeFiles -print0 | xargs -0 rm -rf
     find . -name CMakeCache.txt -print0 | xargs -0 rm -rf

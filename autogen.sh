@@ -225,4 +225,3 @@ ${AUTOHEADER} ${AUTOHEADER_FLAGS}  || die
 if [ -f config.h.in ]; then touch config.h.in; fi
 ${AUTOMAKE} ${AUTOMAKE_FLAGS}      || die
 ${AUTOCONF} ${AUTOCONF_FLAGS}      || die
-
