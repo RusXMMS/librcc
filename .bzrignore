@@ -45,3 +45,6 @@ rcc-gtk3-config
 librcc.pc
 ar-lib
 src/.dirstamp
+depcomp
+install-sh
+missing
