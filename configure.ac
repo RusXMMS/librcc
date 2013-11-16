@@ -108,7 +108,11 @@ else
     
     saved_CFLAGS="$CFLAGS"
     CFLAGS="$CFLAGS `gtk-config --cflags`"
+dnl *** Preprocessor using CPPFLAGS
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS `gtk-config --cflags`"
     AC_CHECK_HEADER([gtk/gtk.h], [HAVE_GTK=yes], [HAVE_GTK=no])
+    CPPFLAGS=$saved_CPPFLAGS
     CFLAGS=$saved_CFLAGS
 fi
 
