@@ -188,7 +188,7 @@ rcc_context rccCreateContext(const char *locale_variable, unsigned int max_langu
 
     configs = (rcc_language_config)malloc((max_languages)*sizeof(struct rcc_language_config_t));
     
-    if ((!ctx)||(!languages)||(!classes)||(!mutex)||(!from)||(!ilang)||(!iclass)||(!mutex)) {
+    if ((!ctx)||(!languages)||(!classes)||(!from)||(!ilang)||(!iclass)||(!mutex)||(!configs)) {
 	if (mutex) rccMutexFree(mutex);
 	if (from) free(from);
 	if (configs) free(configs);
