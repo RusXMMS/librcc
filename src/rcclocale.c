@@ -90,7 +90,7 @@ int rccLocaleGetLanguage(char *result, const char *lv, unsigned int n) {
 
     for (j=0;rcc_default_aliases[j].alias;j++) 
 	if (strncmp(l,rcc_default_aliases[j].alias,i)==0) {
-	    l = rcc_default_aliases[j].alias;
+	    l = rcc_default_aliases[j].lang;
 	    break;
 	}
 
