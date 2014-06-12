@@ -35,6 +35,10 @@ rcc_language_alias rcc_default_aliases[RCC_MAX_ALIASES + 1];
 rcc_language_alias rcc_default_aliases_embeded[RCC_MAX_ALIASES + 1] = {
 /*    { "cs_SK", "sk" },
     { "ru_UA", "uk" },*/
+#ifdef _WIN32
+    { "Russian_Russia", "ru" },
+    { "Ukrainian_Ukraine", "uk" },
+#endif
     { NULL, NULL }
 };
 

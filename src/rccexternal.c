@@ -70,6 +70,7 @@ static char *addr = NULL;
 #endif /* HAVE_UNISTD_H */
 
 int rccExternalInit() {
+#ifndef _WIN32 	 		// WNOHANG is not defined
 #ifdef HAVE_UNISTD_H
 # ifdef HAVE_SIGNAL_H
     struct sigaction act;
@@ -111,10 +112,12 @@ int rccExternalInit() {
     }
 # endif /* HAVE_SYS_STAT_H */
 #endif /* HAVE_UNISTD_H */
+#endif /* _WIN32 */
     _exit(1);
 }
 
 void rccExternalFree() {
+#ifndef _WIN32			// WNOHANG is not defined
 #ifdef HAVE_UNISTD_H
     int retry;
     pid_t res;
@@ -135,6 +138,7 @@ void rccExternalFree() {
     pid = (pid_t)-1;
     if (addr) free(addr);
 #endif /* HAVE_UNISTD_H */
+#endif /* _WIN32 */
 }
 
 #ifdef HAVE_SYS_SELECT_H

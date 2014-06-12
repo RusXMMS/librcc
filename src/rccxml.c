@@ -340,7 +340,11 @@ int rccSave(rcc_context ctx, const char *name) {
     if (!config) return -1;
 
     sprintf(config,"%s/.rcc/",rcc_home_dir);
+#ifdef _WIN32
+    mkdir(config);
+#else
     mkdir(config, 00755);
+#endif
     
     sprintf(config,"%s/.rcc/%s.xml",rcc_home_dir,name);
     fd = open(config, O_CREAT|O_RDWR,00644);

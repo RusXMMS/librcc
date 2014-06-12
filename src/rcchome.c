@@ -49,8 +49,11 @@ void rccHomeSet() {
 #ifdef HAVE_PWD_H
     struct passwd *pw;
 #endif /* HAVE_PWD_H */
-
+#ifdef _WIN32
+    tmp = getenv ("HOMEPATH");
+#else
     tmp = getenv ("HOME");
+#endif
     if (tmp) rcc_home_dir = strdup (tmp);
 #ifdef HAVE_PWD_H
     else {

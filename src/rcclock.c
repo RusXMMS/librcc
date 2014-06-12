@@ -63,10 +63,18 @@ int rccLock() {
     if (!stmp) return -1;
 
     sprintf(stmp,"%s/.rcc/", rcc_home_dir);
+#ifdef _WIN32
+    mkdir(stmp);
+#else
     mkdir(stmp, 00755);
+#endif
     
     sprintf(stmp,"%s/.rcc/locks/", rcc_home_dir);
+#ifdef _WIN32
+    mkdir(stmp);
+#else
     mkdir(stmp, 00700);
+#endif
 
     sprintf(stmp,"%s/.rcc/locks/rcc.lock", rcc_home_dir);
 

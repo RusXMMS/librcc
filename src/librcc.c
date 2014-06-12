@@ -347,10 +347,18 @@ int rccInitDb4(rcc_context ctx, const char *name, rcc_db4_flags flags) {
     if (!dbname) return -1;
 
     sprintf(dbname,"%s/.rcc/",rcc_home_dir);
+#ifdef _WIN32
+    mkdir(dbname);
+#else
     mkdir(dbname, 00755);
+#endif
     
     sprintf(dbname,"%s/.rcc/%s.db/",rcc_home_dir,name);
+#ifdef _WIN32
+    mkdir(dbname);
+#else
     mkdir(dbname, 00755);
+#endif
 
     ctx->db4ctx = rccDb4CreateContext(dbname, flags);
     free(dbname);	
