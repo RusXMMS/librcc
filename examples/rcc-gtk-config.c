@@ -1,7 +1,7 @@
 /*
   LibRCC - standalone application for adjusting RCC configuration
 
-  Copyright (C) 2005-2008 Suren A. Chilingaryan <csa@dside.dyndns.org>
+  Copyright (C) 2005-2018 Suren A. Chilingaryan <csa@suren.me>
 
   This library is free software; you can redistribute it and/or modify it
   under the terms of the GNU Lesser General Public License version 2.1 or later
