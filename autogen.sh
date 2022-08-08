@@ -99,18 +99,11 @@ compare_versions() {
 }
 
 REQUIRED_M4MACROS=${REQUIRED_M4MACROS:-}
-FORBIDDEN_M4MACROS=${FORBIDDEN_M4MACROS:-}
+
 require_m4macro() {
     case "$REQUIRED_M4MACROS" in
 	$1\ * | *\ $1\ * | *\ $1) ;;
 	*) REQUIRED_M4MACROS="$REQUIRED_M4MACROS $1" ;;
-    esac
-}
-
-forbid_m4macro() {
-    case "$FORBIDDEN_M4MACROS" in
-	$1\ * | *\ $1\ * | *\ $1) ;;
-	*) FORBIDDEN_M4MACROS="$FORBIDDEN_M4MACROS $1" ;;
     esac
 }
 
@@ -180,28 +173,10 @@ check_m4macros() {
 	    fi
 	done
     fi
-    if [ -n "$FORBIDDEN_M4MACROS" ]; then
-	printbold "Checking for forbidden M4 macros..."
-	# check that each macro file is in one of the macro dirs
-	for cm_macro in $FORBIDDEN_M4MACROS; do
-	    cm_macrofound=false
-	    for cm_dir in $cm_macrodirs; do
-		if [ -f "$cm_dir/$cm_macro" ]; then
-		    cm_macrofound=true
-		    break
-		fi
-	    done
-	    if $cm_macrofound; then
-		printerr "  $cm_macro found (should be cleared from macros dir)"
-		cm_status=1
-	    fi
-	done
-    fi
     if [ "$cm_status" != 0 ]; then
 	printerr "***Error***: some autoconf macros required to build $PKG_NAME"
-	printerr "  were not found in your aclocal path, or some forbidden"
-	printerr "  macros were found.  Perhaps you need to adjust your"
-	printerr "  ACLOCAL_FLAGS?"
+	printerr "  were not found in your aclocal path."
+	printerr "  Perhaps you need to adjust your ACLOCAL_FLAGS?"
 	printerr
     fi
     return $cm_status
