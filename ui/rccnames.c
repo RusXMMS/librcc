@@ -29,7 +29,7 @@ rcc_name rcc_default_language_names[RCC_MAX_LANGUAGES+1];
 
 rcc_name rcc_default_language_names_embeded[RCC_MAX_LANGUAGES+1] = {
 {"default", "Autodetect"},
-{"off", "Dissable"},
+{"off", "Disable"},
 {"en", "English" },
 {"ru","Russian"},
 {"uk","Ukrainian"}, 

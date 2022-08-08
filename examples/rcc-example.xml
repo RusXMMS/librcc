@@ -50,7 +50,7 @@
 	    <FullName>Recodings Cache</FullName>
 	    <FullName locale="ru">Кэширование</FullName>
 	    <Value name="OFF">
-		<FullName>Dissable</FullName>
+		<FullName>Disable</FullName>
 		<FullName locale="ru">Выключено</FullName>
 	    </Value>
 	    <Value name="ON">
