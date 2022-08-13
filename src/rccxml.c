@@ -89,7 +89,6 @@ int rccXmlInit(int LoadConfiguration) {
     rcc_engine *engine;
     
     xmlInitParser();
-    xmlInitCharEncodingHandlers();
     xmlKeepBlanksDefault(0);
 
     if (LoadConfiguration) {
@@ -243,7 +242,6 @@ void rccXmlFree() {
 	xmlctx = NULL;
     }
 
-    xmlCleanupCharEncodingHandlers();
     xmlCleanupParser();
 }
 

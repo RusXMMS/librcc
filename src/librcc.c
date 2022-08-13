@@ -138,7 +138,9 @@ void rccFree(void) {
     }
     
     rccEngineFree();
-    rccXmlFree();
+	// Clean-up might cause problems if LibXML2 is also used by an application outside of LibXML2...
+	// According to LibXML2 developers, usage of this function is not advised, cleanup only should be performed on application exit, and is done libxml2 automatically.
+    //rccXmlFree();
     rccTranslateFree();
     rccPluginFree();
 
