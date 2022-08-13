@@ -59,6 +59,7 @@ dnl Checks for programs.
 AC_PATH_PROG(RM, rm, /bin/rm)
 AC_PATH_PROG(MV, mv, /bin/mv)
 AC_PATH_PROG(TAR, tar, /bin/tar)
+PKG_PROG_PKG_CONFIG
 
 dnl Fixing ugly libtool, see for details
 dnl http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=523750
@@ -78,14 +79,7 @@ dnl Checks for libraries.
 dnl ***
 dnl *** LibXML2 (Mandatory)
 dnl ***
-AC_PATH_PROG(XML2_CONFIG, xml2-config, no)
-if test $XML2_CONFIG = no; then
-    AC_MSG_ERROR(LibXML2 is required)
-fi
-XML_LIBS="\`xml2-config --libs\`"
-XML_INCLUDES="\`xml2-config --cflags\`"
-AC_SUBST(XML_LIBS)
-AC_SUBST(XML_INCLUDES)
+PKG_CHECK_MODULES([XML2], [libxml-2.0])
 
 dnl ***
 dnl *** GTK1 (Optional)
