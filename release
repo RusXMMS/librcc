@@ -58,7 +58,7 @@ cp -a * $RDIR/$rname
     rm -rf $rname
 
     if [ ! "$cvs" == "cvs" ]; then
-	scp $rname.tar.bz2 csa@dside.dyndns.org:/home/csa/public_html/files/rusxmms/
-	ssh csa@dside.dyndns.org ln -sf $rname.tar.bz2 /home/csa/public_html/files/rusxmms/$NAME-latest.tar.bz2
+	scp $rname.tar.bz2 csa@serv1.suren.me:/home/csa/public_html/files/rusxmms/
+	ssh csa@serv1.suren.me ln -sf $rname.tar.bz2 /home/csa/public_html/files/rusxmms/$NAME-latest.tar.bz2
     fi
 )
