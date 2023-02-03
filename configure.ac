@@ -26,7 +26,9 @@ AC_SUBST(LIBRCC_VERSION_INFO)
 LIBRCC_CVS=`cat VERSION | sed -e s/.*CVS.*/CVS/`
 if test "x$LIBRCC_CVS" = "xCVS"; then
 LIBRCC_CVS=1
-LIBRCC_CVS_DATE=`date +%y%m%d.%H`
+DATE_FMT="+%y%m%d.%H"
+SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
+LIBRCC_CVS_DATE=$(date -u -d "@$SOURCE_DATE_EPOCH" "$DATE_FMT" 2>/dev/null || date -u -r "$SOURCE_DATE_EPOCH" "$DATE_FMT" 2>/dev/null || date -u "$DATE_FMT")
 else 
 LIBRCC_CVS=0
 LIBRCC_CVS_DATE=0
